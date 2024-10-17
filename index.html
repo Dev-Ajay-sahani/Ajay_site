@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>No Fap Streak Counter with Logs</title>
+    <title>No Fap Streak Counter with PIN and Daily Limit</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -59,6 +59,31 @@
             height: 150px;
             overflow-y: auto;
         }
+        .locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -66,27 +91,47 @@
     <h1>No Fap Streak Counter</h1>
     <p id="currentDateTime" style="text-align: center;"></p>
 
-    <div class="profile" id="user1Profile">
-        <h2>Ajay</h2>
+    <div class="profile locked" id="user1Profile">
+        <h2>User 1</h2>
         <p class="streak-counter" id="user1Streak">Streak: 0</p>
-        <button class="increment" onclick="incrementStreak('user1')">+1 Day</button>
-        <button class="reset" onclick="resetStreak('user1')">Broken</button>
+        <button class="increment" id="user1Increment" onclick="incrementStreak('user1')">+1 Day</button>
+        <button class="reset" id="user1Reset" onclick="resetStreak('user1')">Broken</button>
         <button class="clear" onclick="clearLogs('user1')">Clear Logs</button>
         <h3>Log</h3>
         <div class="log" id="user1Log">No logs yet.</div>
+        <button onclick="showModal('user1')">Login</button>
     </div>
 
-    <div class="profile" id="user2Profile">
-        <h2>Shourya</h2>
+    <div class="profile locked" id="user2Profile">
+        <h2>User 2</h2>
         <p class="streak-counter" id="user2Streak">Streak: 0</p>
-        <button class="increment" onclick="incrementStreak('user2')">+1 Day</button>
-        <button class="reset" onclick="resetStreak('user2')">Broken</button>
+        <button class="increment" id="user2Increment" onclick="incrementStreak('user2')">+1 Day</button>
+        <button class="reset" id="user2Reset" onclick="resetStreak('user2')">Broken</button>
         <button class="clear" onclick="clearLogs('user2')">Clear Logs</button>
         <h3>Log</h3>
         <div class="log" id="user2Log">No logs yet.</div>
+        <button onclick="showModal('user2')">Login</button>
+    </div>
+
+    <!-- Modal for PIN entry -->
+    <div id="pinModal" class="modal">
+        <div class="modal-content">
+            <h3>Enter PIN for <span id="modalUser"></span></h3>
+            <input type="password" id="pinInput" placeholder="Enter PIN">
+            <button onclick="verifyPin()">Submit</button>
+        </div>
     </div>
 
     <script>
+        // Predefined PINs for each user
+        const pins = {
+            user1: "1234", // Set a PIN for user 1
+            user2: "5678"  // Set a PIN for user 2
+        };
+
+        // Variables to track the user who is logging in
+        let currentUser = '';
+
         // Initialize streaks and logs from localStorage or set them to default values
         const streaks = {
             user1: parseInt(localStorage.getItem('user1Streak')) || 0,
@@ -96,6 +141,50 @@
             user1: JSON.parse(localStorage.getItem('user1Logs')) || [],
             user2: JSON.parse(localStorage.getItem('user2Logs')) || []
         };
+
+        // Initialize last action dates from localStorage
+        const lastActionDates = {
+            user1: localStorage.getItem('user1LastActionDate') || null,
+            user2: localStorage.getItem('user2LastActionDate') || null
+        };
+
+        // Show modal for PIN entry
+        function showModal(user) {
+            currentUser = user;
+            document.getElementById('modalUser').textContent = user === 'user1' ? 'User 1' : 'User 2';
+            document.getElementById('pinModal').style.display = 'flex';
+        }
+
+        // Verify the entered PIN and unlock profile if correct
+        function verifyPin() {
+            const enteredPin = document.getElementById('pinInput').value;
+            if (enteredPin === pins[currentUser]) {
+                document.getElementById(`${currentUser}Profile`).classList.remove('locked');
+                document.getElementById('pinModal').style.display = 'none';
+                checkDailyLimit(currentUser); // Check if the daily limit applies
+            } else {
+                alert('Incorrect PIN!');
+            }
+        }
+
+        // Check if user already performed an action today
+        function checkDailyLimit(user) {
+            const today = new Date().toLocaleDateString();
+
+            if (lastActionDates[user] === today) {
+                // Disable the buttons if action was already performed today
+                document.getElementById(`${user}Increment`).classList.add('disabled');
+                document.getElementById(`${user}Reset`).classList.add('disabled');
+                document.getElementById(`${user}Increment`).disabled = true;
+                document.getElementById(`${user}Reset`).disabled = true;
+            } else {
+                // Enable the buttons if no action was performed today
+                document.getElementById(`${user}Increment`).classList.remove('disabled');
+                document.getElementById(`${user}Reset`).classList.remove('disabled');
+                document.getElementById(`${user}Increment`).disabled = false;
+                document.getElementById(`${user}Reset`).disabled = false;
+            }
+        }
 
         // Update the streak display and logs on the page
         function updateDisplay() {
@@ -109,6 +198,12 @@
 
         // Increment the streak and store it in localStorage
         function incrementStreak(user) {
+            const today = new Date().toLocaleDateString();
+            if (lastActionDates[user] === today) {
+                alert('You can only increment once per day!');
+                return;
+            }
+
             streaks[user]++;
             localStorage.setItem(`${user}Streak`, streaks[user]);
 
@@ -116,42 +211,5 @@
             logs[user].push(`[${currentTime}] Streak incremented: ${streaks[user]} days`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
-            updateDisplay();
-        }
-
-        // Reset the streak to 0 and update localStorage
-        function resetStreak(user) {
-            streaks[user] = 0;
-            localStorage.setItem(`${user}Streak`, 0);
-
-            const currentTime = new Date().toLocaleString();
-            logs[user].push(`[${currentTime}] Streak reset to 0`);
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
-
-            updateDisplay();
-        }
-
-        // Clear the logs for a specific user
-        function clearLogs(user) {
-            logs[user] = [];
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
-            updateDisplay();
-        }
-
-        // Show current date and time
-        function updateDateTime() {
-            const now = new Date();
-            const formattedDateTime = now.toLocaleString();
-            document.getElementById('currentDateTime').textContent = `Current Date & Time: ${formattedDateTime}`;
-        }
-
-        // Update the date/time every second
-        setInterval(updateDateTime, 1000);
-
-        // Initial update when the page loads
-        updateDisplay();
-        updateDateTime();
-    </script>
-
-</body>
-</html>
+            lastActionDates[user] = today;
+            localStorage.setItem(`${
