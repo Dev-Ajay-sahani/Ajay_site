@@ -72,7 +72,7 @@
 
     <!-- User Profiles -->
     <div class="profile" id="user1Profile">
-        <h2>User 1</h2>
+        <h2>Ajay</h2>
         <p class="streak-counter" id="user1Streak">Streak: 0</p>
         <button class="increment" id="user1Increment" onclick="incrementStreak('user1')">+1 Day</button>
         <button class="reset" id="user1Reset" onclick="resetStreak('user1')">Broken</button>
@@ -82,7 +82,7 @@
     </div>
 
     <div class="profile" id="user2Profile">
-        <h2>User 2</h2>
+        <h2>Shourya</h2>
         <p class="streak-counter" id="user2Streak">Streak: 0</p>
         <button class="increment" id="user2Increment" onclick="incrementStreak('user2')">+1 Day</button>
         <button class="reset" id="user2Reset" onclick="resetStreak('user2')">Broken</button>
@@ -92,7 +92,7 @@
     </div>
 
     <script>
-        // Initialize streaks, logs, and last clear dates from localStorage or set them to default values
+        // Initialize streaks and logs from localStorage or set them to default values
         const streaks = {
             user1: parseInt(localStorage.getItem('user1Streak')) || 0,
             user2: parseInt(localStorage.getItem('user2Streak')) || 0
@@ -101,9 +101,11 @@
             user1: JSON.parse(localStorage.getItem('user1Logs')) || [],
             user2: JSON.parse(localStorage.getItem('user2Logs')) || []
         };
-        const lastClearDates = {
-            user1: localStorage.getItem('user1LastClearDate') || null,
-            user2: localStorage.getItem('user2LastClearDate') || null
+
+        // Initialize last action dates from localStorage
+        const lastActionDates = {
+            user1: localStorage.getItem('user1LastActionDate') || null,
+            user2: localStorage.getItem('user2LastActionDate') || null
         };
 
         // Update the streak display and logs on the page
@@ -118,12 +120,21 @@
 
         // Increment the streak and store it in localStorage
         function incrementStreak(user) {
+            const today = new Date().toLocaleDateString();
+            if (lastActionDates[user] === today) {
+                alert('You can only increment once per day!');
+                return;
+            }
+
             streaks[user]++;
             localStorage.setItem(`${user}Streak`, streaks[user]);
 
             const currentTime = new Date().toLocaleString();
             logs[user].push(`[${currentTime}] Streak incremented: ${streaks[user]} days`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
+
+            lastActionDates[user] = today;
+            localStorage.setItem(`${user}LastActionDate`, today);
 
             updateDisplay();
         }
@@ -137,25 +148,16 @@
             logs[user].push(`[${currentTime}] Streak reset to 0`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
+            lastActionDates[user] = new Date().toLocaleDateString();
+            localStorage.setItem(`${user}LastActionDate`, lastActionDates[user]);
+
             updateDisplay();
         }
 
-        // Clear logs and store it in localStorage with weekly limit
+        // Clear logs and store it in localStorage
         function clearLogs(user) {
-            const today = new Date().toLocaleDateString();
-            const lastClearDate = lastClearDates[user];
-            const lastClearDateObj = lastClearDate ? new Date(lastClearDate) : null;
-            const daysSinceLastClear = lastClearDateObj ? Math.floor((new Date() - lastClearDateObj) / (1000 * 60 * 60 * 24)) : 7;
-
-            if (daysSinceLastClear < 7) {
-                alert('You can only clear logs once per week. Please wait for a week before trying again.');
-                return;
-            }
-
             logs[user] = [];
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
-            lastClearDates[user] = today;
-            localStorage.setItem(`${user}LastClearDate`, today);
             updateDisplay();
         }
 
