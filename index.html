@@ -63,6 +63,12 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+<<<<<<< HEAD
+        canvas {
+            margin-top: 20px;
+        }
+=======
+>>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
     </style>
 </head>
 <body>
@@ -79,6 +85,7 @@
         <button class="clear" onclick="clearLogs('user1')">Clear Logs</button>
         <h3>Log</h3>
         <div class="log" id="user1Log">No logs yet.</div>
+        <canvas id="user1Graph"></canvas> <!-- Graph for user1 -->
     </div>
 
     <div class="profile" id="user2Profile">
@@ -89,8 +96,10 @@
         <button class="clear" onclick="clearLogs('user2')">Clear Logs</button>
         <h3>Log</h3>
         <div class="log" id="user2Log">No logs yet.</div>
+        <canvas id="user2Graph"></canvas> <!-- Graph for user2 -->
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Initialize streaks and logs from localStorage or set them to default values
         const streaks = {
@@ -101,6 +110,10 @@
             user1: JSON.parse(localStorage.getItem('user1Logs')) || [],
             user2: JSON.parse(localStorage.getItem('user2Logs')) || []
         };
+        const graphsData = {
+            user1: JSON.parse(localStorage.getItem('user1GraphData')) || [],
+            user2: JSON.parse(localStorage.getItem('user2GraphData')) || []
+        };
 
         // Initialize last action dates from localStorage
         const lastActionDates = {
@@ -108,19 +121,77 @@
             user2: localStorage.getItem('user2LastActionDate') || null
         };
 
+<<<<<<< HEAD
+        // Graph initialization
+        const user1Ctx = document.getElementById('user1Graph').getContext('2d');
+        const user2Ctx = document.getElementById('user2Graph').getContext('2d');
+
+        let user1Chart = new Chart(user1Ctx, {
+            type: 'line',
+            data: {
+                labels: graphsData.user1.map((_, index) => index + 1),
+                datasets: [{
+                    label: 'Ajay Streak',
+                    data: graphsData.user1,
+                    borderColor: '#28a745',
+                    fill: false,
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        let user2Chart = new Chart(user2Ctx, {
+            type: 'line',
+            data: {
+                labels: graphsData.user2.map((_, index) => index + 1),
+                datasets: [{
+                    label: 'Shourya Streak',
+                    data: graphsData.user2,
+                    borderColor: '#007bff',
+                    fill: false,
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Update the streak display, logs, and graph on the page
+=======
         // Update the streak display and logs on the page
+>>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
         function updateDisplay() {
             document.getElementById('user1Streak').textContent = `Streak: ${streaks.user1} days`;
             document.getElementById('user2Streak').textContent = `Streak: ${streaks.user2} days`;
 
-            // Display logs
             document.getElementById('user1Log').innerHTML = logs.user1.length > 0 ? logs.user1.join('<br>') : 'No logs yet.';
             document.getElementById('user2Log').innerHTML = logs.user2.length > 0 ? logs.user2.join('<br>') : 'No logs yet.';
+
+            // Update graph datasets
+            user1Chart.data.labels = graphsData.user1.map((_, index) => index + 1);
+            user1Chart.data.datasets[0].data = graphsData.user1;
+            user1Chart.update();
+
+            user2Chart.data.labels = graphsData.user2.map((_, index) => index + 1);
+            user2Chart.data.datasets[0].data = graphsData.user2;
+            user2Chart.update();
         }
 
         // Increment the streak and store it in localStorage
         function incrementStreak(user) {
+<<<<<<< HEAD
+            const today = new Date().toLocaleDateString(); // Get today's date in a simple format
+
+            // Check if streak was already incremented today
+=======
             const today = new Date().toLocaleDateString();
+>>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
             if (lastActionDates[user] === today) {
                 alert('You can only increment once per day!');
                 return;
@@ -133,6 +204,14 @@
             logs[user].push(`[${currentTime}] Streak incremented: ${streaks[user]} days`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
+<<<<<<< HEAD
+            // Update graph data
+            graphsData[user].push(streaks[user]);
+            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
+
+            // Store today's date as the last action date
+=======
+>>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
             lastActionDates[user] = today;
             localStorage.setItem(`${user}LastActionDate`, today);
 
@@ -148,6 +227,14 @@
             logs[user].push(`[${currentTime}] Streak reset to 0`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
+<<<<<<< HEAD
+            // Reset graph data
+            graphsData[user].push(0);
+            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
+
+            // Store today's date as the last action date
+=======
+>>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
             lastActionDates[user] = new Date().toLocaleDateString();
             localStorage.setItem(`${user}LastActionDate`, lastActionDates[user]);
 
