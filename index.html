@@ -59,64 +59,76 @@
             height: 150px;
             overflow-y: auto;
         }
-        .disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
         canvas {
             margin-top: 20px;
         }
     </style>
-</head>
-<body>
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-analytics.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-database.js";
 
-    <h1>No Fap Streak Counter</h1>
-    <p id="currentDateTime" style="text-align: center;"></p>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzJt2KXfs5DC8Mh1rF-4SECgBxY7VhnZc",
+            authDomain: "no-fap-streak-counter.firebaseapp.com",
+            projectId: "no-fap-streak-counter",
+            storageBucket: "no-fap-streak-counter.appspot.com",
+            messagingSenderId: "160726515239",
+            appId: "1:160726515239:web:ea115e57ee1bea59b69802",
+            measurementId: "G-BTNPSSTNTT"
+        };
 
-    <!-- User Profiles -->
-    <div class="profile" id="user1Profile">
-        <h2>Ajay</h2>
-        <p class="streak-counter" id="user1Streak">Streak: 0</p>
-        <button class="increment" id="user1Increment" onclick="incrementStreak('user1')">+1 Day</button>
-        <button class="reset" id="user1Reset" onclick="resetStreak('user1')">Broken</button>
-        <button class="clear" onclick="clearLogs('user1')">Clear Logs</button>
-        <h3>Log</h3>
-        <div class="log" id="user1Log">No logs yet.</div>
-        <canvas id="user1Graph"></canvas> <!-- Graph for user1 -->
-    </div>
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const database = getDatabase(app);
 
-    <div class="profile" id="user2Profile">
-        <h2>Shourya</h2>
-        <p class="streak-counter" id="user2Streak">Streak: 0</p>
-        <button class="increment" id="user2Increment" onclick="incrementStreak('user2')">+1 Day</button>
-        <button class="reset" id="user2Reset" onclick="resetStreak('user2')">Broken</button>
-        <button class="clear" onclick="clearLogs('user2')">Clear Logs</button>
-        <h3>Log</h3>
-        <div class="log" id="user2Log">No logs yet.</div>
-        <canvas id="user2Graph"></canvas> <!-- Graph for user2 -->
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Initialize streaks and logs from localStorage or set them to default values
+        // Initialize streaks and logs
         const streaks = {
-            user1: parseInt(localStorage.getItem('user1Streak')) || 0,
-            user2: parseInt(localStorage.getItem('user2Streak')) || 0
+            user1: 0,
+            user2: 0
         };
         const logs = {
-            user1: JSON.parse(localStorage.getItem('user1Logs')) || [],
-            user2: JSON.parse(localStorage.getItem('user2Logs')) || []
+            user1: [],
+            user2: []
         };
         const graphsData = {
-            user1: JSON.parse(localStorage.getItem('user1GraphData')) || [],
-            user2: JSON.parse(localStorage.getItem('user2GraphData')) || []
+            user1: [],
+            user2: []
+        };
+        const lastActionDates = {
+            user1: '',
+            user2: ''
         };
 
-        // Initialize last action dates from localStorage
-        const lastActionDates = {
-            user1: localStorage.getItem('user1LastActionDate') || null,
-            user2: localStorage.getItem('user2LastActionDate') || null
-        };
+        // Retrieve data from Firebase
+        function retrieveData() {
+            const user1Ref = ref(database, 'users/user1');
+            const user2Ref = ref(database, 'users/user2');
+
+            onValue(user1Ref, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    streaks.user1 = data.streak || 0;
+                    logs.user1 = data.logs || [];
+                    graphsData.user1 = data.graphData || [];
+                    updateDisplay();
+                }
+            });
+
+            onValue(user2Ref, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    streaks.user2 = data.streak || 0;
+                    logs.user2 = data.logs || [];
+                    graphsData.user2 = data.graphData || [];
+                    updateDisplay();
+                }
+            });
+        }
 
         // Graph initialization
         const user1Ctx = document.getElementById('user1Graph').getContext('2d');
@@ -176,8 +188,8 @@
             user2Chart.update();
         }
 
-        // Increment the streak and store it in localStorage
-        function incrementStreak(user) {
+        // Increment the streak and store it in Firebase
+        window.incrementStreak = function(user) {
             const today = new Date().toLocaleDateString(); // Get today's date in a simple format
 
             // Check if streak was already incremented today
@@ -187,52 +199,53 @@
             }
 
             streaks[user]++;
-            localStorage.setItem(`${user}Streak`, streaks[user]);
-
             const currentTime = new Date().toLocaleString();
             logs[user].push(`[${currentTime}] Streak incremented: ${streaks[user]} days`);
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
             // Update graph data
             graphsData[user].push(streaks[user]);
-            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
+
+            // Update Firebase
+            set(ref(database, `users/${user}`), {
+                streak: streaks[user],
+                logs: logs[user],
+                graphData: graphsData[user]
+            });
 
             // Store today's date as the last action date
             lastActionDates[user] = today;
-            localStorage.setItem(`${user}LastActionDate`, today);
-
             updateDisplay();
-        }
+        };
 
-        // Reset the streak and store it in localStorage
-        function resetStreak(user) {
+        // Reset the streak and store it in Firebase
+        window.resetStreak = function(user) {
             streaks[user] = 0;
-            localStorage.setItem(`${user}Streak`, streaks[user]);
-
             const currentTime = new Date().toLocaleString();
             logs[user].push(`[${currentTime}] Streak reset to 0`);
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
             // Reset graph data
             graphsData[user].push(0);
-            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
 
-            // Store today's date as the last action date
-            lastActionDates[user] = new Date().toLocaleDateString();
-            localStorage.setItem(`${user}LastActionDate`, lastActionDates[user]);
+            // Update Firebase
+            set(ref(database, `users/${user}`), {
+                streak: streaks[user],
+                logs: logs[user],
+                graphData: graphsData[user]
+            });
 
             updateDisplay();
-        }
+        };
 
-        // Clear logs and store it in localStorage
-        function clearLogs(user) {
+        // Clear logs and store it in Firebase
+        window.clearLogs = function(user) {
             logs[user] = [];
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
+            // Update Firebase
+            set(ref(database, `users/${user}/logs`), logs[user]);
             updateDisplay();
-        }
+        };
 
-        // Initial display update
-        updateDisplay();
+        // Initial display update and data retrieval
+        retrieveData();
 
         // Show current date and time
         setInterval(() => {
@@ -240,5 +253,33 @@
             document.getElementById('currentDateTime').textContent = now.toLocaleString();
         }, 1000);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <h1>No Fap Streak Counter</h1>
+    <p id="currentDateTime" style="text-align: center;"></p>
+
+    <!-- User Profiles -->
+    <div class="profile" id="user1Profile">
+        <h2>Ajay</h2>
+        <p class="streak-counter" id="user1Streak">Streak: 0</p>
+        <button class="increment" onclick="incrementStreak('user1')">Increment Streak</button>
+        <button class="reset" onclick="resetStreak('user1')">Reset Streak</button>
+        <button class="clear" onclick="clearLogs('user1')">Clear Logs</button>
+        <div class="log" id="user1Log"></div>
+        <canvas id="user1Graph" width="400" height="200"></canvas>
+    </div>
+
+    <div class="profile" id="user2Profile">
+        <h2>Shourya</h2>
+        <p class="streak-counter" id="user2Streak">Streak: 0</p>
+        <button class="increment" onclick="incrementStreak('user2')">Increment Streak</button>
+        <button class="reset" onclick="resetStreak('user2')">Reset Streak</button>
+        <button class="clear" onclick="clearLogs('user2')">Clear Logs</button>
+        <div class="log" id="user2Log"></div>
+        <canvas id="user2Graph" width="400" height="200"></canvas>
+    </div>
+
 </body>
 </html>
