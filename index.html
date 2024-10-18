@@ -50,10 +50,6 @@
             background-color: #ffc107;
             color: white;
         }
-        .clear-graph {
-            background-color: #17a2b8;
-            color: white;
-        }
         .log {
             text-align: left;
             background-color: #f9f9f9;
@@ -65,13 +61,19 @@
         }
         canvas {
             margin-top: 20px;
+            width: 100%;
+            height: 200px;
         }
     </style>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script type="module" src="main.js"></script> <!-- Changed to type="module" -->
 </head>
 <body>
 
     <h1>No Fap Streak Counter</h1>
-    <p id="currentDateTime" style="text-align: center;"></p>
 
     <!-- User Profiles -->
     <div class="profile" id="user1Profile">
@@ -80,7 +82,7 @@
         <button class="increment" id="user1Increment" onclick="incrementStreak('user1')">+1 Day</button>
         <button class="reset" id="user1Reset" onclick="resetStreak('user1')">Broken</button>
         <button class="clear" onclick="clearLogs('user1')">Clear Logs</button>
-        <button class="clear-graph" onclick="clearGraph('user1')">Clear Graph</button>
+        <button class="clear" onclick="clearGraph('user1')">Clear Graph</button>
         <h3>Log</h3>
         <div class="log" id="user1Log">No logs yet.</div>
         <canvas id="user1Graph"></canvas> <!-- Graph for user1 -->
@@ -92,176 +94,11 @@
         <button class="increment" id="user2Increment" onclick="incrementStreak('user2')">+1 Day</button>
         <button class="reset" id="user2Reset" onclick="resetStreak('user2')">Broken</button>
         <button class="clear" onclick="clearLogs('user2')">Clear Logs</button>
-        <button class="clear-graph" onclick="clearGraph('user2')">Clear Graph</button>
+        <button class="clear" onclick="clearGraph('user2')">Clear Graph</button>
         <h3>Log</h3>
         <div class="log" id="user2Log">No logs yet.</div>
         <canvas id="user2Graph"></canvas> <!-- Graph for user2 -->
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Initialize streaks and logs from localStorage or set them to default values
-        const streaks = {
-            user1: parseInt(localStorage.getItem('user1Streak')) || 0,
-            user2: parseInt(localStorage.getItem('user2Streak')) || 0
-        };
-        const logs = {
-            user1: JSON.parse(localStorage.getItem('user1Logs')) || [],
-            user2: JSON.parse(localStorage.getItem('user2Logs')) || []
-        };
-        const graphsData = {
-            user1: JSON.parse(localStorage.getItem('user1GraphData')) || [],
-            user2: JSON.parse(localStorage.getItem('user2GraphData')) || []
-        };
-
-        // Initialize last action dates from localStorage
-        const lastActionDates = {
-            user1: localStorage.getItem('user1LastActionDate') || null,
-            user2: localStorage.getItem('user2LastActionDate') || null
-        };
-
-        // Graph initialization
-        const user1Ctx = document.getElementById('user1Graph').getContext('2d');
-        const user2Ctx = document.getElementById('user2Graph').getContext('2d');
-
-        let user1Chart = new Chart(user1Ctx, {
-            type: 'line',
-            data: {
-                labels: graphsData.user1.map((_, index) => index + 1),
-                datasets: [{
-                    label: 'Ajay Streak',
-                    data: graphsData.user1,
-                    borderColor: '#28a745',
-                    fill: false,
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-
-        let user2Chart = new Chart(user2Ctx, {
-            type: 'line',
-            data: {
-                labels: graphsData.user2.map((_, index) => index + 1),
-                datasets: [{
-                    label: 'Shourya Streak',
-                    data: graphsData.user2,
-                    borderColor: '#007bff',
-                    fill: false,
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-
-        // Update the streak display, logs, and graph on the page
-        function updateDisplay() {
-            document.getElementById('user1Streak').textContent = `Streak: ${streaks.user1} days`;
-            document.getElementById('user2Streak').textContent = `Streak: ${streaks.user2} days`;
-
-            document.getElementById('user1Log').innerHTML = logs.user1.length > 0 ? logs.user1.join('<br>') : 'No logs yet.';
-            document.getElementById('user2Log').innerHTML = logs.user2.length > 0 ? logs.user2.join('<br>') : 'No logs yet.';
-
-            // Update graph datasets
-            user1Chart.data.labels = graphsData.user1.map((_, index) => index + 1);
-            user1Chart.data.datasets[0].data = graphsData.user1;
-            user1Chart.update();
-
-            user2Chart.data.labels = graphsData.user2.map((_, index) => index + 1);
-            user2Chart.data.datasets[0].data = graphsData.user2;
-            user2Chart.update();
-        }
-
-        // Increment the streak and store it in localStorage
-        function incrementStreak(user) {
-            const today = new Date().toLocaleDateString(); // Get today's date in a simple format
-
-            // Check if streak was already incremented today
-            if (lastActionDates[user] === today) {
-                alert('You can only increment once per day!');
-                return;
-            }
-
-            streaks[user]++;
-            localStorage.setItem(`${user}Streak`, streaks[user]);
-
-            const currentTime = new Date().toLocaleString();
-            logs[user].push(`[${currentTime}] Streak incremented: ${streaks[user]} days`);
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
-
-            // Update graph data
-            graphsData[user].push(streaks[user]);
-            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
-
-            // Store today's date as the last action date
-            lastActionDates[user] = today;
-            localStorage.setItem(`${user}LastActionDate`, today);
-
-            updateDisplay();
-        }
-
-        // Reset the streak and store it in localStorage
-        function resetStreak(user) {
-            streaks[user] = 0;
-            localStorage.setItem(`${user}Streak`, streaks[user]);
-
-            const currentTime = new Date().toLocaleString();
-            logs[user].push(`[${currentTime}] Streak reset to: 0 days`);
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
-
-            // Clear graph data on reset
-            graphsData[user] = [];
-            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
-
-            // Reset last action date
-            lastActionDates[user] = null;
-            localStorage.setItem(`${user}LastActionDate`, null);
-
-            updateDisplay();
-        }
-
-        // Clear logs for the specified user
-        function clearLogs(user) {
-            logs[user] = [];
-            localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
-            updateDisplay();
-        }
-
-        // Clear graph data for the specified user
-        function clearGraph(user) {
-            graphsData[user] = [];
-            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
-
-            // Clear graph datasets and labels
-            if (user === 'user1') {
-                user1Chart.data.labels = [];
-                user1Chart.data.datasets[0].data = [];
-                user1Chart.update();
-            } else if (user === 'user2') {
-                user2Chart.data.labels = [];
-                user2Chart.data.datasets[0].data = [];
-                user2Chart.update();
-            }
-
-            updateDisplay();
-        }
-
-        // Initial display update
-        updateDisplay();
-
-        // Show the current date and time
-        function updateDateTime() {
-            const now = new Date();
-            document.getElementById('currentDateTime').textContent = now.toLocaleString();
-        }
-        setInterval(updateDateTime, 1000);
-        updateDateTime();
-    </script>
 </body>
 </html>
