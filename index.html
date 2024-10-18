@@ -63,10 +63,6 @@
             height: 150px;
             overflow-y: auto;
         }
-        .disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
         canvas {
             margin-top: 20px;
         }
@@ -216,15 +212,15 @@
             localStorage.setItem(`${user}Streak`, streaks[user]);
 
             const currentTime = new Date().toLocaleString();
-            logs[user].push(`[${currentTime}] Streak reset to 0`);
+            logs[user].push(`[${currentTime}] Streak reset to: 0 days`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
-            // Reset graph data
-            graphsData[user].push(0);
+            // Clear graph data on reset
+            graphsData[user] = [];
             localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
 
-            // Store today's date as the last action date
-            lastActionDates[user] = null; // Reset last action date
+            // Reset last action date
+            lastActionDates[user] = null;
             localStorage.setItem(`${user}LastActionDate`, null);
 
             updateDisplay();
@@ -241,6 +237,18 @@
         function clearGraph(user) {
             graphsData[user] = [];
             localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
+
+            // Clear graph datasets and labels
+            if (user === 'user1') {
+                user1Chart.data.labels = [];
+                user1Chart.data.datasets[0].data = [];
+                user1Chart.update();
+            } else if (user === 'user2') {
+                user2Chart.data.labels = [];
+                user2Chart.data.datasets[0].data = [];
+                user2Chart.update();
+            }
+
             updateDisplay();
         }
 
@@ -254,7 +262,6 @@
         }
         setInterval(updateDateTime, 1000);
         updateDateTime();
-
     </script>
 </body>
 </html>
