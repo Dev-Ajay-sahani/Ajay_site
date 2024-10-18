@@ -63,12 +63,9 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
-<<<<<<< HEAD
         canvas {
             margin-top: 20px;
         }
-=======
->>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
     </style>
 </head>
 <body>
@@ -121,7 +118,6 @@
             user2: localStorage.getItem('user2LastActionDate') || null
         };
 
-<<<<<<< HEAD
         // Graph initialization
         const user1Ctx = document.getElementById('user1Graph').getContext('2d');
         const user2Ctx = document.getElementById('user2Graph').getContext('2d');
@@ -163,9 +159,6 @@
         });
 
         // Update the streak display, logs, and graph on the page
-=======
-        // Update the streak display and logs on the page
->>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
         function updateDisplay() {
             document.getElementById('user1Streak').textContent = `Streak: ${streaks.user1} days`;
             document.getElementById('user2Streak').textContent = `Streak: ${streaks.user2} days`;
@@ -185,13 +178,9 @@
 
         // Increment the streak and store it in localStorage
         function incrementStreak(user) {
-<<<<<<< HEAD
             const today = new Date().toLocaleDateString(); // Get today's date in a simple format
 
             // Check if streak was already incremented today
-=======
-            const today = new Date().toLocaleDateString();
->>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
             if (lastActionDates[user] === today) {
                 alert('You can only increment once per day!');
                 return;
@@ -204,14 +193,11 @@
             logs[user].push(`[${currentTime}] Streak incremented: ${streaks[user]} days`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
-<<<<<<< HEAD
             // Update graph data
             graphsData[user].push(streaks[user]);
             localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
 
             // Store today's date as the last action date
-=======
->>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
             lastActionDates[user] = today;
             localStorage.setItem(`${user}LastActionDate`, today);
 
@@ -227,14 +213,11 @@
             logs[user].push(`[${currentTime}] Streak reset to 0`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
-<<<<<<< HEAD
             // Reset graph data
             graphsData[user].push(0);
             localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
 
             // Store today's date as the last action date
-=======
->>>>>>> 4fdb3c9160021cfaad8e2f4e620da77768249fcc
             lastActionDates[user] = new Date().toLocaleDateString();
             localStorage.setItem(`${user}LastActionDate`, lastActionDates[user]);
 
