@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>No Fap Streak Counter with Logs</title>
+    <title>No Fap Streak Counter</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -59,6 +59,13 @@
             height: 150px;
             overflow-y: auto;
         }
+        .disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        canvas {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -66,26 +73,30 @@
     <h1>No Fap Streak Counter</h1>
     <p id="currentDateTime" style="text-align: center;"></p>
 
+    <!-- User Profiles -->
     <div class="profile" id="user1Profile">
         <h2>Ajay</h2>
         <p class="streak-counter" id="user1Streak">Streak: 0</p>
-        <button class="increment" onclick="incrementStreak('user1')">+1 Day</button>
-        <button class="reset" onclick="resetStreak('user1')">Broken</button>
+        <button class="increment" id="user1Increment" onclick="incrementStreak('user1')">+1 Day</button>
+        <button class="reset" id="user1Reset" onclick="resetStreak('user1')">Broken</button>
         <button class="clear" onclick="clearLogs('user1')">Clear Logs</button>
         <h3>Log</h3>
         <div class="log" id="user1Log">No logs yet.</div>
+        <canvas id="user1Graph"></canvas> <!-- Graph for user1 -->
     </div>
 
     <div class="profile" id="user2Profile">
         <h2>Shourya</h2>
         <p class="streak-counter" id="user2Streak">Streak: 0</p>
-        <button class="increment" onclick="incrementStreak('user2')">+1 Day</button>
-        <button class="reset" onclick="resetStreak('user2')">Broken</button>
+        <button class="increment" id="user2Increment" onclick="incrementStreak('user2')">+1 Day</button>
+        <button class="reset" id="user2Reset" onclick="resetStreak('user2')">Broken</button>
         <button class="clear" onclick="clearLogs('user2')">Clear Logs</button>
         <h3>Log</h3>
         <div class="log" id="user2Log">No logs yet.</div>
+        <canvas id="user2Graph"></canvas> <!-- Graph for user2 -->
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Initialize streaks and logs from localStorage or set them to default values
         const streaks = {
@@ -96,19 +107,85 @@
             user1: JSON.parse(localStorage.getItem('user1Logs')) || [],
             user2: JSON.parse(localStorage.getItem('user2Logs')) || []
         };
+        const graphsData = {
+            user1: JSON.parse(localStorage.getItem('user1GraphData')) || [],
+            user2: JSON.parse(localStorage.getItem('user2GraphData')) || []
+        };
 
-        // Update the streak display and logs on the page
+        // Initialize last action dates from localStorage
+        const lastActionDates = {
+            user1: localStorage.getItem('user1LastActionDate') || null,
+            user2: localStorage.getItem('user2LastActionDate') || null
+        };
+
+        // Graph initialization
+        const user1Ctx = document.getElementById('user1Graph').getContext('2d');
+        const user2Ctx = document.getElementById('user2Graph').getContext('2d');
+
+        let user1Chart = new Chart(user1Ctx, {
+            type: 'line',
+            data: {
+                labels: graphsData.user1.map((_, index) => index + 1),
+                datasets: [{
+                    label: 'Ajay Streak',
+                    data: graphsData.user1,
+                    borderColor: '#28a745',
+                    fill: false,
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        let user2Chart = new Chart(user2Ctx, {
+            type: 'line',
+            data: {
+                labels: graphsData.user2.map((_, index) => index + 1),
+                datasets: [{
+                    label: 'Shourya Streak',
+                    data: graphsData.user2,
+                    borderColor: '#007bff',
+                    fill: false,
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Update the streak display, logs, and graph on the page
         function updateDisplay() {
             document.getElementById('user1Streak').textContent = `Streak: ${streaks.user1} days`;
             document.getElementById('user2Streak').textContent = `Streak: ${streaks.user2} days`;
 
-            // Display logs
             document.getElementById('user1Log').innerHTML = logs.user1.length > 0 ? logs.user1.join('<br>') : 'No logs yet.';
             document.getElementById('user2Log').innerHTML = logs.user2.length > 0 ? logs.user2.join('<br>') : 'No logs yet.';
+
+            // Update graph datasets
+            user1Chart.data.labels = graphsData.user1.map((_, index) => index + 1);
+            user1Chart.data.datasets[0].data = graphsData.user1;
+            user1Chart.update();
+
+            user2Chart.data.labels = graphsData.user2.map((_, index) => index + 1);
+            user2Chart.data.datasets[0].data = graphsData.user2;
+            user2Chart.update();
         }
 
         // Increment the streak and store it in localStorage
         function incrementStreak(user) {
+            const today = new Date().toLocaleDateString(); // Get today's date in a simple format
+
+            // Check if streak was already incremented today
+            if (lastActionDates[user] === today) {
+                alert('You can only increment once per day!');
+                return;
+            }
+
             streaks[user]++;
             localStorage.setItem(`${user}Streak`, streaks[user]);
 
@@ -116,42 +193,52 @@
             logs[user].push(`[${currentTime}] Streak incremented: ${streaks[user]} days`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
+            // Update graph data
+            graphsData[user].push(streaks[user]);
+            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
+
+            // Store today's date as the last action date
+            lastActionDates[user] = today;
+            localStorage.setItem(`${user}LastActionDate`, today);
+
             updateDisplay();
         }
 
-        // Reset the streak to 0 and update localStorage
+        // Reset the streak and store it in localStorage
         function resetStreak(user) {
             streaks[user] = 0;
-            localStorage.setItem(`${user}Streak`, 0);
+            localStorage.setItem(`${user}Streak`, streaks[user]);
 
             const currentTime = new Date().toLocaleString();
             logs[user].push(`[${currentTime}] Streak reset to 0`);
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
 
+            // Reset graph data
+            graphsData[user].push(0);
+            localStorage.setItem(`${user}GraphData`, JSON.stringify(graphsData[user]));
+
+            // Store today's date as the last action date
+            lastActionDates[user] = new Date().toLocaleDateString();
+            localStorage.setItem(`${user}LastActionDate`, lastActionDates[user]);
+
             updateDisplay();
         }
 
-        // Clear the logs for a specific user
+        // Clear logs and store it in localStorage
         function clearLogs(user) {
             logs[user] = [];
             localStorage.setItem(`${user}Logs`, JSON.stringify(logs[user]));
             updateDisplay();
         }
 
-        // Show current date and time
-        function updateDateTime() {
-            const now = new Date();
-            const formattedDateTime = now.toLocaleString();
-            document.getElementById('currentDateTime').textContent = `Current Date & Time: ${formattedDateTime}`;
-        }
-
-        // Update the date/time every second
-        setInterval(updateDateTime, 1000);
-
-        // Initial update when the page loads
+        // Initial display update
         updateDisplay();
-        updateDateTime();
-    </script>
 
+        // Show current date and time
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('currentDateTime').textContent = now.toLocaleString();
+        }, 1000);
+    </script>
 </body>
 </html>
