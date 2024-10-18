@@ -23,9 +23,6 @@
             text-align: center;
             border-radius: 10px;
         }
-        .profile h2 {
-            margin-bottom: 20px;
-        }
         .streak-counter {
             font-size: 2em;
             color: #28a745;
@@ -64,41 +61,249 @@
             width: 100%;
             height: 200px;
         }
+        #dateTime {
+            text-align: center;
+            margin: 20px 0;
+        }
     </style>
     <script type="module" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-    <script type="module" src="main.js"></script> <!-- Changed to type="module" -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
 </head>
 <body>
 
     <h1>No Fap Streak Counter</h1>
+    
+    <!-- Current Date and Time -->
+    <div id="dateTime"></div>
 
     <!-- User Profiles -->
     <div class="profile" id="user1Profile">
         <h2>Ajay</h2>
-        <p class="streak-counter" id="user1Streak">Streak: 0</p>
-        <button class="increment" id="user1Increment" onclick="incrementStreak('user1')">+1 Day</button>
-        <button class="reset" id="user1Reset" onclick="resetStreak('user1')">Broken</button>
-        <button class="clear" onclick="clearLogs('user1')">Clear Logs</button>
-        <button class="clear" onclick="clearGraph('user1')">Clear Graph</button>
+        <p class="streak-counter" id="ajayStreak">Streak: 0</p>
+        <button class="increment" id="user1Increment">+1 Day</button>
+        <button class="reset" id="user1Reset">Broken</button>
+        <button class="clear" id="user1ClearLogs">Clear Logs</button>
+        <button class="clear" id="user1ClearGraph">Clear Graph</button>
         <h3>Log</h3>
-        <div class="log" id="user1Log">No logs yet.</div>
-        <canvas id="user1Graph"></canvas> <!-- Graph for user1 -->
+        <div class="log" id="ajayLog">No logs yet.</div>
+        <canvas id="ajayGraph"></canvas> <!-- Graph for user1 -->
     </div>
 
     <div class="profile" id="user2Profile">
         <h2>Shourya</h2>
-        <p class="streak-counter" id="user2Streak">Streak: 0</p>
-        <button class="increment" id="user2Increment" onclick="incrementStreak('user2')">+1 Day</button>
-        <button class="reset" id="user2Reset" onclick="resetStreak('user2')">Broken</button>
-        <button class="clear" onclick="clearLogs('user2')">Clear Logs</button>
-        <button class="clear" onclick="clearGraph('user2')">Clear Graph</button>
+        <p class="streak-counter" id="shouryaStreak">Streak: 0</p>
+        <button class="increment" id="user2Increment">+1 Day</button>
+        <button class="reset" id="user2Reset">Broken</button>
+        <button class="clear" id="user2ClearLogs">Clear Logs</button>
+        <button class="clear" id="user2ClearGraph">Clear Graph</button>
         <h3>Log</h3>
-        <div class="log" id="user2Log">No logs yet.</div>
-        <canvas id="user2Graph"></canvas> <!-- Graph for user2 -->
+        <div class="log" id="shouryaLog">No logs yet.</div>
+        <canvas id="shouryaGraph"></canvas> <!-- Graph for user2 -->
     </div>
 
+    <script type="module">
+        // Import Firebase App and other services
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzJt2KXfs5DC8Mh1rF-4SECgBxY7VhnZc",
+            authDomain: "no-fap-streak-counter.firebaseapp.com",
+            projectId: "no-fap-streak-counter",
+            storageBucket: "no-fap-streak-counter.appspot.com",
+            messagingSenderId: "160726515239",
+            appId: "1:160726515239:web:ea115e57ee1bea59b69802",
+            measurementId: "G-BTNPSSTNTT"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const profiles = ['ajay', 'shourya'];
+        const charts = {};
+        const lastIncrementTimestamps = { ajay: null, shourya: null };
+
+        // Initialize charts and set up listeners
+        function initializeCharts() {
+            profiles.forEach(profile => {
+                const canvas = document.getElementById(`${profile}Graph`);
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    charts[profile] = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Streak',
+                                data: [],
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    });
+
+                    // Fetch streak value
+                    const profileRef = ref(database, profile);
+                    onValue(ref(profileRef, 'streak'), (snapshot) => {
+                        const streak = snapshot.val() || 0;
+                        updateChart(profile, streak);
+                        const streakElement = document.getElementById(`${profile}Streak`);
+                        if (streakElement) {
+                            streakElement.innerText = `Streak: ${streak}`;
+                        }
+                    });
+
+                    // Fetch logs
+                    onValue(ref(profileRef, 'logs'), (snapshot) => {
+                        const logs = snapshot.val();
+                        if (Array.isArray(logs)) {
+                            updateLogs(profile, logs);
+                        } else {
+                            // Handle the case where logs are not in the expected format
+                            console.error(`Logs for ${profile} are not an array`, logs);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Event listeners for increment buttons
+        document.getElementById('user1Increment').addEventListener('click', () => incrementStreak('ajay'));
+        document.getElementById('user2Increment').addEventListener('click', () => incrementStreak('shourya'));
+
+        // Updated incrementStreak function
+        window.incrementStreak = function(profile) {
+            const now = new Date();
+            const lastIncrement = lastIncrementTimestamps[profile];
+
+            // Ensure only one increment per day
+            if (!lastIncrement || now.toDateString() !== lastIncrement.toDateString()) {
+                lastIncrementTimestamps[profile] = now;
+
+                const profileRef = ref(database, `${profile}/streak`);
+
+                // Read the current streak, then increment and write it back
+                onValue(profileRef, (snapshot) => {
+                    const currentStreak = snapshot.val() || 0;
+                    const newStreak = currentStreak + 1;
+
+                    // Update the streak in the database
+                    set(profileRef, newStreak).then(() => {
+                        // Log the increment action
+                        logEvent(profile, newStreak);
+                    }).catch(error => console.error("Error updating streak: ", error));
+                }, { onlyOnce: true }); // Fetch once to avoid multiple triggers
+            } else {
+                alert("You can only increment your streak once a day.");
+            }
+        };
+
+        // Log event function
+        function logEvent(profile, streak) {
+            const logsRef = ref(database, `${profile}/logs`);
+            const logEntry = { date: new Date().toLocaleString(), streak: streak };
+
+            push(logsRef, logEntry)
+                .then(() => {
+                    console.log("Log added:", logEntry);
+                    updateLogs(profile); // Update the logs on the UI
+                })
+                .catch(error => console.error("Error logging event: ", error));
+        }
+
+        // Update chart function
+        function updateChart(profile, streak) {
+            const chart = charts[profile];
+            if (chart) {
+                const today = new Date().toLocaleDateString();
+                const existingIndex = chart.data.labels.indexOf(today);
+                if (existingIndex === -1) {
+                    // Add new entry for today
+                    chart.data.labels.push(today);
+                    chart.data.datasets[0].data.push(streak);
+                } else {
+                    // Update existing entry for today
+                    chart.data.datasets[0].data[existingIndex] = streak;
+                }
+                chart.update();
+            }
+        }
+
+        // Update logs function
+        function updateLogs(profile, logs) {
+            const logContainer = document.getElementById(`${profile}Log`);
+            logContainer.innerHTML = ""; // Clear the current logs
+
+            logs.forEach(log => {
+                const logElement = document.createElement("div");
+                logElement.textContent = `${log.date} - Streak: ${log.streak}`;
+                logContainer.appendChild(logElement);
+            });
+
+            if (logs.length === 0) {
+                logContainer.textContent = "No logs yet.";
+            }
+        }
+
+        // Reset and clear logs functions
+        document.getElementById('user1Reset').addEventListener('click', () => resetStreak('ajay'));
+        document.getElementById('user2Reset').addEventListener('click', () => resetStreak('shourya'));
+
+        window.resetStreak = function(profile) {
+            const profileRef = ref(database, `${profile}/streak`);
+            set(profileRef, 0).then(() => {
+                console.log(`${profile} streak reset.`);
+                const logsRef = ref(database, `${profile}/logs`);
+                set(logsRef, []); // Clear logs on reset
+                updateLogs(profile, []); // Clear UI logs
+            }).catch(error => console.error("Error resetting streak: ", error));
+        };
+
+        // Clear logs functions
+        document.getElementById('user1ClearLogs').addEventListener('click', () => clearLogs('ajay'));
+        document.getElementById('user2ClearLogs').addEventListener('click', () => clearLogs('shourya'));
+
+        window.clearLogs = function(profile) {
+            const logsRef = ref(database, `${profile}/logs`);
+            set(logsRef, []).then(() => {
+                console.log(`${profile} logs cleared.`);
+                updateLogs(profile, []); // Update UI after clearing
+            }).catch(error => console.error("Error clearing logs: ", error));
+        };
+
+        // Clear graph data functions
+        document.getElementById('user1ClearGraph').addEventListener('click', () => clearGraph('ajay'));
+        document.getElementById('user2ClearGraph').addEventListener('click', () => clearGraph('shourya'));
+
+        window.clearGraph = function(profile) {
+            const chart = charts[profile];
+            if (chart) {
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.update();
+                console.log(`${profile} graph cleared.`);
+            }
+        };
+
+        // Initialize everything
+        initializeCharts();
+
+        // Display current date and time
+        setInterval(() => {
+            document.getElementById("dateTime").innerText = new Date().toLocaleString();
+        }, 1000);
+    </script>
 </body>
 </html>
