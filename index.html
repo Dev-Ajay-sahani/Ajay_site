@@ -1,285 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>No Fap Streak Counter</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f9;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>No Fap Streak Counter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      color: white;
+    }
+    h1 { text-align: center; }
+    .profile {
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      text-align: center;
+    }
+    .streak-counter {
+      font-size: 2em;
+      color: #28a745;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 1em;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .increment { background-color: #28a745; color: white; }
+    .reset { background-color: #dc3545; color: white; }
+    .clear { background-color: #ffc107; color: white; }
+    .log {
+      text-align: left;
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 10px;
+      height: 150px;
+      overflow-y: auto;
+      color: white;
+    }
+    canvas {
+      margin-top: 20px;
+      width: 100%;
+      height: 200px;
+    }
+    #dateTime {
+      text-align: center;
+      margin: 20px 0;
+    }
+  </style>
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://udmdtwdpeahthybwtlql.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbWR0d2RwZWFodGh5Ynd0bHFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwNDYzMDEsImV4cCI6MjA1OTYyMjMwMX0.RuQkRV55uV8flYP6xssQGL-YEFQs5hI-50mKdJFJtbY'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    const profiles = ['ajay', 'shourya']
+    const charts = {}
+    const lastIncrementTimestamps = {}
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      for (const profile of profiles) {
+        const streakEl = document.getElementById(`${profile}Streak`)
+        const logEl = document.getElementById(`${profile}Log`)
+        const canvas = document.getElementById(`${profile}Graph`).getContext('2d')
+
+        charts[profile] = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [{
+              label: 'Streak',
+              data: [],
+              borderColor: 'rgb(75, 192, 192)',
+              tension: 0.1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true, stepSize: 1 }
+            }
+          }
+        })
+
+        const { data, error } = await supabase
+          .from('streaks')
+          .select('*')
+          .eq('profile', profile)
+          .maybeSingle()
+
+        if (data) {
+          streakEl.innerText = `Streak: ${data.streak}`
+          if (data.logs) updateLogs(profile, data.logs)
+        } else {
+          await supabase.from('streaks').insert([{ profile, streak: 0, logs: [] }])
+          streakEl.innerText = `Streak: 0`
         }
-        h1 {
-            text-align: center;
-        }
-        .profile {
-            margin: 20px auto;
-            padding: 20px;
-            max-width: 400px;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            border-radius: 10px;
-        }
-        .streak-counter {
-            font-size: 2em;
-            color: #28a745;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .increment {
-            background-color: #28a745;
-            color: white;
-        }
-        .reset {
-            background-color: #dc3545;
-            color: white;
-        }
-        .clear {
-            background-color: #ffc107;
-            color: white;
-        }
-        .log {
-            text-align: left;
-            background-color: #f9f9f9;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-            height: 150px;
-            overflow-y: auto;
-        }
-        canvas {
-            margin-top: 20px;
-            width: 100%;
-            height: 200px;
-        }
-        #dateTime {
-            text-align: center;
-            margin: 20px 0;
-        }
-    </style>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
+      }
+    })
+
+    window.incrementStreak = async function (profile) {
+      const now = new Date()
+      const last = lastIncrementTimestamps[profile]
+      if (!last || now.toDateString() !== last.toDateString()) {
+        lastIncrementTimestamps[profile] = now
+
+        const { data } = await supabase.from('streaks').select('*').eq('profile', profile).maybeSingle()
+        if (!data) return
+
+        const newStreak = (data.streak || 0) + 1
+        const logs = [...(data.logs || []), { date: now.toLocaleString(), streak: newStreak }]
+
+        await supabase.from('streaks').update({ streak: newStreak, logs }).eq('profile', profile)
+        document.getElementById(`${profile}Streak`).innerText = `Streak: ${newStreak}`
+        updateLogs(profile, logs)
+      } else {
+        alert("You can only increment your streak once a day.")
+      }
+    }
+
+    window.resetStreak = async function (profile) {
+      const now = new Date()
+      const logs = [{ date: now.toLocaleString(), streak: 0 }]
+      await supabase.from('streaks').update({ streak: 0, logs }).eq('profile', profile)
+      document.getElementById(`${profile}Streak`).innerText = `Streak: 0`
+      updateLogs(profile, logs)
+    }
+
+    window.clearLogs = async function (profile) {
+      await supabase.from('streaks').update({ logs: [] }).eq('profile', profile)
+      updateLogs(profile, [])
+    }
+
+    function updateLogs(profile, logs) {
+      const logEl = document.getElementById(`${profile}Log`)
+      const chart = charts[profile]
+      logEl.innerHTML = ''
+      chart.data.labels = []
+      chart.data.datasets[0].data = []
+      logs.forEach(log => {
+        const entry = document.createElement('div')
+        entry.innerText = `${log.date}: Streak ${log.streak}`
+        logEl.appendChild(entry)
+        chart.data.labels.push(new Date(log.date).toLocaleDateString())
+        chart.data.datasets[0].data.push(log.streak)
+      })
+      chart.update()
+    }
+
+    function showCurrentDateTime() {
+      const now = new Date()
+      document.getElementById('dateTime').innerText = now.toLocaleString()
+    }
+    setInterval(showCurrentDateTime, 1000)
+    showCurrentDateTime()
+  </script>
 </head>
 <body>
+  <h1>No Fap Streak Counter</h1>
+  <div id="dateTime"></div>
 
-    <h1>No Fap Streak Counter</h1>
-    
-    <!-- Current Date and Time -->
-    <div id="dateTime"></div>
+  <div class="profile">
+    <h2>Ajay</h2>
+    <p class="streak-counter" id="ajayStreak">Streak: 0</p>
+    <button class="increment" onclick="incrementStreak('ajay')">+1 Day</button>
+    <button class="reset" onclick="resetStreak('ajay')">Broken</button>
+    <button class="clear" onclick="clearLogs('ajay')">Clear Logs</button>
+    <h3>Log</h3>
+    <div class="log" id="ajayLog">No logs yet.</div>
+    <canvas id="ajayGraph"></canvas>
+  </div>
 
-    <!-- User Profiles -->
-    <div class="profile" id="user1Profile">
-        <h2>Ajay</h2>
-        <p class="streak-counter" id="ajayStreak">Streak: 0</p>
-        <button class="increment" id="user1Increment">+1 Day</button>
-        <button class="reset" id="user1Reset">Broken</button>
-        <button class="clear" id="user1ClearGraph">Clear Graph</button>
-        <button class="clear" id="user1ClearLogs">Clear Logs</button>
-        <h3>Log</h3>
-        <div class="log" id="ajayLog">No logs yet.</div>
-        <canvas id="ajayGraph"></canvas> <!-- Graph for user1 -->
-    </div>
-
-    <div class="profile" id="user2Profile">
-        <h2>Shourya</h2>
-        <p class="streak-counter" id="shouryaStreak">Streak: 0</p>
-        <button class="increment" id="user2Increment">+1 Day</button>
-        <button class="reset" id="user2Reset">Broken</button>
-        <button class="clear" id="user2ClearGraph">Clear Graph</button>
-        <button class="clear" id="user2ClearLogs">Clear Logs</button>
-        <h3>Log</h3>
-        <div class="log" id="shouryaLog">No logs yet.</div>
-        <canvas id="shouryaGraph"></canvas> <!-- Graph for user2 -->
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzJt2KXfs5DC8Mh1rF-4SECgBxY7VhnZc",
-            authDomain: "no-fap-streak-counter.firebaseapp.com",
-            projectId: "no-fap-streak-counter",
-            storageBucket: "no-fap-streak-counter.appspot.com",
-            messagingSenderId: "160726515239",
-            appId: "1:160726515239:web:ea115e57ee1bea59b69802",
-            measurementId: "G-BTNPSSTNTT"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        const profiles = ['ajay', 'shourya'];
-        const charts = {};
-        const lastIncrementTimestamps = { ajay: null, shourya: null };
-
-        function initializeCharts() {
-            profiles.forEach(profile => {
-                const canvas = document.getElementById(`${profile}Graph`);
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    charts[profile] = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: [],
-                            datasets: [{
-                                label: 'Streak',
-                                data: [],
-                                borderColor: 'rgb(75, 192, 192)',
-                                tension: 0.1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    stepSize: 1
-                                }
-                            }
-                        }
-                    });
-
-                    // Fetch streak value
-                    const profileRef = ref(database, profile);
-                    onValue(ref(profileRef, 'streak'), (snapshot) => {
-                        const streak = snapshot.val() || 0;
-                        updateChart(profile, streak);
-                        const streakElement = document.getElementById(`${profile}Streak`);
-                        streakElement.innerText = `Streak: ${streak}`;
-                    });
-
-                    // Fetch logs
-                    onValue(ref(profileRef, 'logs'), (snapshot) => {
-                        const logs = snapshot.val() || [];
-                        if (Array.isArray(logs)) {
-                            updateLogs(profile, logs);
-                            logs.forEach(log => updateChart(profile, log.streak));
-                        }
-                    });
-                }
-            });
-        }
-
-        document.getElementById('user1Increment').addEventListener('click', () => incrementStreak('ajay'));
-        document.getElementById('user2Increment').addEventListener('click', () => incrementStreak('shourya'));
-
-        window.incrementStreak = function(profile) {
-            const now = new Date();
-            const lastIncrement = lastIncrementTimestamps[profile];
-
-            if (!lastIncrement || now.toDateString() !== lastIncrement.toDateString()) {
-                lastIncrementTimestamps[profile] = now;
-                const profileRef = ref(database, `${profile}/streak`);
-
-                onValue(profileRef, (snapshot) => {
-                    const currentStreak = snapshot.val() || 0;
-                    const newStreak = currentStreak + 1;
-
-                    set(profileRef, newStreak).then(() => logEvent(profile, newStreak));
-                }, { onlyOnce: true });
-            } else {
-                alert("You can only increment your streak once a day.");
-            }
-        };
-
-        function logEvent(profile, streak) {
-            const logsRef = ref(database, `${profile}/logs`);
-            const logEntry = { date: new Date().toLocaleString(), streak: streak };
-
-            push(logsRef, logEntry)
-                .then(() => {
-                    updateLogs(profile, [logEntry]);
-                    updateChart(profile, streak);
-                });
-        }
-
-        function updateChart(profile, streak) {
-            const chart = charts[profile];
-            if (chart) {
-                const today = new Date().toLocaleDateString();
-                const existingIndex = chart.data.labels.indexOf(today);
-                if (existingIndex === -1) {
-                    chart.data.labels.push(today);
-                    chart.data.datasets[0].data.push(streak);
-                } else {
-                    chart.data.datasets[0].data[existingIndex] = streak;
-                }
-                chart.update();
-            }
-        }
-
-        function updateLogs(profile, logs) {
-            const logElement = document.getElementById(`${profile}Log`);
-            if (logElement) {
-                logElement.innerHTML = '';
-                if (logs.length > 0) {
-                    logs.forEach(log => {
-                        const logEntry = document.createElement('div');
-                        logEntry.innerText = `${log.date}: Streak ${log.streak}`;
-                        logElement.appendChild(logEntry);
-                    });
-                } else {
-                    logElement.innerText = 'No logs yet.';
-                }
-            }
-        }
-
-        document.getElementById('user1Reset').addEventListener('click', () => resetStreak('ajay'));
-        document.getElementById('user2Reset').addEventListener('click', () => resetStreak('shourya'));
-
-        function resetStreak(profile) {
-            const profileRef = ref(database, `${profile}/streak`);
-            set(profileRef, 0)
-                .then(() => {
-                    logEvent(profile, 0);
-                    document.getElementById(`${profile}Streak`).innerText = `Streak: 0`;
-                })
-                .catch(error => console.error("Error resetting streak: ", error));
-        }
-
-        // Clear logs and graph data
-        document.getElementById('user1ClearGraph').addEventListener('click', () => clearGraph('ajay'));
-        document.getElementById('user2ClearGraph').addEventListener('click', () => clearGraph('shourya'));
-
-        function clearGraph(profile) {
-            const chart = charts[profile];
-            if (chart) {
-                chart.data.labels = [];
-                chart.data.datasets[0].data = [];
-                chart.update();
-            }
-        }
-
-        document.getElementById('user1ClearLogs').addEventListener('click', () => clearLogs('ajay'));
-        document.getElementById('user2ClearLogs').addEventListener('click', () => clearLogs('shourya'));
-
-        function clearLogs(profile) {
-            const logsRef = ref(database, `${profile}/logs`);
-            set(logsRef, [])
-                .then(() => updateLogs(profile, []))
-                .catch(error => console.error("Error clearing logs: ", error));
-        }
-
-        function showCurrentDateTime() {
-            const now = new Date();
-            document.getElementById('dateTime').innerText = now.toLocaleString();
-        }
-
-        setInterval(showCurrentDateTime, 1000);
-        showCurrentDateTime();
-
-        window.onload = initializeCharts;
-    </script>
+  <div class="profile">
+    <h2>Shourya</h2>
+    <p class="streak-counter" id="shouryaStreak">Streak: 0</p>
+    <button class="increment" onclick="incrementStreak('shourya')">+1 Day</button>
+    <button class="reset" onclick="resetStreak('shourya')">Broken</button>
+    <button class="clear" onclick="clearLogs('shourya')">Clear Logs</button>
+    <h3>Log</h3>
+    <div class="log" id="shouryaLog">No logs yet.</div>
+    <canvas id="shouryaGraph"></canvas>
+  </div>
 </body>
 </html>
