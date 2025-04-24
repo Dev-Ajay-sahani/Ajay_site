@@ -57,6 +57,8 @@
       margin-top: 20px;
       width: 100%;
       height: 200px;
+      background-color: rgba(0, 0, 0, 0.5); /* Dark background for better contrast */
+      border: 2px solid #fff; /* Add a white border for the graph */
     }
     #dateTime {
       text-align: center;
@@ -90,13 +92,36 @@
               label: 'Streak',
               data: [],
               borderColor: 'rgb(75, 192, 192)',
-              tension: 0.1
+              tension: 0.1,
+              backgroundColor: 'rgba(75, 192, 192, 0.2)', // Light fill color for the graph
+              borderWidth: 2
             }]
           },
           options: {
             responsive: true,
             scales: {
-              y: { beginAtZero: true, stepSize: 1 }
+              y: { 
+                beginAtZero: true, 
+                stepSize: 1,
+                ticks: {
+                  font: { size: 14 }, // Make the ticks larger
+                  color: '#fff' // Change tick color to white for better visibility
+                }
+              },
+              x: {
+                ticks: {
+                  font: { size: 14 }, // Make the ticks larger
+                  color: '#fff' // Change tick color to white for better visibility
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  font: { size: 14 }, // Make legend labels larger
+                  color: '#fff' // Make legend text white
+                }
+              }
             }
           }
         })
@@ -140,6 +165,7 @@
     window.resetStreak = async function (profile) {
       const now = new Date()
       const logs = [{ date: now.toLocaleString(), streak: 0 }]
+
       await supabase.from('streaks').update({ streak: 0, logs }).eq('profile', profile)
       document.getElementById(`${profile}Streak`).innerText = `Streak: 0`
       updateLogs(profile, logs)
