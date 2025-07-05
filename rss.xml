@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>The Otaku Insider - Twitter Feed</title>
     <link>https://x.com/theotakuinsider</link>
     <description>Latest tweets from The Otaku Insider</description>
     <language>en-us</language>
+    <atom:link href="https://ajays.is-a.dev/rss.xml" rel="self" type="application/rss+xml" />
 
     <item>
       <title>🔥 Naruto facts just dropped!</title>
       <link>https://x.com/theotakuinsider/status/1234567890123456789</link>
       <description>The Otaku Insider shared a fun fact about Naruto...</description>
-      <pubDate>Fri, 05 Jul 2025 15:45:00 +0530</pubDate>
+      <guid>https://x.com/theotakuinsider/status/1234567890123456789</guid>
+      <pubDate>Sat, 05 Jul 2025 15:45:00 +0530</pubDate>
     </item>
 
-    <!-- Add more items here manually as tweets come -->
-    
   </channel>
 </rss>
