@@ -11,7 +11,7 @@ RSS_LINK = "https://ajays.is-a.dev/rss.xml"
 
 def fetch_tweets(username):
     print(f"🔍 Fetching tweets for: {username}")
-    cmd = ["snscrape", "--jsonl", f"twitter-user:{username}"]
+    cmd = ["snscrape", "--jsonl", "twitter-user", username]
     try:
         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
         lines = result.stdout.strip().split("\n")
@@ -33,9 +33,7 @@ def fetch_tweets(username):
     except subprocess.CalledProcessError as e:
         print(f"❌ Error running snscrape for {username}: {e.stderr.strip()}")
         return []
-    except Exception as e:
-        print(f"❌ Unexpected error for {username}: {e}")
-        return []
+
 
 def format_pubdate(dt):
     return dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
