@@ -27,9 +27,8 @@ jobs:
           pip install --upgrade certifi snscrape
 
       - name: Generate RSS feed
-        env:
-          SSL_CERT_FILE: $(python -m certifi)
         run: |
+          export SSL_CERT_FILE=$(python -m certifi)
           echo "Using cert bundle: $SSL_CERT_FILE"
           python generate_rss.py
 
