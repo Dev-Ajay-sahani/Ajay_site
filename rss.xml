@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>The Otaku Insider - Twitter Feed</title>
+    <link>https://x.com/theotakuinsider</link>
+    <description>Latest tweets from The Otaku Insider</description>
+    <language>en-us</language>
+
+    <item>
+      <title>🔥 Naruto facts just dropped!</title>
+      <link>https://x.com/theotakuinsider/status/1234567890123456789</link>
+      <description>The Otaku Insider shared a fun fact about Naruto...</description>
+      <pubDate>Fri, 05 Jul 2025 15:45:00 +0530</pubDate>
+    </item>
+
+    <!-- Add more items here manually as tweets come -->
+    
+  </channel>
+</rss>
