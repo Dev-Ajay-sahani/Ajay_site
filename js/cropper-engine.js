@@ -708,6 +708,84 @@ const SarkariEngine = (function() {
     return canvas;
   }
 
+  /**
+   * Universal Clipboard Paste Handler (Ctrl+V)
+   * @param {function} onFileReceived Callback receiving the pasted File object
+   */
+  function setupClipboardPaste(onFileReceived) {
+    window.addEventListener('paste', (e) => {
+      // Don't intercept paste if user is typing in a text field
+      const active = document.activeElement;
+      if (active) {
+        const tag = active.tagName.toLowerCase();
+        if (tag === 'textarea' || (tag === 'input' && active.type !== 'file' && active.type !== 'range')) {
+          return;
+        }
+      }
+
+      if (!e.clipboardData) return;
+
+      const items = e.clipboardData.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            const file = items[i].getAsFile();
+            if (file) {
+              e.preventDefault();
+              showToast('📋 Image pasted from clipboard!');
+              if (typeof onFileReceived === 'function') {
+                onFileReceived(file);
+              }
+              return;
+            }
+          }
+        }
+      }
+
+      const files = e.clipboardData.files;
+      if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].type.indexOf('image') !== -1) {
+            e.preventDefault();
+            showToast('📋 Image pasted from clipboard!');
+            if (typeof onFileReceived === 'function') {
+              onFileReceived(files[i]);
+            }
+            return;
+          }
+        }
+      }
+    });
+  }
+
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 10px 22px;
+      border-radius: 9999px;
+      font-size: 13.5px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.style.transition = 'opacity 0.4s ease';
+      setTimeout(() => t.remove(), 400);
+    }, 2500);
+  }
+
   return {
     toPixels,
     fromPixels,
@@ -724,6 +802,8 @@ const SarkariEngine = (function() {
     generateDeclarationCanvas,
     exportToPdf,
     triggerDownload,
+    setupClipboardPaste,
+    showToast,
     GOVT_PRESETS_2026
   };
 })();

@@ -126,6 +126,16 @@
       if (e.target.files && e.target.files[0]) readForCrop(e.target.files[0], 'sig', 4.0/2.0);
     });
 
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste((file) => {
+        if (!photoCanvas) {
+          readForCrop(file, 'photo', 3.5/4.5);
+        } else {
+          readForCrop(file, 'sig', 4.0/2.0);
+        }
+      });
+    });
+
     function readForCrop(file, slot, ar) {
       currentSlot = slot;
       const reader = new FileReader();

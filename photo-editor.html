@@ -222,6 +222,23 @@
         workArea.style.display = 'block';
         applyFilters();
       });
+
+      // Universal Clipboard Paste (Ctrl+V)
+      window.addEventListener('paste', (e) => {
+        if (!e.clipboardData) return;
+        const items = e.clipboardData.items;
+        if (items) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+              const file = items[i].getAsFile();
+              if (file) {
+                handleFiles([file]);
+                break;
+              }
+            }
+          }
+        }
+      });
     });
 
     singleInp.addEventListener('change', (e) => handleFiles(e.target.files));

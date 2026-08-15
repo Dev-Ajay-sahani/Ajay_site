@@ -120,8 +120,8 @@
       <!-- Upload Stage -->
       <div class="modern-dropzone" id="uploadZone" onclick="document.getElementById('fileInp').click()" style="margin-bottom:20px;">
         <div class="dropzone-icon">📁</div>
-        <div class="dropzone-title">Click or Drag Photo to Setup Custom Size</div>
-        <div class="dropzone-desc">Supports JPG, PNG, and WEBP · 100% Private in Browser</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Image Here</div>
+        <div class="dropzone-desc">Supports JPG, PNG, WEBP · Direct Clipboard Paste (Ctrl+V) Enabled</div>
       </div>
       <input type="file" id="fileInp" class="hidden-input" accept="image/*">
 
@@ -322,10 +322,21 @@
     const calcPxLabel = document.getElementById('calcPxLabel');
     const customKbInp = document.getElementById('customKbInp');
 
-    // Handle initial incoming data from previous tool if any
+    // Handle initial incoming data from previous tool or clipboard paste
     window.addEventListener('DOMContentLoaded', () => {
       SarkariPipeline.initReceiver('#mainContainer', (img, meta) => {
         setupCropperWithImage(img);
+      });
+
+      // Universal Clipboard Paste (Ctrl+V)
+      SarkariEngine.setupClipboardPaste((file) => {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const img = new Image();
+          img.onload = () => setupCropperWithImage(img);
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
       });
     });
 

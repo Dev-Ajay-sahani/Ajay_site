@@ -58,8 +58,8 @@
       <!-- Upload Dropzone -->
       <div class="modern-dropzone" onclick="triggerUpload()" style="margin-bottom:24px;">
         <div class="dropzone-icon">📁</div>
-        <div class="dropzone-title" id="dropTitle">Click or Drag Image Here</div>
-        <div class="dropzone-desc">Upload photos, signatures, or documents (JPG, PNG, WEBP)</div>
+        <div class="dropzone-title" id="dropTitle">Click, Drag, or Paste (Ctrl+V) Image Here</div>
+        <div class="dropzone-desc">Upload photos, signatures, or documents (JPG, PNG, WEBP) · Direct Clipboard Paste (Ctrl+V) Enabled</div>
       </div>
       <input type="file" id="fileInpSingle" class="hidden-input" accept="image/*">
       <input type="file" id="fileInpBatch" class="hidden-input" accept="image/*" multiple>
@@ -248,6 +248,34 @@
         batchBox.style.display = 'none';
 
         applyPreset(50);
+      });
+
+      // Universal Clipboard Paste (Ctrl+V)
+      SarkariEngine.setupClipboardPaste((file) => {
+        singleOrigKb = (file.size / 1024).toFixed(1);
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const img = new Image();
+          img.onload = () => {
+            singleOriginalImg = img;
+            singleCanvas = document.createElement('canvas');
+            singleCanvas.width = img.naturalWidth;
+            singleCanvas.height = img.naturalHeight;
+            singleCanvas.getContext('2d').drawImage(img, 0, 0);
+
+            origImg.src = singleCanvas.toDataURL('image/jpeg', 0.95);
+            origKb.textContent = `${singleOrigKb} KB`;
+            origDims.textContent = `${singleCanvas.width}×${singleCanvas.height} px`;
+
+            workArea.style.display = 'block';
+            singleBox.style.display = 'block';
+            batchBox.style.display = 'none';
+
+            applyPreset(50);
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
       });
     });
 

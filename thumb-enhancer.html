@@ -132,20 +132,30 @@
 
     thumbInp.addEventListener('change', (e) => {
       if (e.target.files && e.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          document.getElementById('modalCropImg').src = evt.target.result;
-          document.getElementById('cropModal').classList.add('active');
-          if (cropper) cropper.destroy();
-          cropper = new Cropper(document.getElementById('modalCropImg'), {
-            aspectRatio: 1,
-            viewMode: 1,
-            autoCropArea: 0.95
-          });
-        };
-        reader.readAsDataURL(e.target.files[0]);
+        loadThumbFile(e.target.files[0]);
       }
     });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste((file) => {
+        loadThumbFile(file);
+      });
+    });
+
+    function loadThumbFile(file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        document.getElementById('modalCropImg').src = evt.target.result;
+        document.getElementById('cropModal').classList.add('active');
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(document.getElementById('modalCropImg'), {
+          aspectRatio: 1,
+          viewMode: 1,
+          autoCropArea: 0.95
+        });
+      };
+      reader.readAsDataURL(file);
+    }
 
     function closeCrop() {
       document.getElementById('cropModal').classList.remove('active');

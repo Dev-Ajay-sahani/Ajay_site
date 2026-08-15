@@ -142,6 +142,30 @@
         uploadedList = [{ rawImg: img, workingCanvas: c, baseName: meta.fileName ? meta.fileName.replace(/\.[^/.]+$/, '') : 'converted_image' }];
         await reprocessAll();
       });
+
+      // Universal Clipboard Paste (Ctrl+V)
+      window.addEventListener('paste', async (e) => {
+        if (!e.clipboardData) return;
+        const items = e.clipboardData.items;
+        if (items) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+              const file = items[i].getAsFile();
+              if (file) {
+                const img = await loadImage(file);
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth;
+                c.height = img.naturalHeight;
+                c.getContext('2d').drawImage(img, 0, 0);
+
+                uploadedList = [{ rawImg: img, workingCanvas: c, baseName: 'pasted_image' }];
+                await reprocessAll();
+                break;
+              }
+            }
+          }
+        }
+      });
     });
 
     inp.addEventListener('change', async (e) => {

@@ -527,27 +527,38 @@
 
     modalInp.addEventListener('change', (e) => {
       if (e.target.files && e.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          modalImg.src = evt.target.result;
-          
-          cropView.style.display = 'block';
-          resultView.style.display = 'none';
-          cropBtns.style.display = 'flex';
-          resultBtns.style.display = 'none';
-
-          modal.classList.add('active');
-          if (cropper) cropper.destroy();
-
-          const ar = currentModalSlot === 'pan' ? (2.5 / 3.5) : (3.5 / 4.5);
-          cropper = new Cropper(modalImg, {
-            aspectRatio: ar,
-            viewMode: 1,
-            autoCropArea: 0.95
-          });
-        };
-        reader.readAsDataURL(e.target.files[0]);
+        loadModalImageFile(e.target.files[0]);
       }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste((file) => {
+        loadModalImageFile(file);
+      });
+    });
+
+    function loadModalImageFile(file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        modalImg.src = evt.target.result;
+        
+        cropView.style.display = 'block';
+        resultView.style.display = 'none';
+        cropBtns.style.display = 'flex';
+        resultBtns.style.display = 'none';
+
+        modal.classList.add('active');
+        if (cropper) cropper.destroy();
+
+        const ar = currentModalSlot === 'pan' ? (2.5 / 3.5) : (3.5 / 4.5);
+        cropper = new Cropper(modalImg, {
+          aspectRatio: ar,
+          viewMode: 1,
+          autoCropArea: 0.95
+        });
+      };
+      reader.readAsDataURL(file);
+    }
     });
 
     function closeQuickModal() {

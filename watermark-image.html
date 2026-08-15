@@ -95,8 +95,8 @@
       <div id="uploadStage">
         <div class="modern-dropzone" id="dropZoneEl" onclick="document.getElementById('fileInp').click()">
           <div class="dropzone-icon">📁</div>
-          <div class="dropzone-title">Click to Select Photos or Drop Here</div>
-          <div class="dropzone-desc">Upload 1 photo or multiple photos (JPG, PNG, WEBP)</div>
+          <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Photos Here</div>
+          <div class="dropzone-desc">Upload 1 photo or multiple photos (JPG, PNG, WEBP) · Direct Clipboard Paste (Ctrl+V) Enabled</div>
         </div>
         <input type="file" id="fileInp" class="hidden-input" accept="image/*" multiple>
       </div>
@@ -405,6 +405,11 @@
         editorStage.style.display = 'block';
         fileBadge.textContent = '1';
         renderInteractive();
+      });
+
+      // Universal Clipboard Paste (Ctrl+V)
+      SarkariEngine.setupClipboardPaste((file) => {
+        handleIncomingFiles([file]);
       });
     });
 

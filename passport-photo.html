@@ -53,8 +53,8 @@
           <div class="modern-dropzone" onclick="document.getElementById('passInp').click()" style="padding:28px 16px;">
             <div id="passDropPh">
               <div class="dropzone-icon">📷</div>
-              <div class="dropzone-title">Click to Upload Candidate Photo</div>
-              <div class="dropzone-desc">JPG, PNG, or WEBP photo</div>
+              <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Candidate Photo</div>
+              <div class="dropzone-desc">JPG, PNG, WEBP · Direct Clipboard Paste (Ctrl+V) Enabled</div>
             </div>
             <img id="passPrevImg" alt="Preview" style="display:none;max-height:240px;margin:0 auto;border-radius:var(--radius-md);box-shadow:var(--shadow-md);">
           </div>
@@ -234,6 +234,22 @@
           viewMode: 1,
           autoCropArea: 0.95
         });
+      });
+
+      // Universal Clipboard Paste (Ctrl+V)
+      SarkariEngine.setupClipboardPaste((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('modalCropImg').src = e.target.result;
+          document.getElementById('cropModal').classList.add('active');
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(document.getElementById('modalCropImg'), {
+            aspectRatio: 3.5 / 4.5,
+            viewMode: 1,
+            autoCropArea: 0.95
+          });
+        };
+        reader.readAsDataURL(file);
       });
     });
 

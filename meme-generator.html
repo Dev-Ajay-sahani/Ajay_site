@@ -130,24 +130,46 @@
 
     inp.addEventListener('change', (e) => {
       if (e.target.files && e.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          const img = new Image();
-          img.onload = () => {
-            rawImg = img;
-            workingCanvas = document.createElement('canvas');
-            workingCanvas.width = img.naturalWidth;
-            workingCanvas.height = img.naturalHeight;
-            workingCanvas.getContext('2d').drawImage(img, 0, 0);
-
-            cropBtn.style.display = 'inline-block';
-            renderMeme();
-          };
-          img.src = evt.target.result;
-        };
-        reader.readAsDataURL(e.target.files[0]);
+        loadMemeFile(e.target.files[0]);
       }
     });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.addEventListener('paste', (e) => {
+        if (!e.clipboardData) return;
+        const items = e.clipboardData.items;
+        if (items) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+              const file = items[i].getAsFile();
+              if (file) {
+                loadMemeFile(file);
+                break;
+              }
+            }
+          }
+        }
+      });
+    });
+
+    function loadMemeFile(file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const img = new Image();
+        img.onload = () => {
+          rawImg = img;
+          workingCanvas = document.createElement('canvas');
+          workingCanvas.width = img.naturalWidth;
+          workingCanvas.height = img.naturalHeight;
+          workingCanvas.getContext('2d').drawImage(img, 0, 0);
+
+          cropBtn.style.display = 'inline-block';
+          renderMeme();
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
 
     function openMemeCrop() {
       if (!workingCanvas) return;
