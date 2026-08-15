@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Merge PDF Online with Visual Thumbnails – Sarkari Babu Tools</title>
+  <meta name="description" content="Combine multiple PDF files with visual document cover preview. Drag or click arrows to reorder pages. 100% free and private in browser.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Merge PDF Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Visual Document Merger</span>
+      <h1 class="hero-heading">Merge PDFs with <span class="gradient-text">Live Preview</span></h1>
+      <p class="hero-desc">Reorder and combine multiple PDF documents with visual thumbnail previews. Fast, secure, and offline.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div class="modern-dropzone" onclick="document.getElementById('mergePdfInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title">Click or Drag PDF Files Here</div>
+        <div class="dropzone-desc">Select 2 or more PDF documents to combine</div>
+      </div>
+      <input type="file" id="mergePdfInp" class="hidden-input" accept="application/pdf" multiple>
+
+      <!-- Selected PDFs List -->
+      <div id="pdfListWrap" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h4 style="font-family:var(--font-display);font-size:16px;">Files to Merge (<span id="pdfCountLabel">0</span>):</h4>
+          <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="document.getElementById('mergePdfInp').click()">+ Add More PDFs</button>
+        </div>
+
+        <div id="pdfCardsGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:16px;margin-bottom:24px;"></div>
+
+        <button class="btn-primary" id="mergeBtn" onclick="executeMerge()" style="width:100%;font-size:15px;padding:14px;">📄 Merge PDFs &amp; Download</button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script>
+    let pdfFiles = []; // { file, buffer, thumbUrl, pageCount }
+
+    const mergeInp = document.getElementById('mergePdfInp');
+    const listWrap = document.getElementById('pdfListWrap');
+    const cardsGrid = document.getElementById('pdfCardsGrid');
+    const countLabel = document.getElementById('pdfCountLabel');
+    const mergeBtn = document.getElementById('mergeBtn');
+
+    mergeInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        for (const file of e.target.files) {
+          if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+            const buffer = await file.arrayBuffer();
+            let thumbUrl = '';
+            let pageCount = 1;
+
+            try {
+              const pages = await SarkariPdfEngine.convertPdfToImages(buffer, 0.8);
+              if (pages.length > 0) thumbUrl = pages[0].dataUrl;
+              pageCount = pages.length;
+            } catch (err) {
+              console.log('Error generating thumb', err);
+            }
+
+            pdfFiles.push({ file, buffer, thumbUrl, pageCount });
+          }
+        }
+        renderPdfList();
+      }
+    });
+
+    function renderPdfList() {
+      if (pdfFiles.length === 0) {
+        listWrap.style.display = 'none';
+        return;
+      }
+
+      cardsGrid.innerHTML = '';
+      countLabel.textContent = pdfFiles.length;
+      listWrap.style.display = 'block';
+
+      pdfFiles.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid var(--border-subtle);background:var(--bg-subtle);border-radius:var(--radius-md);padding:12px;text-align:center;position:relative;';
+
+        const badge = `<span style="position:absolute;top:6px;left:6px;font-size:11px;font-weight:700;background:var(--primary);color:#fff;padding:2px 6px;border-radius:var(--radius-sm);">#${idx + 1}</span>`;
+        const img = item.thumbUrl ? `<img src="${item.thumbUrl}" alt="Preview" style="height:140px;width:100%;object-fit:contain;background:#fff;border-radius:4px;border:1px solid var(--border-subtle);margin-bottom:8px;">` : `<div style="height:140px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:4px;margin-bottom:8px;font-size:32px;">📄</div>`;
+
+        const title = `<div style="font-size:12px;font-weight:700;word-break:break-all;margin-bottom:4px;">${item.file.name}</div>`;
+        const meta = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">${item.pageCount} Pages · ${(item.file.size/1024).toFixed(1)} KB</div>`;
+
+        const actionBtns = document.createElement('div');
+        actionBtns.style.cssText = 'display:flex;justify-content:center;gap:6px;';
+
+        if (idx > 0) {
+          const upBtn = document.createElement('button');
+          upBtn.className = 'btn-secondary';
+          upBtn.style.cssText = 'padding:3px 8px;font-size:11px;';
+          upBtn.textContent = '◀ Move Left';
+          upBtn.onclick = () => {
+            const temp = pdfFiles[idx];
+            pdfFiles[idx] = pdfFiles[idx - 1];
+            pdfFiles[idx - 1] = temp;
+            renderPdfList();
+          };
+          actionBtns.appendChild(upBtn);
+        }
+
+        if (idx < pdfFiles.length - 1) {
+          const downBtn = document.createElement('button');
+          downBtn.className = 'btn-secondary';
+          downBtn.style.cssText = 'padding:3px 8px;font-size:11px;';
+          downBtn.textContent = 'Move Right ▶';
+          downBtn.onclick = () => {
+            const temp = pdfFiles[idx];
+            pdfFiles[idx] = pdfFiles[idx + 1];
+            pdfFiles[idx + 1] = temp;
+            renderPdfList();
+          };
+          actionBtns.appendChild(downBtn);
+        }
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-secondary';
+        delBtn.style.cssText = 'padding:3px 8px;font-size:11px;color:var(--danger-text);';
+        delBtn.textContent = '✕';
+        delBtn.onclick = () => {
+          pdfFiles.splice(idx, 1);
+          renderPdfList();
+        };
+        actionBtns.appendChild(delBtn);
+
+        card.innerHTML = badge + img + title + meta;
+        card.appendChild(actionBtns);
+        cardsGrid.appendChild(card);
+      });
+    }
+
+    async function executeMerge() {
+      if (pdfFiles.length < 2) {
+        alert('Please select at least 2 PDF files to merge.');
+        return;
+      }
+
+      mergeBtn.textContent = '⏳ Merging in Browser...';
+      try {
+        const buffers = pdfFiles.map(p => p.buffer);
+        const mergedBytes = await SarkariPdfEngine.mergePDFs(buffers);
+        SarkariPdfEngine.downloadFile(mergedBytes, 'merged_document.pdf');
+        mergeBtn.textContent = '✔ Merged Successfully!';
+        setTimeout(() => { mergeBtn.textContent = '📄 Merge PDFs & Download'; }, 2000);
+      } catch (err) {
+        alert('Error merging PDFs: ' + err.message);
+        mergeBtn.textContent = '📄 Merge PDFs & Download';
+      }
+    }
+  </script>
+</body>
+</html>

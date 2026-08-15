@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Custom Dimension &amp; Size Chooser Studio (Live Aspect Box &amp; Compressor) – Sarkari Babu Tools</title>
+  <meta name="description" content="Set custom Width, Height, Units (px, cm, mm, in), DPI (200, 300, 450, 600), and custom KB size. Live dynamic crop box and instant cross-tool pipeline transfer.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sarkari Babu">
+  <meta property="og:title" content="📐 Custom Dimension &amp; Size Studio – Sarkari Babu">
+  <meta property="og:description" content="Set custom Width, Height, Units, DPI, and exact KB size limits with live dynamic aspect box.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2563EB">
+
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="./js/pipeline.js"></script>
+
+  <style>
+    .dimension-control-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .custom-box-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .pipeline-action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pipeline-btn {
+      padding: 10px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all var(--transition-fast);
+      min-height: 48px;
+      touch-action: manipulation;
+    }
+    .pipeline-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+      color: var(--primary-text);
+      transform: translateY(-1px);
+    }
+    @media (max-width: 768px) {
+      .two-col-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .studio-container {
+        padding: 10px 12px !important;
+      }
+      .studio-card {
+        padding: 16px 12px !important;
+      }
+      .cropper-stage-mobile {
+        height: 280px !important;
+      }
+    }
+  </style>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Custom Dimensions Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 12px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span class="hide-mobile">Dark</span></button>
+    </div>
+  </header>
+
+  <main class="studio-container" id="mainContainer">
+
+    <!-- Hero Header -->
+    <div class="hero-section" style="padding-top:16px;padding-bottom:16px;">
+      <span class="hero-pill">📐 Exact Dimensions &amp; Custom Size Chooser</span>
+      <h1 class="hero-heading">Custom <span class="gradient-text">Dimension &amp; Size Chooser</span></h1>
+      <p class="hero-desc">Set custom Width, Height, Units (px/cm/mm/in), DPI, and target KB. The crop box automatically scales to your exact shape.</p>
+    </div>
+
+    <!-- Master Studio Card -->
+    <div class="studio-card">
+
+      <!-- Upload Stage -->
+      <div class="modern-dropzone" id="uploadZone" onclick="document.getElementById('fileInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title">Click or Drag Photo to Setup Custom Size</div>
+        <div class="dropzone-desc">Supports JPG, PNG, and WEBP · 100% Private in Browser</div>
+      </div>
+      <input type="file" id="fileInp" class="hidden-input" accept="image/*">
+
+      <!-- Active Custom Workspace (Shown after upload) -->
+      <div id="customWorkArea" style="display:none;">
+
+        <!-- 1. CUSTOM DIMENSIONS & BOX RATIO SELECTOR -->
+        <div class="dimension-control-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <h3 style="font-family:var(--font-display);font-size:16px;margin:0;">1. Custom Dimension &amp; Aspect Ratio Setup</h3>
+            <div class="custom-box-indicator" id="calculatedResBadge">
+              📐 Box: <span id="calcPxLabel">350 × 450 px</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:12px;">
+            <!-- Unit -->
+            <div>
+              <label class="form-label" style="font-size:12px;">Unit</label>
+              <select class="form-select" id="dimUnitSel" onchange="onDimensionChange()">
+                <option value="cm" selected>Centimeters (cm)</option>
+                <option value="px">Pixels (px)</option>
+                <option value="mm">Millimeters (mm)</option>
+                <option value="in">Inches (in)</option>
+              </select>
+            </div>
+
+            <!-- Width -->
+            <div>
+              <label class="form-label" style="font-size:12px;">Width</label>
+              <input type="number" step="0.1" class="form-input" id="dimWidthInp" value="3.5" oninput="onDimensionChange()">
+            </div>
+
+            <!-- Height -->
+            <div>
+              <label class="form-label" style="font-size:12px;">Height</label>
+              <input type="number" step="0.1" class="form-input" id="dimHeightInp" value="4.5" oninput="onDimensionChange()">
+            </div>
+
+            <!-- DPI Target -->
+            <div>
+              <label class="form-label" style="font-size:12px;">DPI Quality</label>
+              <select class="form-select" id="dpiSel" onchange="onDimensionChange()">
+                <option value="300" selected>300 DPI (High Definition)</option>
+                <option value="200">200 DPI (Standard Govt)</option>
+                <option value="450">450 DPI (Passport Seva)</option>
+                <option value="600">600 DPI (Ultra Sharp)</option>
+                <option value="72">72 DPI (Web Screen)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Dimension Presets -->
+          <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;">
+            <button class="category-tab active" onclick="applyDimPreset(3.5, 4.5, 'cm', 300, this)">Passport (3.5×4.5 cm)</button>
+            <button class="category-tab" onclick="applyDimPreset(4.0, 2.0, 'cm', 200, this)">Signature (4×2 cm)</button>
+            <button class="category-tab" onclick="applyDimPreset(213, 213, 'px', 300, this)">PAN UTI (213×213 px)</button>
+            <button class="category-tab" onclick="applyDimPreset(800, 400, 'px', 200, this)">Bank Decl (800×400 px)</button>
+            <button class="category-tab" onclick="applyDimPreset(630, 810, 'px', 450, this)">GPSP 2.0 (630×810 px)</button>
+            <button class="category-tab" onclick="applyDimPreset(4, 6, 'in', 300, this)">Postcard (4×6 in)</button>
+            <button class="category-tab" onclick="applyDimPreset(2, 2, 'in', 300, this)">US Visa (2×2 in)</button>
+          </div>
+        </div>
+
+        <!-- 2. WORKSPACE: CROPPER & RESULT VIEW -->
+        <div class="two-col-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+          
+          <!-- Left: Interactive Dynamic Crop Box -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <h4 style="font-family:var(--font-display);font-size:15px;margin:0;">2. Adjust Dynamic Crop Box</h4>
+              <div style="display:flex;gap:4px;">
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="cropper && cropper.reset()">↺ Reset</button>
+              </div>
+            </div>
+
+            <div class="cropper-stage-mobile" style="height:320px;background:#000;border-radius:var(--radius-md);overflow:hidden;">
+              <img id="cropperTargetImg" src="" alt="Crop Stage" style="max-width:100%;">
+            </div>
+            
+            <button class="btn-primary" onclick="renderCustomResult()" style="width:100%;margin-top:10px;padding:10px;font-size:14px;">
+              ⚡ Apply Box &amp; Calculate Size
+            </button>
+          </div>
+
+          <!-- Right: Custom KB Compressor & Result Preview -->
+          <div>
+            <h4 style="font-family:var(--font-display);font-size:15px;margin-bottom:8px;">3. Custom KB Target &amp; Live Result</h4>
+
+            <!-- Custom KB Target Chooser -->
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px;margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <label class="form-label" style="font-size:12px;margin:0;">Target Max File Size (KB):</label>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <input type="number" class="form-input" id="customKbInp" value="50" style="width:75px;padding:4px 8px;font-size:13px;text-align:right;" oninput="onCustomKbInput()">
+                  <strong style="font-size:12px;color:var(--primary);">KB</strong>
+                </div>
+              </div>
+
+              <!-- Quick KB Presets -->
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <button class="category-tab" style="padding:3px 8px;font-size:11px;" onclick="setTargetKb(18, this)">18 KB (DL)</button>
+                <button class="category-tab" style="padding:3px 8px;font-size:11px;" onclick="setTargetKb(20, this)">20 KB (Sig)</button>
+                <button class="category-tab active" style="padding:3px 8px;font-size:11px;" onclick="setTargetKb(50, this)">50 KB (Photo)</button>
+                <button class="category-tab" style="padding:3px 8px;font-size:11px;" onclick="setTargetKb(100, this)">100 KB (Doc)</button>
+                <button class="category-tab" style="padding:3px 8px;font-size:11px;" onclick="setTargetKb(300, this)">300 KB (UPSC)</button>
+                <button class="category-tab" style="padding:3px 8px;font-size:11px;" onclick="setTargetKb(0, this)">Max Quality</button>
+              </div>
+            </div>
+
+            <!-- Result Card -->
+            <div style="background:var(--bg-surface);border:1.5px solid var(--border-subtle);border-radius:var(--radius-lg);padding:12px;text-align:center;box-shadow:var(--shadow-sm);">
+              <img id="resultImg" alt="Result" style="max-height:180px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);margin:0 auto;display:block;">
+              <div id="resultMetaBadge" style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--success-text);margin-top:8px;">
+                0 × 0 px · 0 KB · 300 DPI
+              </div>
+            </div>
+
+            <!-- Direct Download Button -->
+            <button class="btn-success" id="downloadBtn" onclick="downloadCustomResult()" style="width:100%;margin-top:10px;padding:12px;font-size:15px;">
+              ⬇ Download Custom Photo
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 3. CROSS-TOOL RESULT PIPELINE (PASS RESULT TO NEXT OPERATION) -->
+        <div style="border-top:1.5px solid var(--border-subtle);padding-top:18px;margin-top:20px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:18px;">🚀</span>
+            <strong style="font-family:var(--font-display);font-size:15px;color:var(--text-primary);">
+              Pass This Result to Next Operation:
+            </strong>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+            Finished cropping? Seamlessly transfer your processed image directly to the next tool without re-uploading!
+          </p>
+
+          <div class="pipeline-action-grid">
+            <button class="pipeline-btn" onclick="passCurrentResultTo('image-compressor.html')">
+              <span>🗜️</span>
+              <span>Compress KB</span>
+            </button>
+            <button class="pipeline-btn" onclick="passCurrentResultTo('watermark-image.html')">
+              <span>💧</span>
+              <span>Watermark Studio</span>
+            </button>
+            <button class="pipeline-btn" onclick="passCurrentResultTo('passport-photo.html')">
+              <span>🖨️</span>
+              <span>Print A4 Sheet</span>
+            </button>
+            <button class="pipeline-btn" onclick="passCurrentResultTo('jpg-to-pdf.html')">
+              <span>📄</span>
+              <span>Compile to PDF</span>
+            </button>
+            <button class="pipeline-btn" onclick="passCurrentResultTo('photo-editor.html')">
+              <span>🎨</span>
+              <span>Color &amp; Clarity</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="./index.html">All Tools</a>
+      <a href="./image-compressor.html">Compress</a>
+      <a href="./watermark-image.html">Watermark</a>
+      <a href="./passport-photo.html">Passport Photo</a>
+      <a href="./banking-declaration.html">Bank Declaration</a>
+      <a href="./exam-guidelines.html">Exam Guidelines</a>
+    </div>
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let cropper = null;
+    let targetWidthPx = 413;
+    let targetHeightPx = 531;
+    let currentDpi = 300;
+    let targetMaxKb = 50;
+    let finalResultDataUrl = null;
+    let finalResultKb = 0;
+
+    const fileInp = document.getElementById('fileInp');
+    const workArea = document.getElementById('customWorkArea');
+    const uploadZone = document.getElementById('uploadZone');
+    const cropImg = document.getElementById('cropperTargetImg');
+    const resImg = document.getElementById('resultImg');
+    const resMeta = document.getElementById('resultMetaBadge');
+    const calcPxLabel = document.getElementById('calcPxLabel');
+    const customKbInp = document.getElementById('customKbInp');
+
+    // Handle initial incoming data from previous tool if any
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariPipeline.initReceiver('#mainContainer', (img, meta) => {
+        setupCropperWithImage(img);
+      });
+    });
+
+    fileInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const img = new Image();
+          img.onload = () => setupCropperWithImage(img);
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    function setupCropperWithImage(img) {
+      cropImg.src = img.src;
+      uploadZone.style.display = 'none';
+      workArea.style.display = 'block';
+
+      onDimensionChange();
+    }
+
+    function onDimensionChange() {
+      const unit = document.getElementById('dimUnitSel').value;
+      const wVal = parseFloat(document.getElementById('dimWidthInp').value) || 3.5;
+      const hVal = parseFloat(document.getElementById('dimHeightInp').value) || 4.5;
+      currentDpi = parseInt(document.getElementById('dpiSel').value, 10) || 300;
+
+      targetWidthPx = Math.round(SarkariEngine.toPixels(wVal, unit, currentDpi));
+      targetHeightPx = Math.round(SarkariEngine.toPixels(hVal, unit, currentDpi));
+
+      calcPxLabel.textContent = `${targetWidthPx} × ${targetHeightPx} px (${currentDpi} DPI)`;
+
+      const aspect = targetWidthPx / targetHeightPx;
+
+      if (!cropper) {
+        cropper = new Cropper(cropImg, {
+          aspectRatio: aspect,
+          viewMode: 1,
+          autoCropArea: 0.95
+        });
+      } else {
+        cropper.setAspectRatio(aspect);
+      }
+
+      renderCustomResult();
+    }
+
+    function applyDimPreset(w, h, unit, dpi, btn) {
+      document.getElementById('dimUnitSel').value = unit;
+      document.getElementById('dimWidthInp').value = w;
+      document.getElementById('dimHeightInp').value = h;
+      document.getElementById('dpiSel').value = dpi;
+
+      if (btn) {
+        btn.parentElement.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
+      onDimensionChange();
+    }
+
+    function setTargetKb(kb, btn) {
+      targetMaxKb = kb;
+      customKbInp.value = kb === 0 ? '' : kb;
+
+      if (btn) {
+        btn.parentElement.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
+      renderCustomResult();
+    }
+
+    function onCustomKbInput() {
+      targetMaxKb = parseInt(customKbInp.value, 10) || 0;
+      renderCustomResult();
+    }
+
+    async function renderCustomResult() {
+      if (!cropper) return;
+
+      const raw = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      if (!raw) return;
+
+      // Downscale to target calculated pixels
+      const canvas = SarkariEngine.highQualityDownsample(raw, targetWidthPx, targetHeightPx);
+
+      if (targetMaxKb > 0) {
+        const res = await SarkariEngine.compressToTargetKB(canvas, 10, targetMaxKb, currentDpi);
+        finalResultDataUrl = res.url;
+        finalResultKb = res.sizeKB;
+      } else {
+        finalResultDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        finalResultKb = (finalResultDataUrl.length * (3/4) / 1024).toFixed(1);
+      }
+
+      resImg.src = finalResultDataUrl;
+      resMeta.textContent = `${targetWidthPx} × ${targetHeightPx} px · ${finalResultKb} KB · ${currentDpi} DPI`;
+    }
+
+    function downloadCustomResult() {
+      if (!finalResultDataUrl) return;
+      SarkariEngine.triggerDownload(finalResultDataUrl, `custom_${targetWidthPx}x${targetHeightPx}_${currentDpi}dpi.jpg`);
+    }
+
+    function passCurrentResultTo(targetUrl) {
+      if (!finalResultDataUrl) {
+        alert('Please generate your custom photo preview first!');
+        return;
+      }
+      SarkariPipeline.passTo(targetUrl, finalResultDataUrl, {
+        sourceName: 'Custom Dimension Studio',
+        fileName: `custom_${targetWidthPx}x${targetHeightPx}.jpg`,
+        sizeKB: finalResultKb
+      });
+    }
+  </script>
+</body>
+</html>

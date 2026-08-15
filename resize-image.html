@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Batch &amp; Single Image Resizer &amp; Cropper (Live Preview) – Sarkari Babu Tools</title>
+  <meta name="description" content="Crop and resize JPG, PNG, WEBP images by exact pixels or percentage scale with live visual preview. Download single, all as ZIP, or compile into PDF.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Image Resizer &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop, Frame &amp; Resize</span>
+      <h1 class="hero-heading">Resize &amp; Crop Images <span class="gradient-text">Live Preview</span></h1>
+      <p class="hero-desc">Crop to exact framing and scale photos by exact pixel dimensions or percentage scale with instant preview.</p>
+    </div>
+
+    <!-- Mode Selector -->
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:24px;">
+      <button class="category-tab active" id="singleResTab" onclick="switchResMode('single')">Single Image</button>
+      <button class="category-tab" id="batchResTab" onclick="switchResMode('batch')">📁 Batch (Multiple Images)</button>
+    </div>
+
+    <div class="studio-card">
+
+      <div class="modern-dropzone" onclick="triggerResUpload()" style="margin-bottom:24px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title" id="resDropTitle">Click or Drag Image Here</div>
+        <div class="dropzone-desc">Upload photos to crop and resize dimensions</div>
+      </div>
+      <input type="file" id="resSingleInp" class="hidden-input" accept="image/*">
+      <input type="file" id="resBatchInp" class="hidden-input" accept="image/*" multiple>
+
+      <!-- Active Resizer Studio -->
+      <div id="resWorkArea" style="display:none;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          
+          <!-- Left: Resize Controls -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <h3 style="font-family:var(--font-display);font-size:18px;">Resize Settings</h3>
+              <button class="btn-primary" style="padding:6px 12px;font-size:12px;" onclick="openResCropper()">✂️ Crop Image</button>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Resize Method</label>
+              <select class="form-select" id="resizeTypeSel" onchange="toggleResizeType()">
+                <option value="percentage" selected>By Percentage Scale (e.g. 50%, 75%)</option>
+                <option value="pixels">By Exact Dimensions (Width &amp; Height in px)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="percentField">
+              <label class="form-label">Scale Percentage</label>
+              <select class="form-select" id="scalePercentSel" onchange="applyBatchResize()">
+                <option value="75">75% of Original</option>
+                <option value="50" selected>50% (Half Size)</option>
+                <option value="25">25% (Quarter Size)</option>
+                <option value="150">150% (Upscale)</option>
+                <option value="200">200% (Double Size)</option>
+              </select>
+            </div>
+
+            <div id="pixelsFields" style="display:none;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                <div>
+                  <label class="form-label">Target Width (px)</label>
+                  <input type="number" class="form-input" id="targetWidthInp" placeholder="Width" oninput="applyBatchResize()">
+                </div>
+                <div>
+                  <label class="form-label">Target Height (px)</label>
+                  <input type="number" class="form-input" id="targetHeightInp" placeholder="Height" oninput="applyBatchResize()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Live Visual Preview -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:16px;">Live Visual Preview</h3>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <img id="mainResPrevImg" alt="Resized Preview" style="max-height:260px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);box-shadow:var(--shadow-md);background:#fff;">
+              <div id="resMetaLabel" style="font-family:var(--font-mono);font-size:13px;color:var(--primary);font-weight:700;margin-top:8px;">0 × 0 px</div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+              <button class="btn-success" id="singleResDlBtn" onclick="downloadSingleResized()" style="font-size:15px;padding:12px 24px;">⬇ Download Resized Image</button>
+              
+              <div id="batchResBtns" style="display:none;gap:10px;">
+                <button class="btn-primary" onclick="downloadAllResizedZip()" style="flex:1;">📦 Download All as ZIP</button>
+                <button class="btn-secondary" onclick="compileAllResizedPdf()" style="flex:1;">📄 Save as PDF</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Multi-image thumb strip -->
+        <div id="batchResStrip" style="display:none;margin-top:24px;border-top:1px solid var(--border-subtle);padding-top:16px;">
+          <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">Uploaded Photos (Click to Preview / Crop):</h4>
+          <div id="batchResThumbGrid" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Cropper Modal -->
+  <div class="crop-modal-overlay" id="resCropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>✂️ Crop &amp; Frame Photo</h3>
+        <button class="btn-modal-close" onclick="closeResCrop()">×</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="resCropTargetImg" src="" alt="Crop Photo">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeResCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyResCrop()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/img-tools-engine.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let resMode = 'single';
+    let loadedResFiles = []; // { name, workingCanvas, outCanvas, outUrl }
+    let activeResIdx = 0;
+    let cropper = null;
+
+    const singleInp = document.getElementById('resSingleInp');
+    const batchInp = document.getElementById('resBatchInp');
+    const workArea = document.getElementById('resWorkArea');
+    const mainImg = document.getElementById('mainResPrevImg');
+    const metaLabel = document.getElementById('resMetaLabel');
+    const batchBtns = document.getElementById('batchResBtns');
+    const batchStrip = document.getElementById('batchResStrip');
+    const thumbGrid = document.getElementById('batchResThumbGrid');
+    const cropModal = document.getElementById('resCropModal');
+    const cropTargetImg = document.getElementById('resCropTargetImg');
+
+    function switchResMode(m) {
+      resMode = m;
+      document.getElementById('singleResTab').classList.toggle('active', m === 'single');
+      document.getElementById('batchResTab').classList.toggle('active', m === 'batch');
+      document.getElementById('resDropTitle').textContent = m === 'single' ? 'Click or Drag 1 Photo Here' : 'Click or Drag Multiple Photos Here';
+    }
+
+    function triggerResUpload() {
+      if (resMode === 'single') singleInp.click();
+      else batchInp.click();
+    }
+
+    singleInp.addEventListener('change', (e) => handleResFiles(e.target.files));
+    batchInp.addEventListener('change', (e) => handleResFiles(e.target.files));
+
+    async function handleResFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      loadedResFiles = [];
+      activeResIdx = 0;
+
+      for (const file of fileList) {
+        if (file.type.startsWith('image/')) {
+          const img = await readImage(file);
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+
+          loadedResFiles.push({ name: file.name, workingCanvas: c });
+        }
+      }
+
+      if (loadedResFiles.length > 0) {
+        document.getElementById('targetWidthInp').value = loadedResFiles[0].workingCanvas.width;
+        document.getElementById('targetHeightInp').value = loadedResFiles[0].workingCanvas.height;
+
+        workArea.style.display = 'block';
+        batchBtns.style.display = loadedResFiles.length > 1 ? 'flex' : 'none';
+        batchStrip.style.display = loadedResFiles.length > 1 ? 'block' : 'none';
+        applyBatchResize();
+      }
+    }
+
+    function readImage(file) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.src = e.target.result;
+        };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function openResCropper(idx = -1) {
+      if (idx >= 0) activeResIdx = idx;
+      const active = loadedResFiles[activeResIdx];
+      if (!active) return;
+
+      cropTargetImg.src = active.workingCanvas.toDataURL();
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closeResCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyResCrop() {
+      if (!cropper) return;
+      const active = loadedResFiles[activeResIdx];
+      if (!active) return;
+
+      active.workingCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      closeResCrop();
+      applyBatchResize();
+    }
+
+    function toggleResizeType() {
+      const type = document.getElementById('resizeTypeSel').value;
+      document.getElementById('percentField').style.display = type === 'percentage' ? 'block' : 'none';
+      document.getElementById('pixelsFields').style.display = type === 'pixels' ? 'block' : 'none';
+      applyBatchResize();
+    }
+
+    function applyBatchResize() {
+      if (loadedResFiles.length === 0) return;
+
+      const type = document.getElementById('resizeTypeSel').value;
+      const scalePercent = parseInt(document.getElementById('scalePercentSel').value, 10);
+      const targetW = parseInt(document.getElementById('targetWidthInp').value, 10);
+      const targetH = parseInt(document.getElementById('targetHeightInp').value, 10);
+
+      loadedResFiles.forEach(item => {
+        let outCanvas = null;
+        if (type === 'percentage') {
+          outCanvas = SarkariImgEngine.resizeImage(item.workingCanvas, { scalePercent });
+        } else {
+          outCanvas = SarkariImgEngine.resizeImage(item.workingCanvas, { width: targetW, height: targetH, maintainAspect: true });
+        }
+
+        item.outCanvas = outCanvas;
+        item.outUrl = outCanvas.toDataURL('image/jpeg', 0.95);
+      });
+
+      renderActivePreview();
+      renderThumbnails();
+    }
+
+    function renderActivePreview() {
+      const active = loadedResFiles[activeResIdx];
+      if (!active) return;
+      mainImg.src = active.outUrl;
+      metaLabel.textContent = `${active.outCanvas.width} × ${active.outCanvas.height} px · ${active.name}`;
+    }
+
+    function renderThumbnails() {
+      if (loadedResFiles.length <= 1) return;
+      thumbGrid.innerHTML = '';
+
+      loadedResFiles.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+          min-width: 80px;
+          cursor: pointer;
+          border: 2px solid ${idx === activeResIdx ? 'var(--primary)' : 'var(--border-subtle)'};
+          border-radius: var(--radius-md);
+          padding: 4px;
+          background: var(--bg-surface);
+          text-align: center;
+        `;
+        card.onclick = () => {
+          activeResIdx = idx;
+          renderActivePreview();
+          renderThumbnails();
+        };
+
+        const img = document.createElement('img');
+        img.src = item.outUrl;
+        img.style.cssText = 'height:50px;width:100%;object-fit:contain;border-radius:4px;';
+
+        const cropBtn = document.createElement('button');
+        cropBtn.className = 'btn-secondary';
+        cropBtn.style.cssText = 'padding:2px 4px;font-size:10px;width:100%;margin-top:4px;';
+        cropBtn.textContent = '✂️ Crop';
+        cropBtn.onclick = (e) => {
+          e.stopPropagation();
+          openResCropper(idx);
+        };
+
+        card.appendChild(img);
+        card.appendChild(cropBtn);
+        thumbGrid.appendChild(card);
+      });
+    }
+
+    function downloadSingleResized() {
+      const active = loadedResFiles[activeResIdx];
+      if (active) SarkariImgEngine.triggerDownload(active.outUrl, `resized_${active.name}`);
+    }
+
+    async function downloadAllResizedZip() {
+      if (loadedResFiles.length === 0) return;
+      const zip = new JSZip();
+      loadedResFiles.forEach(item => {
+        const base64 = item.outUrl.replace(/^data:image\/jpeg;base64,/, '');
+        zip.file(`resized_${item.name}.jpg`, base64, { base64: true });
+      });
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      SarkariImgEngine.triggerDownload(URL.createObjectURL(zipBlob), 'resized_images.zip');
+    }
+
+    async function compileAllResizedPdf() {
+      if (loadedResFiles.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      for (let i = 0; i < loadedResFiles.length; i++) {
+        if (i > 0) doc.addPage();
+        const item = loadedResFiles[i];
+        const pw = 210, ph = 297, margin = 10;
+        const uw = pw - (margin * 2), uh = ph - (margin * 2);
+        const aspect = item.outCanvas.width / item.outCanvas.height;
+
+        let rw = uw;
+        let rh = rw / aspect;
+        if (rh > uh) { rh = uh; rw = rh * aspect; }
+
+        const px = margin + (uw - rw) / 2;
+        const py = margin + (uh - rh) / 2;
+        doc.addImage(item.outUrl, 'JPEG', px, py, rw, rh);
+      }
+
+      doc.save('resized_documents.pdf');
+    }
+  </script>
+</body>
+</html>

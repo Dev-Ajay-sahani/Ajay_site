@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Batch Image Format Converter &amp; Cropper (Live Preview) – Sarkari Babu Tools</title>
+  <meta name="description" content="Crop and convert PNG to JPG, JPG to PNG, WEBP to JPG with live visual preview. Download single, all as ZIP, or compile to PDF. 100% private in browser.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Format Converter &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop &amp; Instant Format Conversion</span>
+      <h1 class="hero-heading">Convert &amp; Crop <span class="gradient-text">Live Preview</span></h1>
+      <p class="hero-desc">Crop your images and batch convert PNG, JPG, and WEBP with solid white background replacement.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div class="modern-dropzone" onclick="document.getElementById('convInp').click()" style="margin-bottom:24px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title">Click or Drag Images (PNG, JPG, WEBP) Here</div>
+        <div class="dropzone-desc">Convert single or batch images into desired formats</div>
+      </div>
+      <input type="file" id="convInp" class="hidden-input" accept="image/*" multiple>
+
+      <!-- Settings -->
+      <div class="settings-grid" style="margin-bottom:20px;">
+        <div class="form-group">
+          <label class="form-label">Target Format</label>
+          <select class="form-select" id="targetFormatSel" onchange="reprocessAll()">
+            <option value="image/jpeg" selected>JPG / JPEG (Standard for Govt Portals)</option>
+            <option value="image/png">PNG (Lossless Transparency)</option>
+            <option value="image/webp">WEBP (High Compression Web)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quality Level</label>
+          <select class="form-select" id="jpegQualitySel" onchange="reprocessAll()">
+            <option value="0.96" selected>96% (Maximum Quality / Zero Loss)</option>
+            <option value="0.85">85% (Optimized File Size)</option>
+            <option value="0.70">70% (Compact Size)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Converted Visual Gallery -->
+      <div id="convertedListWrap" style="display:none;margin-top:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <h4 style="font-family:var(--font-display);font-size:16px;">Converted Previews (<span id="convertedCount">0</span>):</h4>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-primary" onclick="downloadAllConvertedZip()">📦 Download All as ZIP</button>
+            <button class="btn-secondary" onclick="compileAllConvertedPdf()">📄 Save All as PDF</button>
+          </div>
+        </div>
+
+        <div id="convertedGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:16px;"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Cropper Modal -->
+  <div class="crop-modal-overlay" id="convCropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>✂️ Crop &amp; Frame Image</h3>
+        <button class="btn-modal-close" onclick="closeConvCrop()">×</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="convCropTargetImg" src="" alt="Crop Target">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeConvCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyConvCrop()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/img-tools-engine.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let uploadedList = []; // { rawImg, workingCanvas, blob, name, url }
+    let activeCropIdx = -1;
+    let cropper = null;
+
+    const inp = document.getElementById('convInp');
+    const formatSel = document.getElementById('targetFormatSel');
+    const qualitySel = document.getElementById('jpegQualitySel');
+    const listWrap = document.getElementById('convertedListWrap');
+    const grid = document.getElementById('convertedGrid');
+    const countLabel = document.getElementById('convertedCount');
+    const cropModal = document.getElementById('convCropModal');
+    const cropTargetImg = document.getElementById('convCropTargetImg');
+
+    inp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        uploadedList = [];
+
+        for (const file of e.target.files) {
+          const img = await loadImage(file);
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+
+          const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+          uploadedList.push({ rawImg: img, workingCanvas: c, baseName });
+        }
+
+        await reprocessAll();
+      }
+    });
+
+    function loadImage(file) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.src = e.target.result;
+        };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function openConvCropper(idx) {
+      activeCropIdx = idx;
+      const item = uploadedList[idx];
+      if (!item) return;
+
+      cropTargetImg.src = item.workingCanvas.toDataURL();
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closeConvCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    async function applyConvCrop() {
+      if (!cropper || activeCropIdx < 0) return;
+      uploadedList[activeCropIdx].workingCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      closeConvCrop();
+      await reprocessAll();
+    }
+
+    async function reprocessAll() {
+      if (uploadedList.length === 0) return;
+
+      grid.innerHTML = '';
+      const targetMime = formatSel.value;
+      const q = parseFloat(qualitySel.value);
+      const ext = targetMime === 'image/jpeg' ? 'jpg' : (targetMime === 'image/png' ? 'png' : 'webp');
+
+      for (let i = 0; i < uploadedList.length; i++) {
+        const item = uploadedList[i];
+        const blob = await SarkariImgEngine.convertFormat(item.workingCanvas, targetMime, q);
+        item.blob = blob;
+        item.name = `${item.baseName}.${ext}`;
+        item.url = URL.createObjectURL(blob);
+
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid var(--border-subtle);background:var(--bg-subtle);border-radius:var(--radius-md);padding:10px;text-align:center;';
+
+        const imgEl = document.createElement('img');
+        imgEl.src = item.url;
+        imgEl.style.cssText = 'height:120px;width:100%;object-fit:contain;margin-bottom:6px;border-radius:4px;background:#fff;';
+
+        const nameEl = document.createElement('div');
+        nameEl.textContent = item.name;
+        nameEl.style.cssText = 'font-size:11px;font-weight:700;word-break:break-all;margin-bottom:4px;';
+
+        const metaEl = document.createElement('div');
+        metaEl.textContent = `${(item.blob.size/1024).toFixed(1)} KB`;
+        metaEl.style.cssText = 'font-size:12px;font-weight:700;color:var(--success-text);margin-bottom:6px;';
+
+        const btnsDiv = document.createElement('div');
+        btnsDiv.style.cssText = 'display:flex;gap:4px;';
+
+        const cropBtn = document.createElement('button');
+        cropBtn.className = 'btn-secondary';
+        cropBtn.style.cssText = 'padding:4px 6px;font-size:11px;flex:1;';
+        cropBtn.textContent = '✂️ Crop';
+        cropBtn.onclick = () => openConvCropper(i);
+
+        const dl = document.createElement('button');
+        dl.className = 'btn-secondary';
+        dl.style.cssText = 'padding:4px 6px;font-size:11px;flex:1;';
+        dl.textContent = '⬇ Save';
+        dl.onclick = () => {
+          const a = document.createElement('a');
+          a.href = item.url;
+          a.download = item.name;
+          a.click();
+        };
+
+        btnsDiv.appendChild(cropBtn);
+        btnsDiv.appendChild(dl);
+
+        card.appendChild(imgEl);
+        card.appendChild(nameEl);
+        card.appendChild(metaEl);
+        card.appendChild(btnsDiv);
+        grid.appendChild(card);
+      }
+
+      countLabel.textContent = uploadedList.length;
+      listWrap.style.display = 'block';
+    }
+
+    async function downloadAllConvertedZip() {
+      if (uploadedList.length === 0) return;
+      const zip = new JSZip();
+      uploadedList.forEach(item => {
+        zip.file(item.name, item.blob);
+      });
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      SarkariImgEngine.triggerDownload(URL.createObjectURL(zipBlob), 'converted_images.zip');
+    }
+
+    async function compileAllConvertedPdf() {
+      if (uploadedList.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      for (let i = 0; i < uploadedList.length; i++) {
+        if (i > 0) doc.addPage();
+        const item = uploadedList[i];
+        const pw = 210, ph = 297, margin = 10;
+        const uw = pw - (margin * 2), uh = ph - (margin * 2);
+        const aspect = item.workingCanvas.width / item.workingCanvas.height;
+
+        let rw = uw;
+        let rh = rw / aspect;
+        if (rh > uh) { rh = uh; rw = rh * aspect; }
+
+        const px = margin + (uw - rw) / 2;
+        const py = margin + (uh - rh) / 2;
+        doc.addImage(item.url, 'JPEG', px, py, rw, rh);
+      }
+
+      doc.save('converted_documents.pdf');
+    }
+  </script>
+</body>
+</html>

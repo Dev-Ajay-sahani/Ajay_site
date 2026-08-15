@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Passport &amp; Postcard Photo Maker – Sarkari Babu Tools</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sarkari Babu">
+  <meta property="og:title" content="📷 Passport &amp; Postcard Photo Maker (300 DPI) – Sarkari Babu">
+  <meta property="og:description" content="Create official Indian passport photos (3.5×4.5 cm / 300 DPI), Passport Seva GPSP 2.0 (630×810 px), and A4 printable sheets.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2563EB">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Passport Photo Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ 300 DPI Official Photo Maker</span>
+      <h1 class="hero-heading">Passport &amp; Postcard <span class="gradient-text">Photo Studio</span></h1>
+      <p class="hero-desc">Indian Standard (3.5×4.5 cm), Passport Seva GPSP 2.0 (630×810 px), Sarathi DL, and NEET Postcard (4×6 inch).</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        
+        <!-- Left: Upload & Preview -->
+        <div style="text-align:center;">
+          <div class="modern-dropzone" onclick="document.getElementById('passInp').click()" style="padding:28px 16px;">
+            <div id="passDropPh">
+              <div class="dropzone-icon">📷</div>
+              <div class="dropzone-title">Click to Upload Candidate Photo</div>
+              <div class="dropzone-desc">JPG, PNG, or WEBP photo</div>
+            </div>
+            <img id="passPrevImg" alt="Preview" style="display:none;max-height:240px;margin:0 auto;border-radius:var(--radius-md);box-shadow:var(--shadow-md);">
+          </div>
+          <div id="passMeta" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:10px;">Upload image to generate photo</div>
+          <input type="file" id="passInp" class="hidden-input" accept="image/*">
+        </div>
+
+        <!-- Right: Options & Actions -->
+        <div>
+          <div class="form-group">
+            <label class="form-label">Photo Standard</label>
+            <select class="form-select" id="passStandardSelect" onchange="updatePhotoStandard()">
+              <option value="standard" selected>Indian Standard Passport (3.5 × 4.5 cm · 300 DPI)</option>
+              <option value="passport-seva">Passport Seva GPSP 2.0 (630 × 810 px · 450 DPI)</option>
+              <option value="parivahan">Sarathi Parivahan DL (420 × 525 px · 10-20 KB)</option>
+              <option value="postcard">NTA NEET / JEE Postcard (4 × 6 inch)</option>
+              <option value="visa">US Visa / Square (2 × 2 inch · 600×600 px)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Printable Sheet Copies (A4)</label>
+            <select class="form-select" id="passCopiesSelect" onchange="updateSheet()">
+              <option value="8" selected>8 Photos (Standard Grid)</option>
+              <option value="16">16 Photos (2 Rows × 8)</option>
+              <option value="32">32 Photos (Full Sheet Batch)</option>
+              <option value="4">4 Photos (Postcard / Large)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="passDopCheck" onchange="toggleDop()">
+              <span>Add Name &amp; Date of Photo (DOP) Strip</span>
+            </label>
+            <div id="passDopWrap" style="display:none;margin-top:10px;">
+              <input type="text" class="form-input" id="passNameIn" placeholder="Candidate Name (e.g. SNEHA PATEL)" style="margin-bottom:6px;" oninput="updateSheet()">
+              <input type="text" class="form-input" id="passDateIn" placeholder="Date of Photo (e.g. 15/08/2026)" oninput="updateSheet()">
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button class="btn-success" id="downloadSingleBtn" style="display:none;" onclick="downloadSingle()">⬇ Download Single (300 DPI)</button>
+            <button class="btn-primary" id="downloadSheetBtn" style="display:none;" onclick="downloadSheetPDF()">🖨️ Download Printable Sheet (PDF)</button>
+            
+            <!-- Pass to Next Operation Grid -->
+            <div id="passPipelineGrid" style="display:none;border-top:1px solid var(--border-subtle);padding-top:12px;margin-top:6px;">
+              <strong style="font-size:12.5px;color:var(--text-primary);display:block;margin-bottom:8px;">🚀 Pass Photo to Next Tool:</strong>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="passPassTo('image-compressor.html')">🗜️ Compress KB</button>
+                <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="passPassTo('watermark-image.html')">💧 Add Watermark</button>
+                <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="passPassTo('custom-tool.html')">📐 Custom Resize</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sheet Preview -->
+      <div id="sheetPreviewCard" style="display:none;margin-top:28px;border-top:1px solid var(--border-subtle);padding-top:20px;">
+        <h4 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">🖨️ Multi-Photo Sheet Preview:</h4>
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;text-align:center;">
+          <img id="sheetPreviewImg" alt="Sheet" style="max-height:300px;border-radius:var(--radius-md);box-shadow:var(--shadow-md);">
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal -->
+  <div class="crop-modal-overlay" id="cropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>Crop Photo (300 DPI)</h3>
+        <button class="btn-modal-close" onclick="closeCrop()">×</button>
+      </div>
+      <div class="modal-body-area">
+        <div class="modal-crop-stage"><img id="modalCropImg" src="" alt="Crop"></div>
+      </div>
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyPassCrop()">✔ Crop &amp; Generate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let cropper = null;
+    let singleCanvas = null;
+    let sheetCanvas = null;
+
+    const passInp = document.getElementById('passInp');
+    const passPrev = document.getElementById('passPrevImg');
+    const passPh = document.getElementById('passDropPh');
+    const passMeta = document.getElementById('passMeta');
+    const singleBtn = document.getElementById('downloadSingleBtn');
+    const sheetBtn = document.getElementById('downloadSheetBtn');
+    const sheetCard = document.getElementById('sheetPreviewCard');
+    const sheetImg = document.getElementById('sheetPreviewImg');
+    const dopCheck = document.getElementById('passDopCheck');
+    const dopWrap = document.getElementById('passDopWrap');
+    const nameIn = document.getElementById('passNameIn');
+    const dateIn = document.getElementById('passDateIn');
+    const stdSel = document.getElementById('passStandardSelect');
+    const countSel = document.getElementById('passCopiesSelect');
+
+    function toggleDop() {
+      dopWrap.style.display = dopCheck.checked ? 'block' : 'none';
+      if (singleCanvas) updateSheet();
+    }
+
+    passInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          document.getElementById('modalCropImg').src = evt.target.result;
+          document.getElementById('cropModal').classList.add('active');
+          if (cropper) cropper.destroy();
+          const std = stdSel.value;
+          let ar = 3.5 / 4.5;
+          if (std === 'postcard') ar = 4 / 6;
+          else if (std === 'visa') ar = 1;
+          else if (std === 'passport-seva') ar = 630 / 810;
+          else if (std === 'parivahan') ar = 420 / 525;
+
+          cropper = new Cropper(document.getElementById('modalCropImg'), {
+            aspectRatio: ar,
+            viewMode: 1,
+            autoCropArea: 0.95
+          });
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    function closeCrop() {
+      document.getElementById('cropModal').classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyPassCrop() {
+      if (!cropper) return;
+      const std = stdSel.value;
+      let w = 413, h = 531;
+      if (std === 'postcard') { w = 1200; h = 1800; }
+      else if (std === 'visa') { w = 600; h = 600; }
+      else if (std === 'passport-seva') { w = 630; h = 810; }
+      else if (std === 'parivahan') { w = 420; h = 525; }
+
+      const raw = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      singleCanvas = SarkariEngine.highQualityDownsample(raw, w, h);
+      closeCrop();
+      updateSheet();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariPipeline.initReceiver('.studio-container', (img, meta) => {
+        document.getElementById('modalCropImg').src = img.src;
+        document.getElementById('cropModal').classList.add('active');
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(document.getElementById('modalCropImg'), {
+          aspectRatio: 3.5 / 4.5,
+          viewMode: 1,
+          autoCropArea: 0.95
+        });
+      });
+    });
+
+    function passPassTo(targetUrl) {
+      if (!singleCanvas) {
+        alert('Please generate passport photo first!');
+        return;
+      }
+      let c = singleCanvas;
+      if (dopCheck.checked) {
+        c = SarkariEngine.addNameAndDateToPhoto(singleCanvas, nameIn.value.trim(), dateIn.value.trim() ? `DOP: ${dateIn.value.trim()}` : '');
+      }
+      const dataUrl = c.toDataURL('image/jpeg', 0.95);
+      SarkariPipeline.passTo(targetUrl, dataUrl, {
+        sourceName: 'Passport Photo Studio',
+        fileName: 'passport_photo_300dpi.jpg',
+        sizeKB: (dataUrl.length * 0.75 / 1024).toFixed(1)
+      });
+    }
+
+    function updateSheet() {
+      if (!singleCanvas) return;
+      let finalSingle = singleCanvas;
+      if (dopCheck.checked) {
+        const name = nameIn.value.trim();
+        const d = dateIn.value.trim() ? `DOP: ${dateIn.value.trim()}` : '';
+        finalSingle = SarkariEngine.addNameAndDateToPhoto(singleCanvas, name, d);
+      }
+
+      passPrev.src = finalSingle.toDataURL('image/jpeg', 0.95);
+      passPrev.style.display = 'block';
+      passPh.style.display = 'none';
+      passMeta.textContent = `${finalSingle.width}×${finalSingle.height} px · 300 DPI`;
+
+      singleBtn.style.display = 'block';
+      sheetBtn.style.display = 'block';
+      document.getElementById('passPipelineGrid').style.display = 'block';
+
+      const count = parseInt(countSel.value, 10);
+      sheetCanvas = SarkariEngine.generatePassportPrintSheet(finalSingle, count, 'A4');
+      sheetImg.src = sheetCanvas.toDataURL('image/jpeg', 0.88);
+      sheetCard.style.display = 'block';
+    }
+
+    function downloadSingle() {
+      if (!singleCanvas) return;
+      let c = singleCanvas;
+      if (dopCheck.checked) {
+        c = SarkariEngine.addNameAndDateToPhoto(singleCanvas, nameIn.value.trim(), dateIn.value.trim() ? `DOP: ${dateIn.value.trim()}` : '');
+      }
+      SarkariEngine.triggerDownload(c.toDataURL('image/jpeg', 0.95), 'passport_photo_300dpi.jpg');
+    }
+
+    function downloadSheetPDF() {
+      if (!sheetCanvas) return;
+      SarkariEngine.exportToPdf(sheetCanvas, 'passport_photos_A4_sheet.pdf', 'portrait');
+    }
+  </script>
+</body>
+</html>

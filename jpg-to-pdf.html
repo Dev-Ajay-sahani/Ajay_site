@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JPG to PDF Multi-Document Converter &amp; Cropper – Sarkari Babu Tools</title>
+  <meta name="description" content="Crop and convert single or multiple JPG/PNG images, certificates, and marksheets into a clean, lightweight PDF file for online government job applications.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">JPG to PDF &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop &amp; Compile to PDF</span>
+      <h1 class="hero-heading">Convert &amp; Crop <span class="gradient-text">to PDF</span></h1>
+      <p class="hero-desc">Crop page borders and batch compile multiple certificates, marksheets, and identity cards into one PDF.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div class="modern-dropzone" onclick="document.getElementById('multiPdfInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title">Click or Drag Images (JPG, PNG) Here</div>
+        <div class="dropzone-desc">Upload 10th/12th marksheets, Degree, Domicile, or Aadhaar cards</div>
+      </div>
+      <input type="file" id="multiPdfInp" class="hidden-input" accept="image/*" multiple>
+
+      <div class="settings-grid" style="margin-bottom:20px;">
+        <div class="form-group">
+          <label class="form-label">Page Orientation</label>
+          <select class="form-select" id="pdfOrient">
+            <option value="portrait" selected>Portrait (Standard Document)</option>
+            <option value="landscape">Landscape</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Page Margins</label>
+          <select class="form-select" id="pdfMargin">
+            <option value="10" selected>Standard (10 mm)</option>
+            <option value="0">No Margin (Full Page Fit)</option>
+            <option value="20">Wide Margin (20 mm)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">PDF File Name</label>
+          <input type="text" class="form-input" id="pdfNameInp" value="sarkari_documents.pdf">
+        </div>
+      </div>
+
+      <!-- Selected Gallery List -->
+      <div id="galleryWrap" style="display:none;margin-top:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h4 style="font-family:var(--font-display);font-size:16px;">Selected Pages (<span id="countLabel">0</span>):</h4>
+          <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="document.getElementById('multiPdfInp').click()">+ Add More</button>
+        </div>
+        <div id="galleryGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:14px;margin-bottom:20px;"></div>
+
+        <button class="btn-primary" id="createPdfBtn" onclick="compilePDF()" style="width:100%;font-size:15px;padding:14px;">📄 Generate &amp; Download PDF</button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Cropper Modal -->
+  <div class="crop-modal-overlay" id="pdfPageCropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>✂️ Crop Page Document</h3>
+        <button class="btn-modal-close" onclick="closePdfPageCrop()">×</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="pdfCropTargetImg" src="" alt="Crop Page">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closePdfPageCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyPdfPageCrop()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    const multiInp = document.getElementById('multiPdfInp');
+    const galleryGrid = document.getElementById('galleryGrid');
+    const galleryWrap = document.getElementById('galleryWrap');
+    const countLabel = document.getElementById('countLabel');
+    const cropModal = document.getElementById('pdfPageCropModal');
+    const cropTargetImg = document.getElementById('pdfCropTargetImg');
+
+    let pagesList = []; // { dataUrl, width, height }
+    let activePageCropIdx = -1;
+    let cropper = null;
+
+    multiInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        for (const f of e.target.files) {
+          if (f.type.startsWith('image/')) {
+            const dataUrl = await readFileDataUrl(f);
+            const dims = await getImageDims(dataUrl);
+            pagesList.push({ dataUrl, width: dims.w, height: dims.h });
+          }
+        }
+        renderGallery();
+      }
+    });
+
+    function openPageCropper(idx) {
+      activePageCropIdx = idx;
+      const item = pagesList[idx];
+      if (!item) return;
+
+      cropTargetImg.src = item.dataUrl;
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closePdfPageCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    async function applyPdfPageCrop() {
+      if (!cropper || activePageCropIdx < 0) return;
+      const croppedCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      pagesList[activePageCropIdx].dataUrl = croppedCanvas.toDataURL('image/jpeg', 0.95);
+      pagesList[activePageCropIdx].width = croppedCanvas.width;
+      pagesList[activePageCropIdx].height = croppedCanvas.height;
+
+      closePdfPageCrop();
+      renderGallery();
+    }
+
+    function renderGallery() {
+      if (pagesList.length === 0) {
+        galleryWrap.style.display = 'none';
+        return;
+      }
+
+      galleryGrid.innerHTML = '';
+      countLabel.textContent = pagesList.length;
+      galleryWrap.style.display = 'block';
+
+      pagesList.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid var(--border-subtle);background:var(--bg-subtle);border-radius:var(--radius-md);padding:10px;position:relative;text-align:center;';
+
+        const img = document.createElement('img');
+        img.src = item.dataUrl;
+        img.style.cssText = 'height:100px;width:100%;object-fit:contain;margin-bottom:6px;border-radius:4px;background:#fff;';
+
+        const title = document.createElement('div');
+        title.textContent = `Page ${idx + 1} (${item.width}×${item.height})`;
+        title.style.cssText = 'font-size:11px;font-weight:700;margin-bottom:6px;';
+
+        const btnsDiv = document.createElement('div');
+        btnsDiv.style.cssText = 'display:flex;gap:4px;';
+
+        const cropBtn = document.createElement('button');
+        cropBtn.className = 'btn-secondary';
+        cropBtn.style.cssText = 'padding:3px 6px;font-size:11px;flex:1;';
+        cropBtn.textContent = '✂️ Crop';
+        cropBtn.onclick = () => openPageCropper(idx);
+
+        const del = document.createElement('button');
+        del.innerHTML = '×';
+        del.style.cssText = 'position:absolute;top:4px;right:4px;background:var(--danger-subtle);color:var(--danger-text);border:1px solid var(--border-subtle);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;cursor:pointer;font-size:12px;font-weight:700;';
+        del.onclick = () => {
+          pagesList.splice(idx, 1);
+          renderGallery();
+        };
+
+        btnsDiv.appendChild(cropBtn);
+        card.appendChild(del);
+        card.appendChild(img);
+        card.appendChild(title);
+        card.appendChild(btnsDiv);
+        galleryGrid.appendChild(card);
+      });
+    }
+
+    async function compilePDF() {
+      if (pagesList.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const orient = document.getElementById('pdfOrient').value;
+      const margin = parseInt(document.getElementById('pdfMargin').value, 10);
+      const filename = document.getElementById('pdfNameInp').value.trim() || 'sarkari_documents.pdf';
+
+      const doc = new jsPDF({ orientation: orient, unit: 'mm', format: 'a4' });
+      const pw = orient === 'portrait' ? 210 : 297;
+      const ph = orient === 'portrait' ? 297 : 210;
+      const uw = pw - (margin * 2);
+      const uh = ph - (margin * 2);
+
+      for (let i = 0; i < pagesList.length; i++) {
+        if (i > 0) doc.addPage();
+        const item = pagesList[i];
+
+        const aspect = item.width / item.height;
+        let rw = uw;
+        let rh = rw / aspect;
+        if (rh > uh) { rh = uh; rw = rh * aspect; }
+
+        const px = margin + (uw - rw) / 2;
+        const py = margin + (uh - rh) / 2;
+        doc.addImage(item.dataUrl, 'JPEG', px, py, rw, rh);
+      }
+
+      doc.save(filename);
+    }
+
+    function readFileDataUrl(f) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsDataURL(f);
+      });
+    }
+    function getImageDims(src) {
+      return new Promise(res => {
+        const img = new Image();
+        img.onload = () => res({ w: img.naturalWidth, h: img.naturalHeight });
+        img.src = src;
+      });
+    }
+  </script>
+</body>
+</html>

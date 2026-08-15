@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photo Color, Crop &amp; Filters Studio (Live Preview) – Sarkari Babu Tools</title>
+  <meta name="description" content="Crop and adjust brightness, contrast, saturation, and grayscale filters online with live preview. Download single, all as ZIP, or compile into PDF.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Photo Studio &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop &amp; Fine-Tune Clarity</span>
+      <h1 class="hero-heading">Photo Editor &amp; <span class="gradient-text">Cropper</span></h1>
+      <p class="hero-desc">Crop your photo and fine-tune Brightness, Contrast, Saturation, and Sharpen filters with real-time feedback.</p>
+    </div>
+
+    <!-- Mode Selector -->
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:24px;">
+      <button class="category-tab active" id="singleEditTab" onclick="switchEditMode('single')">Single Photo</button>
+      <button class="category-tab" id="batchEditTab" onclick="switchEditMode('batch')">📁 Batch (Multiple Photos)</button>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Dropzone -->
+      <div class="modern-dropzone" onclick="triggerEditUpload()" style="margin-bottom:24px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title" id="editDropTitle">Click or Drag Photo Here</div>
+        <div class="dropzone-desc">Upload photos to crop and adjust lighting</div>
+      </div>
+      <input type="file" id="editSingleInp" class="hidden-input" accept="image/*">
+      <input type="file" id="editBatchInp" class="hidden-input" accept="image/*" multiple>
+
+      <!-- Active Editor Studio -->
+      <div id="editorWorkArea" style="display:none;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          
+          <!-- Left: Sliders & Crop -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <h3 style="font-family:var(--font-display);font-size:18px;">Filter Adjustments</h3>
+              <button class="btn-primary" style="padding:6px 12px;font-size:12px;" onclick="openEditorCropper()">✂️ Crop Photo</button>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Brightness:</label>
+                <strong id="brightVal" style="font-size:13px;color:var(--primary);">100%</strong>
+              </div>
+              <input type="range" class="modern-slider" id="brightRange" min="20" max="200" value="100" oninput="applyFilters()">
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Contrast:</label>
+                <strong id="contrastVal" style="font-size:13px;color:var(--primary);">100%</strong>
+              </div>
+              <input type="range" class="modern-slider" id="contrastRange" min="20" max="200" value="100" oninput="applyFilters()">
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Saturation:</label>
+                <strong id="satVal" style="font-size:13px;color:var(--primary);">100%</strong>
+              </div>
+              <input type="range" class="modern-slider" id="satRange" min="0" max="200" value="100" oninput="applyFilters()">
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Grayscale:</label>
+                <strong id="grayVal" style="font-size:13px;color:var(--primary);">0%</strong>
+              </div>
+              <input type="range" class="modern-slider" id="grayRange" min="0" max="100" value="0" oninput="applyFilters()">
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+              <button class="btn-secondary" id="flipHBtn" onclick="toggleFlip('h')">↔ Flip H</button>
+              <button class="btn-secondary" id="flipVBtn" onclick="toggleFlip('v')">↕ Flip V</button>
+              <button class="btn-secondary" onclick="resetFilters()">↺ Reset</button>
+            </div>
+          </div>
+
+          <!-- Right: Live Visual Preview Canvas -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:16px;">Live Visual Preview</h3>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <img id="mainEditorPrevImg" alt="Edited Preview" style="max-height:260px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);box-shadow:var(--shadow-md);background:#fff;">
+              <div id="editorMetaLabel" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:8px;">0 × 0 px</div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+              <button class="btn-success" id="singleEditDlBtn" onclick="downloadSingleEdited()" style="font-size:15px;padding:12px 24px;">⬇ Download Edited Photo</button>
+              
+              <div id="batchEditBtns" style="display:none;gap:10px;">
+                <button class="btn-primary" onclick="downloadAllEditedZip()" style="flex:1;">📦 Download All as ZIP</button>
+                <button class="btn-secondary" onclick="compileAllEditedPdf()" style="flex:1;">📄 Save as PDF</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Multi-image thumb strip -->
+        <div id="batchEditStrip" style="display:none;margin-top:24px;border-top:1px solid var(--border-subtle);padding-top:16px;">
+          <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">All Uploaded Photos (Click to Preview / Crop):</h4>
+          <div id="batchEditThumbGrid" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Cropper Modal -->
+  <div class="crop-modal-overlay" id="editCropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>✂️ Crop &amp; Frame Photo</h3>
+        <button class="btn-modal-close" onclick="closeEditCrop()">×</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="editCropTargetImg" src="" alt="Crop Target">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeEditCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyEditCrop()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/img-tools-engine.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let editMode = 'single';
+    let loadedFiles = []; // { name, workingCanvas, outCanvas, outUrl }
+    let activeIdx = 0;
+    let flipH = false;
+    let flipV = false;
+    let cropper = null;
+
+    const singleInp = document.getElementById('editSingleInp');
+    const batchInp = document.getElementById('editBatchInp');
+    const workArea = document.getElementById('editorWorkArea');
+    const mainImg = document.getElementById('mainEditorPrevImg');
+    const metaLabel = document.getElementById('editorMetaLabel');
+    const batchBtns = document.getElementById('batchEditBtns');
+    const batchStrip = document.getElementById('batchEditStrip');
+    const thumbGrid = document.getElementById('batchEditThumbGrid');
+    const cropModal = document.getElementById('editCropModal');
+    const cropTargetImg = document.getElementById('editCropTargetImg');
+
+    const bright = document.getElementById('brightRange');
+    const contrast = document.getElementById('contrastRange');
+    const sat = document.getElementById('satRange');
+    const gray = document.getElementById('grayRange');
+
+    function switchEditMode(m) {
+      editMode = m;
+      document.getElementById('singleEditTab').classList.toggle('active', m === 'single');
+      document.getElementById('batchEditTab').classList.toggle('active', m === 'batch');
+      document.getElementById('editDropTitle').textContent = m === 'single' ? 'Click or Drag 1 Photo Here' : 'Click or Drag Multiple Photos Here';
+    }
+
+    function triggerEditUpload() {
+      if (editMode === 'single') singleInp.click();
+      else batchInp.click();
+    }
+
+    singleInp.addEventListener('change', (e) => handleFiles(e.target.files));
+    batchInp.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    async function handleFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      loadedFiles = [];
+      activeIdx = 0;
+
+      for (const file of fileList) {
+        if (file.type.startsWith('image/')) {
+          const img = await readImage(file);
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+
+          loadedFiles.push({ name: file.name, workingCanvas: c });
+        }
+      }
+
+      if (loadedFiles.length > 0) {
+        workArea.style.display = 'block';
+        batchBtns.style.display = loadedFiles.length > 1 ? 'flex' : 'none';
+        batchStrip.style.display = loadedFiles.length > 1 ? 'block' : 'none';
+        applyFilters();
+      }
+    }
+
+    function readImage(file) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.src = e.target.result;
+        };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function openEditorCropper(idx = -1) {
+      if (idx >= 0) activeIdx = idx;
+      const active = loadedFiles[activeIdx];
+      if (!active) return;
+
+      cropTargetImg.src = active.workingCanvas.toDataURL();
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closeEditCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyEditCrop() {
+      if (!cropper) return;
+      const active = loadedFiles[activeIdx];
+      if (!active) return;
+
+      active.workingCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      closeEditCrop();
+      applyFilters();
+    }
+
+    function toggleFlip(dir) {
+      if (dir === 'h') flipH = !flipH;
+      if (dir === 'v') flipV = !flipV;
+      document.getElementById('flipHBtn').classList.toggle('active', flipH);
+      document.getElementById('flipVBtn').classList.toggle('active', flipV);
+      applyFilters();
+    }
+
+    function resetFilters() {
+      bright.value = 100;
+      contrast.value = 100;
+      sat.value = 100;
+      gray.value = 0;
+      flipH = false;
+      flipV = false;
+      document.getElementById('flipHBtn').classList.remove('active');
+      document.getElementById('flipVBtn').classList.remove('active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      if (loadedFiles.length === 0) return;
+
+      document.getElementById('brightVal').textContent = `${bright.value}%`;
+      document.getElementById('contrastVal').textContent = `${contrast.value}%`;
+      document.getElementById('satVal').textContent = `${sat.value}%`;
+      document.getElementById('grayVal').textContent = `${gray.value}%`;
+
+      const opts = {
+        brightness: parseInt(bright.value, 10),
+        contrast: parseInt(contrast.value, 10),
+        saturation: parseInt(sat.value, 10),
+        grayscale: parseInt(gray.value, 10),
+        flipH,
+        flipV
+      };
+
+      loadedFiles.forEach(item => {
+        item.outCanvas = SarkariImgEngine.applyPhotoFilters(item.workingCanvas, opts);
+        item.outUrl = item.outCanvas.toDataURL('image/jpeg', 0.95);
+      });
+
+      renderActivePreview();
+      renderThumbnails();
+    }
+
+    function renderActivePreview() {
+      const active = loadedFiles[activeIdx];
+      if (!active) return;
+      mainImg.src = active.outUrl;
+      metaLabel.textContent = `${active.outCanvas.width} × ${active.outCanvas.height} px · ${active.name}`;
+    }
+
+    function renderThumbnails() {
+      if (loadedFiles.length <= 1) return;
+      thumbGrid.innerHTML = '';
+
+      loadedFiles.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+          min-width: 80px;
+          cursor: pointer;
+          border: 2px solid ${idx === activeIdx ? 'var(--primary)' : 'var(--border-subtle)'};
+          border-radius: var(--radius-md);
+          padding: 4px;
+          background: var(--bg-surface);
+          text-align: center;
+        `;
+        card.onclick = () => {
+          activeIdx = idx;
+          renderActivePreview();
+          renderThumbnails();
+        };
+
+        const img = document.createElement('img');
+        img.src = item.outUrl;
+        img.style.cssText = 'height:50px;width:100%;object-fit:contain;border-radius:4px;';
+
+        const cropBtn = document.createElement('button');
+        cropBtn.className = 'btn-secondary';
+        cropBtn.style.cssText = 'padding:2px 4px;font-size:10px;width:100%;margin-top:4px;';
+        cropBtn.textContent = '✂️ Crop';
+        cropBtn.onclick = (e) => {
+          e.stopPropagation();
+          openEditorCropper(idx);
+        };
+
+        card.appendChild(img);
+        card.appendChild(cropBtn);
+        thumbGrid.appendChild(card);
+      });
+    }
+
+    function downloadSingleEdited() {
+      const active = loadedFiles[activeIdx];
+      if (active) {
+        SarkariImgEngine.triggerDownload(active.outUrl, `edited_${active.name}`);
+      }
+    }
+
+    async function downloadAllEditedZip() {
+      if (loadedFiles.length === 0) return;
+      const zip = new JSZip();
+      loadedFiles.forEach(item => {
+        const base64 = item.outUrl.replace(/^data:image\/jpeg;base64,/, '');
+        zip.file(`edited_${item.name}.jpg`, base64, { base64: true });
+      });
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      SarkariImgEngine.triggerDownload(URL.createObjectURL(zipBlob), 'edited_photos.zip');
+    }
+
+    async function compileAllEditedPdf() {
+      if (loadedFiles.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      for (let i = 0; i < loadedFiles.length; i++) {
+        if (i > 0) doc.addPage();
+        const item = loadedFiles[i];
+        const pw = 210, ph = 297, margin = 10;
+        const uw = pw - (margin * 2), uh = ph - (margin * 2);
+        const aspect = item.outCanvas.width / item.outCanvas.height;
+
+        let rw = uw;
+        let rh = rw / aspect;
+        if (rh > uh) { rh = uh; rw = rh * aspect; }
+
+        const px = margin + (uw - rw) / 2;
+        const py = margin + (uh - rh) / 2;
+        doc.addImage(item.outUrl, 'JPEG', px, py, rw, rh);
+      }
+
+      doc.save('edited_photos.pdf');
+    }
+  </script>
+</body>
+</html>

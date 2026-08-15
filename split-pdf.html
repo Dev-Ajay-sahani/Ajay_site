@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split PDF Online (Interactive Page Preview) – Sarkari Babu Tools</title>
+  <meta name="description" content="Split and extract PDF pages with interactive visual page thumbnail preview. Click pages to select or enter custom ranges. 100% private in browser.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    .pdf-pages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+      max-height: 440px;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    .page-thumb-card {
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all var(--transition-fast);
+    }
+    .page-thumb-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .page-thumb-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    .page-thumb-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border-subtle);
+    }
+    .page-select-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 2px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .page-thumb-card.selected .page-select-badge {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+  </style>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Split PDF Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Visual Page Selector</span>
+      <h1 class="hero-heading">Split PDF with <span class="gradient-text">Visual Preview</span></h1>
+      <p class="hero-desc">Click page thumbnails to select pages visually or enter custom ranges. 100% private in browser.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Box -->
+      <div class="modern-dropzone" id="splitDropZone" onclick="document.getElementById('splitPdfInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title">Click or Drag PDF Document Here</div>
+        <div class="dropzone-desc">Select PDF to preview and extract pages</div>
+      </div>
+      <input type="file" id="splitPdfInp" class="hidden-input" accept="application/pdf">
+
+      <!-- Loading Progress Indicator -->
+      <div id="pdfLoadingIndicator" style="display:none;text-align:center;padding:20px;font-size:14px;color:var(--primary);font-weight:700;">
+        ⏳ Generating Interactive Page Previews...
+      </div>
+
+      <!-- Interactive Visual Page Selection Studio -->
+      <div id="splitStudioArea" style="display:none;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <strong id="pdfDocName" style="font-size:15px;color:var(--text-primary);">Document: file.pdf</strong>
+            <div style="font-size:12px;color:var(--text-muted);">Click pages to select/deselect for extraction</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="selectAllPages(true)">Select All</button>
+            <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="selectAllPages(false)">Clear</button>
+            <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="document.getElementById('splitPdfInp').click()">+ Change PDF</button>
+          </div>
+        </div>
+
+        <!-- Visual Page Thumbnails Grid -->
+        <div id="pagesPreviewGrid" class="pdf-pages-grid"></div>
+
+        <!-- Custom Page Range Controls -->
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;margin-bottom:20px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Selected Page Numbers / Custom Range:</label>
+            <input type="text" class="form-input" id="pageRangeInput" placeholder="e.g. 1-3, 5, 8" oninput="syncFromTextInput()">
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button class="btn-primary" id="splitBtn" onclick="executeVisualSplit()" style="width:100%;font-size:15px;padding:14px;">
+          ✂️ Extract &amp; Download (<span id="selectedCountLabel">0</span> Pages Selected)
+        </button>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script>
+    let activePdfBuffer = null;
+    let pageThumbnails = []; // { pageNum, dataUrl, isSelected }
+    let totalPages = 0;
+
+    const inp = document.getElementById('splitPdfInp');
+    const studio = document.getElementById('splitStudioArea');
+    const dropZone = document.getElementById('splitDropZone');
+    const loading = document.getElementById('pdfLoadingIndicator');
+    const grid = document.getElementById('pagesPreviewGrid');
+    const rangeInp = document.getElementById('pageRangeInput');
+    const countBadge = document.getElementById('selectedCountLabel');
+    const docName = document.getElementById('pdfDocName');
+
+    inp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        docName.textContent = `Document: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        dropZone.style.display = 'none';
+        loading.style.display = 'block';
+        studio.style.display = 'none';
+
+        try {
+          activePdfBuffer = await file.arrayBuffer();
+          const rendered = await SarkariPdfEngine.convertPdfToImages(activePdfBuffer, 1.0);
+          totalPages = rendered.length;
+
+          pageThumbnails = rendered.map((p, idx) => ({
+            pageNum: p.pageNum,
+            dataUrl: p.dataUrl,
+            isSelected: idx === 0 // Select page 1 by default
+          }));
+
+          loading.style.display = 'none';
+          studio.style.display = 'block';
+          renderThumbnails();
+          updateRangeText();
+        } catch (err) {
+          alert('Error reading PDF: ' + err.message);
+          loading.style.display = 'none';
+          dropZone.style.display = 'block';
+        }
+      }
+    });
+
+    function renderThumbnails() {
+      grid.innerHTML = '';
+      let selectedCount = 0;
+
+      pageThumbnails.forEach(item => {
+        if (item.isSelected) selectedCount++;
+
+        const card = document.createElement('div');
+        card.className = `page-thumb-card ${item.isSelected ? 'selected' : ''}`;
+        card.innerHTML = `
+          <div class="page-select-badge">${item.isSelected ? '✔' : ''}</div>
+          <img src="${item.dataUrl}" alt="Page ${item.pageNum}">
+          <div style="font-size:12px;font-weight:700;">Page ${item.pageNum}</div>
+        `;
+        card.onclick = () => {
+          item.isSelected = !item.isSelected;
+          renderThumbnails();
+          updateRangeText();
+        };
+
+        grid.appendChild(card);
+      });
+
+      countBadge.textContent = selectedCount;
+    }
+
+    function selectAllPages(select) {
+      pageThumbnails.forEach(p => p.isSelected = select);
+      renderThumbnails();
+      updateRangeText();
+    }
+
+    function updateRangeText() {
+      const selected = pageThumbnails.filter(p => p.isSelected).map(p => p.pageNum);
+      if (selected.length === 0) {
+        rangeInp.value = '';
+        return;
+      }
+
+      let ranges = [];
+      let start = selected[0], end = selected[0];
+
+      for (let i = 1; i < selected.length; i++) {
+        if (selected[i] === end + 1) {
+          end = selected[i];
+        } else {
+          ranges.push(start === end ? `${start}` : `${start}-${end}`);
+          start = end = selected[i];
+        }
+      }
+      ranges.push(start === end ? `${start}` : `${start}-${end}`);
+      rangeInp.value = ranges.join(', ');
+    }
+
+    function syncFromTextInput() {
+      const parts = rangeInp.value.split(',').map(s => s.trim());
+      const selectedSet = new Set();
+
+      parts.forEach(part => {
+        if (part.includes('-')) {
+          const [st, en] = part.split('-').map(Number);
+          if (!isNaN(st) && !isNaN(en)) {
+            for (let i = st; i <= en; i++) selectedSet.add(i);
+          }
+        } else {
+          const n = parseInt(part, 10);
+          if (!isNaN(n)) selectedSet.add(n);
+        }
+      });
+
+      pageThumbnails.forEach(p => {
+        p.isSelected = selectedSet.has(p.pageNum);
+      });
+
+      renderThumbnails();
+    }
+
+    async function executeVisualSplit() {
+      const selected = pageThumbnails.filter(p => p.isSelected).map(p => p.pageNum);
+      if (selected.length === 0) {
+        alert('Please select at least 1 page to extract.');
+        return;
+      }
+
+      try {
+        const bytes = await SarkariPdfEngine.extractPdfPages(activePdfBuffer, selected);
+        SarkariPdfEngine.downloadFile(bytes, 'extracted_document.pdf');
+      } catch (err) {
+        alert('Error splitting PDF: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

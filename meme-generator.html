@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meme Generator &amp; Cropper Online (Free) – Sarkari Babu Tools</title>
+  <meta name="description" content="Crop templates and create custom memes online with top and bottom text overlay. 100% private, free client-side image generation.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Meme Generator &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop &amp; Classic Meme Text</span>
+      <h1 class="hero-heading">Online Meme <span class="gradient-text">Generator &amp; Cropper</span></h1>
+      <p class="hero-desc">Crop your template and create classic viral memes with bold outlined text on custom photos.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        
+        <!-- Left: Upload & Preview -->
+        <div style="text-align:center;">
+          <div class="modern-dropzone" onclick="document.getElementById('memeInp').click()" style="padding:28px 16px;">
+            <div id="memePh">
+              <div class="dropzone-icon">🎭</div>
+              <div class="dropzone-title">Click to Upload Meme Template</div>
+              <div class="dropzone-desc">Upload custom photo or template</div>
+            </div>
+            <img id="memePrevImg" alt="Meme" style="display:none;max-height:260px;margin:0 auto;border-radius:var(--radius-md);box-shadow:var(--shadow-md);">
+          </div>
+          <div id="memeMeta" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:10px;">Upload image to add text</div>
+          <input type="file" id="memeInp" class="hidden-input" accept="image/*">
+        </div>
+
+        <!-- Right: Text Inputs & Crop & Download -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <label class="form-label" style="margin-bottom:0;">Meme Text Setup</label>
+            <button class="btn-primary" id="memeCropBtn" style="display:none;padding:4px 10px;font-size:12px;" onclick="openMemeCrop()">✂️ Crop Template</button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Top Meme Text</label>
+            <input type="text" class="form-input" id="topTextInp" placeholder="WHEN SARKARI RESULT IS OUT" oninput="renderMeme()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Bottom Meme Text</label>
+            <input type="text" class="form-input" id="bottomTextInp" placeholder="SERVER DOWN 503 ERROR" oninput="renderMeme()">
+          </div>
+
+          <button class="btn-success" id="downloadMemeBtn" style="display:none;width:100%;font-size:15px;padding:14px;margin-top:16px;" onclick="downloadMeme()">⬇ Download Meme (JPG)</button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Cropper Modal -->
+  <div class="crop-modal-overlay" id="memeCropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>✂️ Crop Meme Template</h3>
+        <button class="btn-modal-close" onclick="closeMemeCrop()">×</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="memeCropTargetImg" src="" alt="Crop Template">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeMemeCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyMemeCrop()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/img-tools-engine.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let rawImg = null;
+    let workingCanvas = null;
+    let memeCanvas = null;
+    let cropper = null;
+
+    const inp = document.getElementById('memeInp');
+    const prev = document.getElementById('memePrevImg');
+    const ph = document.getElementById('memePh');
+    const meta = document.getElementById('memeMeta');
+    const dlBtn = document.getElementById('downloadMemeBtn');
+    const cropBtn = document.getElementById('memeCropBtn');
+    const cropModal = document.getElementById('memeCropModal');
+    const cropTargetImg = document.getElementById('memeCropTargetImg');
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const img = new Image();
+          img.onload = () => {
+            rawImg = img;
+            workingCanvas = document.createElement('canvas');
+            workingCanvas.width = img.naturalWidth;
+            workingCanvas.height = img.naturalHeight;
+            workingCanvas.getContext('2d').drawImage(img, 0, 0);
+
+            cropBtn.style.display = 'inline-block';
+            renderMeme();
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    function openMemeCrop() {
+      if (!workingCanvas) return;
+      cropTargetImg.src = workingCanvas.toDataURL();
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closeMemeCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyMemeCrop() {
+      if (!cropper) return;
+      workingCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      closeMemeCrop();
+      renderMeme();
+    }
+
+    function renderMeme() {
+      if (!workingCanvas) return;
+      const top = document.getElementById('topTextInp').value.trim();
+      const bottom = document.getElementById('bottomTextInp').value.trim();
+
+      memeCanvas = SarkariImgEngine.generateMeme(workingCanvas, top, bottom);
+
+      prev.src = memeCanvas.toDataURL('image/jpeg', 0.95);
+      prev.style.display = 'block';
+      ph.style.display = 'none';
+      meta.textContent = `${memeCanvas.width} × ${memeCanvas.height} px`;
+      dlBtn.style.display = 'block';
+    }
+
+    function downloadMeme() {
+      if (!memeCanvas) return;
+      SarkariImgEngine.triggerDownload(memeCanvas.toDataURL('image/jpeg', 0.95), 'sarkari_babu_meme.jpg');
+    }
+  </script>
+</body>
+</html>

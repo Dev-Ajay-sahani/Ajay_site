@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🏛️ Sarkari Babu — Free All-in-One Govt Job &amp; Document Studio</title>
+  <meta name="description" content="Sarkari Babu: 100% Free &amp; Private in-browser document &amp; image tools for Indian Govt Exams (SSC, UPSC, IBPS, Parivahan, NTA). Crop, compress to exact KB without blur, merge/split PDFs, stamp watermarks, and make 300 DPI passport photos.">
+  <meta name="keywords" content="sarkari babu, sarkari photo resizer, ssc photo crop, upsc photo 300 dpi, ibps declaration 800x400, parivahan photo 20kb, pan card photo crop, merge pdf, split pdf, image compressor, watermark image">
+  <meta name="author" content="Sarkari Babu">
+  <meta name="theme-color" content="#2563EB">
+
+  <!-- Open Graph / WhatsApp / Telegram / Facebook Preview Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sarkari Babu">
+  <meta property="og:title" content="🏛️ Sarkari Babu — Free All-in-One Govt Job &amp; Document Studio">
+  <meta property="og:description" content="100% Free &amp; Private in-browser tools for Indian Govt Exams (SSC, UPSC, IBPS, Parivahan, NTA). Crop &amp; compress to exact KB without blur, merge/split PDFs, &amp; stamp watermarks.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+  <meta property="og:image:alt" content="Sarkari Babu Document Studio Banner">
+
+  <!-- Twitter / X Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="🏛️ Sarkari Babu — Free All-in-One Govt Job &amp; Document Studio">
+  <meta name="twitter:description" content="Crop &amp; compress photos to exact govt KB limits, merge/split PDFs, and stamp watermarks. 100% private in browser!">
+  <meta name="twitter:image" content="./assets/og-banner.jpg">
+  
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+
+  <!-- External CDNs -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">100% Free · Client-Side Private</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./exam-guidelines.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">📋 Exam Rules</a>
+      <button class="btn-primary" style="padding:7px 14px;font-size:13px;" onclick="openShareModal()">📤 <span class="hide-mobile">Share</span></button>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span class="hide-mobile">Dark</span></button>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero-section">
+    <div class="hero-pill">🏛️ Sarkari Babu · Official Govt Exam Portals &amp; Document Tools</div>
+    <h1 class="hero-heading">
+      India's Premier <span class="gradient-text">Govt Document Studio.</span>
+    </h1>
+    <p class="hero-desc">
+      Crop photos with exact government DPI &amp; file limits, merge/split PDFs, compress images without quality loss, and stamp watermarks. 100% private in your browser.
+    </p>
+
+    <!-- Search Input -->
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="toolSearch" class="search-input" placeholder="Search 20+ tools (e.g. Custom Size, SSC DOP, PAN Card, Merge PDF, Watermark, Compress)..." oninput="filterTools()">
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="category-tabs">
+      <button class="category-tab active" onclick="setCategory('all', this)">🔥 All Tools (20+)</button>
+      <button class="category-tab" onclick="setCategory('sarkari', this)">🇮🇳 Sarkari Exam Portals</button>
+      <button class="category-tab" onclick="setCategory('pdf', this)">📄 PDF Tools</button>
+      <button class="category-tab" onclick="setCategory('image', this)">🖼️ Image Tools</button>
+    </div>
+  </section>
+
+  <!-- Main Tools Grid -->
+  <main class="tools-grid" id="toolsGrid">
+
+    <!-- 0. Custom Dimension & Size Chooser Studio (NEW) -->
+    <a href="./custom-tool.html" class="tool-card" data-category="sarkari image custom dimensions size width height crop dpi pixel cm mm" style="border: 1.5px solid var(--primary);">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#6366F1;">📐</div>
+        <span class="tool-badge green">⭐ CUSTOM STUDIO</span>
+      </div>
+      <div class="tool-title">Custom Dimension &amp; Size Chooser</div>
+      <div class="tool-desc">Set custom Width, Height, Units (px/cm/mm/in), DPI (200-600), and custom KB. Dynamic crop box matches your exact aspect ratio.</div>
+      <div class="tool-footer-link" style="color:var(--primary);font-weight:800;">Open Custom Studio →</div>
+    </a>
+
+    <!-- 1. PAN Card Photo & Signature -->
+    <a href="#quick-crop-pan" class="tool-card" data-category="sarkari pan nsdl uti photo signature" onclick="openQuickModal('pan')">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#4F46E5;">💳</div>
+        <span class="tool-badge blue">NSDL / UTI</span>
+      </div>
+      <div class="tool-title">PAN Card Photo &amp; Signature</div>
+      <div class="tool-desc">Photo 2.5×3.5 cm (200 DPI, &lt;50KB) and Signature 4.5×2.0 cm (&lt;20KB) strictly per NSDL guidelines.</div>
+      <div class="tool-footer-link">Crop for PAN Card →</div>
+    </a>
+
+    <!-- 2. SSC Photo with DOP & Name -->
+    <a href="#quick-crop-ssc" class="tool-card" data-category="sarkari ssc cgl chsl mts gd dop photo signature" onclick="openQuickModal('ssc')">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#EC4899;">📸</div>
+        <span class="tool-badge red">SSC CGL / CHSL</span>
+      </div>
+      <div class="tool-title">SSC Photo with DOP Banner</div>
+      <div class="tool-desc">Adds Candidate Name &amp; Date of Photo (DOP) on bottom white strip. 3.5×4.5 cm (20–50 KB).</div>
+      <div class="tool-footer-link">Generate SSC Photo →</div>
+    </a>
+
+    <!-- 3. UPSC Civil Services & NDA Studio -->
+    <a href="#quick-crop-upsc" class="tool-card" data-category="sarkari upsc cse ias ips nda cds 300dpi" onclick="openQuickModal('upsc')">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#F59E0B;">🏛️</div>
+        <span class="tool-badge yellow">300 DPI HD</span>
+      </div>
+      <div class="tool-title">UPSC CSE &amp; NDA Studio</div>
+      <div class="tool-desc">3.5×4.5 cm at crisp 300 DPI (20–300 KB) with recent date printing per UPSC 2026 rules.</div>
+      <div class="tool-footer-link">Crop for UPSC →</div>
+    </a>
+
+    <!-- 3.1 Banking Handwritten Declaration Studio (NEW) -->
+    <a href="./banking-declaration.html" class="tool-card" data-category="sarkari ibps sbi rbi banking declaration 800x400">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#2563EB;">✍️</div>
+        <span class="tool-badge blue">800 × 400 PX</span>
+      </div>
+      <div class="tool-title">Banking Handwritten Declaration</div>
+      <div class="tool-desc">IBPS PO/Clerk &amp; SBI PO official English text generator &amp; scanned paper cropper (50–100 KB).</div>
+      <div class="tool-footer-link">Open Declaration Studio →</div>
+    </a>
+
+    <!-- 4. Watermark Studio (Interactive) -->
+    <a href="./watermark-image.html" class="tool-card" data-category="image watermark stamp text logo copyright move resize rotate">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#0284C7;">💧</div>
+        <span class="tool-badge blue">Move &amp; Rotate</span>
+      </div>
+      <div class="tool-title">Interactive Watermark Studio</div>
+      <div class="tool-desc">Overlay custom logo or text watermark. Drag to move, resize, rotate, and batch export to ZIP/PDF.</div>
+      <div class="tool-footer-link">Open Watermark Studio →</div>
+    </a>
+
+    <!-- 5. Exact Target KB Compressor -->
+    <a href="./image-compressor.html" class="tool-card" data-category="image compress reduce size exact kb 20kb 50kb 100kb parivahan">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#10B981;">🗜️</div>
+        <span class="tool-badge green">Zero Loss</span>
+      </div>
+      <div class="tool-title">Compress to Target KB (Parivahan)</div>
+      <div class="tool-desc">Compress strictly under 10–20 KB (Sarathi DL), 50 KB (Photo), 100 KB, or 200 KB with live quality slider.</div>
+      <div class="tool-footer-link">Launch Compressor →</div>
+    </a>
+
+    <!-- 6. Passport & Postcard Studio (GPSP 2.0) -->
+    <a href="./passport-photo.html" class="tool-card" data-category="sarkari passport photo postcard 4x6 neet sheet printable seva 630x810">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#8B5CF6;">📷</div>
+        <span class="tool-badge blue">630×810 &amp; Sheet</span>
+      </div>
+      <div class="tool-title">Passport &amp; Postcard Studio</div>
+      <div class="tool-desc">Passport Seva GPSP 2.0 (630×810 px), Indian Passport (3.5×4.5 cm), NEET Postcard (4×6 in) &amp; A4 print sheets.</div>
+      <div class="tool-footer-link">Make Passport Photos →</div>
+    </a>
+
+    <!-- 7. Merge PDF -->
+    <a href="./merge-pdf.html" class="tool-card" data-category="pdf merge combine documents">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#EC4899;">📄</div>
+        <span class="tool-badge red">Page Previews</span>
+      </div>
+      <div class="tool-title">Merge PDF Documents</div>
+      <div class="tool-desc">Combine multiple PDF files with visual cover page previews. 100% in-browser memory.</div>
+      <div class="tool-footer-link">Merge PDFs Now →</div>
+    </a>
+
+    <!-- 8. Split PDF -->
+    <a href="./split-pdf.html" class="tool-card" data-category="pdf split extract pages range">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#F59E0B;">✂️</div>
+        <span class="tool-badge yellow">Interactive Grid</span>
+      </div>
+      <div class="tool-title">Split &amp; Extract PDF</div>
+      <div class="tool-desc">Extract specific pages with visual interactive page grid thumbnail previews.</div>
+      <div class="tool-footer-link">Split PDF →</div>
+    </a>
+
+    <!-- 9. PDF to JPG Converter -->
+    <a href="./pdf-to-jpg.html" class="tool-card" data-category="pdf to jpg convert images">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#10B981;">🖼️</div>
+        <span class="tool-badge green">High Resolution</span>
+      </div>
+      <div class="tool-title">PDF to High-Res JPG</div>
+      <div class="tool-desc">Convert all pages of any PDF into crisp JPG images with live preview gallery.</div>
+      <div class="tool-footer-link">Convert PDF to Images →</div>
+    </a>
+
+    <!-- 10. Watermark PDF -->
+    <a href="./watermark-pdf.html" class="tool-card" data-category="pdf watermark stamp confidential draft">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#0284C7;">💧</div>
+        <span class="tool-badge blue">Page 1 Preview</span>
+      </div>
+      <div class="tool-title">Watermark PDF Files</div>
+      <div class="tool-desc">Stamp text watermarks (CONFIDENTIAL, DRAFT) with real-time visual canvas preview.</div>
+      <div class="tool-footer-link">Watermark PDF →</div>
+    </a>
+
+    <!-- 11. Thumb Impression Enhancer -->
+    <a href="./thumb-enhancer.html" class="tool-card" data-category="sarkari thumb impression scanner ibps sbi police">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#F97316;">👍</div>
+        <span class="tool-badge yellow">Live B&amp;W</span>
+      </div>
+      <div class="tool-title">Thumb Impression Enhancer</div>
+      <div class="tool-desc">Turn faint ink stamps into crisp, high-contrast black &amp; white ridge scans strictly &lt;50 KB.</div>
+      <div class="tool-footer-link">Enhance Thumb Stamp →</div>
+    </a>
+
+    <!-- 12. Photo + Signature Joiner -->
+    <a href="./photo-signature-joiner.html" class="tool-card" data-category="sarkari photo signature joiner upsssc mppeb vyapam">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#4F46E5;">🤝</div>
+        <span class="tool-badge blue">Combined Preview</span>
+      </div>
+      <div class="tool-title">Photo + Signature Joiner</div>
+      <div class="tool-desc">Combines Photo on top (70%) and Signature on bottom (30%) into 1 single file under 50 KB.</div>
+      <div class="tool-footer-link">Join Photo &amp; Sig →</div>
+    </a>
+
+    <!-- 13. Document & Marksheet Scanner -->
+    <a href="./document-scanner.html" class="tool-card" data-category="sarkari document marksheet certificate scanner">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#10B981;">📑</div>
+        <span class="tool-badge green">Shadow Removal</span>
+      </div>
+      <div class="tool-title">Document &amp; Marksheet Scanner</div>
+      <div class="tool-desc">Cleans paper shadows and yellow tint with live visual before/after preview.</div>
+      <div class="tool-footer-link">Scan Documents →</div>
+    </a>
+
+    <!-- 14. Resize Image -->
+    <a href="./resize-image.html" class="tool-card" data-category="image resize dimensions pixels percentage">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#EC4899;">📐</div>
+        <span class="tool-badge red">Pixels &amp; %</span>
+      </div>
+      <div class="tool-title">Resize Images (Batch)</div>
+      <div class="tool-desc">Resize single or batch photos by exact dimensions or scale percentage with live preview.</div>
+      <div class="tool-footer-link">Resize Images →</div>
+    </a>
+
+    <!-- 15. Convert Image Formats -->
+    <a href="./convert-image.html" class="tool-card" data-category="image convert format png jpg webp">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#F59E0B;">🔄</div>
+        <span class="tool-badge yellow">PNG ↔ JPG ↔ WEBP</span>
+      </div>
+      <div class="tool-title">Image Format Converter</div>
+      <div class="tool-desc">Batch convert PNG to JPG with solid white background, WEBP to JPG, or JPG to PNG/PDF.</div>
+      <div class="tool-footer-link">Convert Formats →</div>
+    </a>
+
+    <!-- 16. Photo Editor Studio -->
+    <a href="./photo-editor.html" class="tool-card" data-category="image photo editor brightness contrast filters">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#8B5CF6;">🎨</div>
+        <span class="tool-badge blue">Studio Filters</span>
+      </div>
+      <div class="tool-title">Photo Color &amp; Filters Editor</div>
+      <div class="tool-desc">Adjust Brightness, Contrast, Saturation, Sharpen, and Grayscale filters in real-time.</div>
+      <div class="tool-footer-link">Edit Photos →</div>
+    </a>
+
+    <!-- 17. Sarkari Age Calculator -->
+    <a href="./age-calculator.html" class="tool-card" data-category="sarkari age calculator eligibility cutoff">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#0284C7;">🎂</div>
+        <span class="tool-badge blue">Live Breakdown</span>
+      </div>
+      <div class="tool-title">Sarkari Age Calculator</div>
+      <div class="tool-desc">Calculate exact age in Years, Months, and Days as on recruitment notification cutoff date.</div>
+      <div class="tool-footer-link">Calculate Age →</div>
+    </a>
+
+    <!-- 18. Meme Generator -->
+    <a href="./meme-generator.html" class="tool-card" data-category="image meme generator funny top bottom text">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#EC4899;">🎭</div>
+        <span class="tool-badge red">Meme Maker</span>
+      </div>
+      <div class="tool-title">Meme Generator</div>
+      <div class="tool-desc">Create classic viral memes with bold top &amp; bottom text with instant live rendering.</div>
+      <div class="tool-footer-link">Create Meme →</div>
+    </a>
+
+  </main>
+
+  <!-- Universal Crop Modal with Live Output Preview -->
+  <div class="crop-modal-overlay" id="quickModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3 id="quickModalTitle">Crop &amp; Frame Document</h3>
+        <button class="btn-modal-close" onclick="closeQuickModal()">×</button>
+      </div>
+
+      <!-- Step A: Cropping Stage -->
+      <div id="modalCropStageView" class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="quickModalImg" src="" alt="Crop Stage">
+        </div>
+
+        <div id="modalControlsBox" style="margin-top:14px;padding:12px;background:var(--bg-subtle);border-radius:var(--radius-md);">
+          <div id="sscBannerFields" style="display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label class="form-label" style="font-size:12px;">Candidate Name</label>
+                <input type="text" class="form-input" id="modalNameIn" placeholder="e.g. AMIT KUMAR">
+              </div>
+              <div>
+                <label class="form-label" style="font-size:12px;">Date of Photo (DOP)</label>
+                <input type="text" class="form-input" id="modalDateIn" placeholder="e.g. 15/08/2026">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step B: Live Result Preview View -->
+      <div id="modalResultStageView" class="modal-body-area" style="display:none;text-align:center;padding:24px;">
+        <span class="tool-badge green" style="margin-bottom:12px;display:inline-block;">✔ CROPPED OUTPUT PREVIEW</span>
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;">
+          <img id="modalResultImg" alt="Cropped Result" style="max-height:240px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);box-shadow:var(--shadow-md);">
+          <div id="modalResultMeta" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--primary);margin-top:10px;">0 KB · Ready</div>
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div id="cropStageFooterBtns" style="display:flex;width:100%;justify-content:space-between;">
+          <div style="display:flex;gap:6px;">
+            <button class="btn-secondary" style="padding:6px 12px;" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+            <button class="btn-secondary" style="padding:6px 12px;" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-secondary" onclick="closeQuickModal()">Cancel</button>
+            <button class="btn-primary" onclick="generateCroppedResultPreview()">✔ Generate Preview</button>
+          </div>
+        </div>
+
+        <div id="resultStageFooterBtns" style="display:none;width:100%;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;gap:8px;">
+            <button class="btn-secondary" onclick="backToCropper()">↺ Adjust Crop</button>
+            <button class="btn-success" onclick="downloadModalCroppedResult()">⬇ Download Photo</button>
+          </div>
+          
+          <div style="border-top:1px solid var(--border-subtle);padding-top:10px;">
+            <strong style="font-size:12px;color:var(--text-primary);display:block;margin-bottom:6px;">🚀 Pass to Next Tool:</strong>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="passModalResultTo('image-compressor.html')">🗜️ Compress KB</button>
+              <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="passModalResultTo('watermark-image.html')">💧 Add Watermark</button>
+              <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="passModalResultTo('passport-photo.html')">🖨️ A4 Sheet</button>
+              <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="passModalResultTo('custom-tool.html')">📐 Custom Resize</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <input type="file" id="modalFileInput" class="hidden-input" accept="image/*">
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="./index.html">All Tools</a>
+      <a href="./watermark-image.html">Watermark</a>
+      <a href="./image-compressor.html">Compress</a>
+      <a href="./passport-photo.html">Passport Photo</a>
+      <a href="./merge-pdf.html">Merge PDF</a>
+      <a href="./exam-guidelines.html">Exam Guidelines</a>
+    </div>
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <!-- Social Share & About Preview Modal -->
+  <div class="crop-modal-overlay" id="shareModal">
+    <div class="crop-modal-window" style="max-width:540px;">
+      <div class="modal-header-bar">
+        <h3>📤 Share Sarkari Babu</h3>
+        <button class="btn-modal-close" onclick="closeShareModal()">×</button>
+      </div>
+
+      <div style="padding:20px;">
+        <!-- Social Link Preview Card Mockup -->
+        <div style="border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-subtle);box-shadow:var(--shadow-sm);margin-bottom:18px;">
+          <img src="./assets/og-banner.jpg" alt="Sarkari Babu Banner" style="width:100%;height:180px;object-fit:cover;display:block;">
+          <div style="padding:14px;">
+            <div style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:4px;letter-spacing:0.05em;">🏛️ Free Govt Document Studio</div>
+            <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">Sarkari Babu — All-in-One Govt Job Photo &amp; PDF Studio</div>
+            <div style="font-size:12.5px;color:var(--text-muted);line-height:1.5;">
+              100% Free &amp; Private browser tools for SSC, UPSC, IBPS, Parivahan &amp; NTA. Crop photos, compress to exact KB without blur, merge/split PDFs &amp; stamp watermarks.
+            </div>
+          </div>
+        </div>
+
+        <!-- 1-Click Share Buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button class="btn-primary" onclick="shareOnWhatsApp()" style="background:#25D366;border-color:#25D366;color:#fff;">
+            💬 Share on WhatsApp
+          </button>
+          <button class="btn-primary" onclick="shareOnTelegram()" style="background:#0088CC;border-color:#0088CC;color:#fff;">
+            ✈️ Share on Telegram
+          </button>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn-secondary" onclick="shareOnTwitter()" style="flex:1;">
+            🐦 Share on X (Twitter)
+          </button>
+          <button class="btn-secondary" onclick="copySiteLink()" style="flex:1;">
+            📋 <span id="copyLinkText">Copy Link</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="shareToast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text-primary);color:var(--bg-surface);padding:10px 20px;border-radius:var(--radius-full);font-size:13px;font-weight:700;box-shadow:var(--shadow-lg);z-index:9999;">
+    ✔ Link Copied to Clipboard!
+  </div>
+
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let activeCategory = 'all';
+    let currentModalSlot = 'pan';
+    let cropper = null;
+    let finalCroppedBlobUrl = null;
+    let finalDownloadFileName = 'sarkari_photo.jpg';
+
+    const modalInp = document.getElementById('modalFileInput');
+    const modal = document.getElementById('quickModal');
+    const modalImg = document.getElementById('quickModalImg');
+    const modalTitle = document.getElementById('quickModalTitle');
+    const sscFields = document.getElementById('sscBannerFields');
+
+    const cropView = document.getElementById('modalCropStageView');
+    const resultView = document.getElementById('modalResultStageView');
+    const cropBtns = document.getElementById('cropStageFooterBtns');
+    const resultBtns = document.getElementById('resultStageFooterBtns');
+    const resultImg = document.getElementById('modalResultImg');
+    const resultMeta = document.getElementById('modalResultMeta');
+
+    function openShareModal() {
+      if (navigator.share && /mobile|android|iphone/i.test(navigator.userAgent)) {
+        navigator.share({
+          title: 'Sarkari Babu — All-in-One Govt Job & Document Studio',
+          text: 'Free 100% private in-browser document & image tools for Indian Govt Exams (SSC, UPSC, IBPS, Parivahan, NTA). Crop, compress to exact KB without blur, merge/split PDFs & stamp watermarks.',
+          url: window.location.href
+        }).catch(() => document.getElementById('shareModal').classList.add('active'));
+      } else {
+        document.getElementById('shareModal').classList.add('active');
+      }
+    }
+
+    function closeShareModal() {
+      document.getElementById('shareModal').classList.remove('active');
+    }
+
+    function shareOnWhatsApp() {
+      const text = encodeURIComponent("🏛️ *Sarkari Babu — All-in-One Govt Job & Document Studio*\n\nFree 100% private in-browser tools for SSC, UPSC, IBPS, Parivahan & NTA exams. Crop photos with exact DPI, compress to exact KB without blur, merge/split PDFs & stamp watermarks!\n\n👉 Try it here: " + window.location.href);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    }
+
+    function shareOnTelegram() {
+      const text = encodeURIComponent("🏛️ Sarkari Babu — All-in-One Govt Job Photo & Document Studio (100% Free & Private)");
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${text}`, '_blank');
+    }
+
+    function shareOnTwitter() {
+      const text = encodeURIComponent("🏛️ Check out Sarkari Babu: 100% Free & Private in-browser tool suite for Indian Govt Exam photos, exact KB compression, PDF merge/split, and watermark tools! #SarkariBabu #GovtJobs");
+      window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+    }
+
+    function copySiteLink() {
+      navigator.clipboard.writeText(window.location.href);
+      const toast = document.getElementById('shareToast');
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    function filterTools() {
+      const q = document.getElementById('toolSearch').value.toLowerCase().trim();
+      document.querySelectorAll('.tool-card').forEach(card => {
+        const cat = card.getAttribute('data-category').toLowerCase();
+        const text = card.textContent.toLowerCase();
+        const matchesCategory = activeCategory === 'all' || cat.includes(activeCategory);
+        const matchesSearch = text.includes(q) || cat.includes(q);
+
+        card.style.display = (matchesCategory && matchesSearch) ? 'flex' : 'none';
+      });
+    }
+
+    function setCategory(cat, btn) {
+      activeCategory = cat;
+      document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterTools();
+    }
+
+    function openQuickModal(slot) {
+      currentModalSlot = slot;
+      sscFields.style.display = slot === 'ssc' ? 'block' : 'none';
+      modalTitle.textContent = slot === 'pan' ? 'Crop for PAN Card (200 DPI)' : (slot === 'ssc' ? 'Crop for SSC Exam (with DOP)' : 'Crop for UPSC (300 DPI)');
+      modalInp.click();
+    }
+
+    modalInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          modalImg.src = evt.target.result;
+          
+          cropView.style.display = 'block';
+          resultView.style.display = 'none';
+          cropBtns.style.display = 'flex';
+          resultBtns.style.display = 'none';
+
+          modal.classList.add('active');
+          if (cropper) cropper.destroy();
+
+          const ar = currentModalSlot === 'pan' ? (2.5 / 3.5) : (3.5 / 4.5);
+          cropper = new Cropper(modalImg, {
+            aspectRatio: ar,
+            viewMode: 1,
+            autoCropArea: 0.95
+          });
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    function closeQuickModal() {
+      modal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function backToCropper() {
+      cropView.style.display = 'block';
+      resultView.style.display = 'none';
+      cropBtns.style.display = 'flex';
+      resultBtns.style.display = 'none';
+    }
+
+    async function generateCroppedResultPreview() {
+      if (!cropper) return;
+      const raw = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+
+      let outCanvas = null;
+      let targetKb = 50;
+      let dpi = 200;
+
+      if (currentModalSlot === 'pan') {
+        const w = SarkariEngine.toPixels(2.5, 'cm', 200);
+        const h = SarkariEngine.toPixels(3.5, 'cm', 200);
+        outCanvas = SarkariEngine.highQualityDownsample(raw, w, h);
+        targetKb = 50;
+        dpi = 200;
+        finalDownloadFileName = 'pan_card_photo_200dpi.jpg';
+      } else if (currentModalSlot === 'ssc') {
+        const w = SarkariEngine.toPixels(3.5, 'cm', 200);
+        const h = SarkariEngine.toPixels(4.5, 'cm', 200);
+        const norm = SarkariEngine.highQualityDownsample(raw, w, h);
+        const name = document.getElementById('modalNameIn').value.trim();
+        const date = document.getElementById('modalDateIn').value.trim() ? `DOP: ${document.getElementById('modalDateIn').value.trim()}` : '';
+        outCanvas = SarkariEngine.addNameAndDateToPhoto(norm, name, date);
+        targetKb = 50;
+        dpi = 200;
+        finalDownloadFileName = 'ssc_photo_dop.jpg';
+      } else if (currentModalSlot === 'upsc') {
+        outCanvas = SarkariEngine.highQualityDownsample(raw, 413, 531);
+        targetKb = 300;
+        dpi = 300;
+        finalDownloadFileName = 'upsc_photo_300dpi.jpg';
+      }
+
+      const res = await SarkariEngine.compressToTargetKB(outCanvas, 10, targetKb, dpi);
+      finalCroppedBlobUrl = res.url;
+
+      resultImg.src = res.url;
+      resultMeta.textContent = `${outCanvas.width} × ${outCanvas.height} px · ${res.sizeKB} KB (Target <${targetKb}KB) · ${dpi} DPI`;
+
+      cropView.style.display = 'none';
+      resultView.style.display = 'block';
+      cropBtns.style.display = 'none';
+      resultBtns.style.display = 'flex';
+    }
+
+    function downloadModalCroppedResult() {
+      if (finalCroppedBlobUrl) {
+        SarkariEngine.triggerDownload(finalCroppedBlobUrl, finalDownloadFileName);
+        closeQuickModal();
+      }
+    }
+
+    function passModalResultTo(targetUrl) {
+      if (!finalCroppedBlobUrl) {
+        alert('Please generate crop preview first!');
+        return;
+      }
+      SarkariPipeline.passTo(targetUrl, finalCroppedBlobUrl, {
+        sourceName: 'Quick Govt Cropper',
+        fileName: finalDownloadFileName,
+        sizeKB: resultMeta.textContent.split('·')[1]?.replace('KB', '').trim() || 0
+      });
+    }
+  </script>
+</body>
+</html>

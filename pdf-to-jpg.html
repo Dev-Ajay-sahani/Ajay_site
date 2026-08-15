@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF to JPG Converter Online – Sarkari Babu Tools</title>
+  <meta name="description" content="Convert all pages of any PDF document into high-resolution JPG or PNG images. 100% free client-side rendering with ZIP download.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">PDF to JPG</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ High Resolution Extraction</span>
+      <h1 class="hero-heading">Convert PDF to <span class="gradient-text">JPG Images</span></h1>
+      <p class="hero-desc">Extract all pages of any PDF document into high-resolution JPG images. Download single or as a ZIP.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div class="modern-dropzone" onclick="document.getElementById('pdfToJpgInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title">Click or Drag PDF File Here</div>
+        <div class="dropzone-desc">Convert all pages to high-resolution JPG images</div>
+      </div>
+      <input type="file" id="pdfToJpgInp" class="hidden-input" accept="application/pdf">
+
+      <!-- Status Progress -->
+      <div id="renderProgress" style="display:none;font-size:14px;font-weight:700;margin-bottom:16px;color:var(--primary);text-align:center;">
+        ⏳ Extracting Pages in Browser...
+      </div>
+
+      <!-- Rendered Images Grid -->
+      <div id="pagesGridWrap" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <h4 style="font-family:var(--font-display);font-size:16px;">Extracted Pages (<span id="extractedCount">0</span>):</h4>
+          <button class="btn-primary" id="downloadAllZipBtn" onclick="downloadAllPagesZip()">📦 Download All as ZIP</button>
+        </div>
+
+        <div id="extractedPagesGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:16px;"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script>
+    let extractedPages = [];
+    const inp = document.getElementById('pdfToJpgInp');
+    const prog = document.getElementById('renderProgress');
+    const wrap = document.getElementById('pagesGridWrap');
+    const grid = document.getElementById('extractedPagesGrid');
+    const countLabel = document.getElementById('extractedCount');
+
+    inp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        prog.style.display = 'block';
+        wrap.style.display = 'none';
+
+        try {
+          const buf = await file.arrayBuffer();
+          extractedPages = await SarkariPdfEngine.convertPdfToImages(buf, 1.8);
+
+          grid.innerHTML = '';
+          countLabel.textContent = extractedPages.length;
+          prog.style.display = 'none';
+          wrap.style.display = 'block';
+
+          extractedPages.forEach((p) => {
+            const card = document.createElement('div');
+            card.style.cssText = 'border:1px solid var(--border-subtle);background:var(--bg-subtle);border-radius:var(--radius-md);padding:10px;text-align:center;';
+
+            const img = document.createElement('img');
+            img.src = p.dataUrl;
+            img.style.cssText = 'width:100%;height:150px;object-fit:contain;margin-bottom:8px;border-radius:4px;background:#fff;';
+
+            const lbl = document.createElement('div');
+            lbl.textContent = `Page ${p.pageNum}`;
+            lbl.style.cssText = 'font-size:12px;font-weight:700;margin-bottom:8px;';
+
+            const dlBtn = document.createElement('button');
+            dlBtn.className = 'btn-secondary';
+            dlBtn.style.cssText = 'padding:6px 12px;font-size:11px;width:100%;';
+            dlBtn.textContent = '⬇ Download JPG';
+            dlBtn.onclick = () => {
+              const a = document.createElement('a');
+              a.href = p.dataUrl;
+              a.download = `page_${p.pageNum}.jpg`;
+              a.click();
+            };
+
+            card.appendChild(img);
+            card.appendChild(lbl);
+            card.appendChild(dlBtn);
+            grid.appendChild(card);
+          });
+        } catch (err) {
+          alert('Error rendering PDF: ' + err.message);
+          prog.style.display = 'none';
+        }
+      }
+    });
+
+    async function downloadAllPagesZip() {
+      if (extractedPages.length === 0) return;
+      const zip = new JSZip();
+
+      extractedPages.forEach((p) => {
+        const base64Data = p.dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+        zip.file(`page_${p.pageNum}.jpg`, base64Data, { base64: true });
+      });
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      SarkariPdfEngine.downloadFile(content, 'pdf_pages_images.zip', 'application/zip');
+    }
+  </script>
+</body>
+</html>

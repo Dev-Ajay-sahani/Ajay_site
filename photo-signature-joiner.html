@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photo and Signature Joiner (UPSSSC &amp; MPPEB) – Sarkari Babu Tools</title>
+  <meta name="description" content="Combine candidate photograph and signature into one single image file for UPSSSC, MPPEB Vyapam, and State Recruitment Portals. Free, instant, and private.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Photo + Signature Joiner</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ UPSSSC Lekhpal &amp; MP Vyapam Standard</span>
+      <h1 class="hero-heading">Combine Photo &amp; <span class="gradient-text">Signature</span></h1>
+      <p class="hero-desc">Merge candidate photo (top 70%) and signature (bottom 30%) into 1 single JPEG file under 50 KB.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        
+        <!-- Slot 1: Photo -->
+        <div class="modern-dropzone" onclick="triggerSlot('photo')" style="padding:24px 14px;">
+          <div id="joinPhotoPh">
+            <div class="dropzone-icon">📷</div>
+            <div class="dropzone-title">1. Upload Photo</div>
+            <div class="dropzone-desc">Click to crop photo</div>
+          </div>
+          <img id="joinPhotoImg" alt="Photo" style="display:none;max-height:160px;margin:0 auto;border-radius:var(--radius-md);">
+        </div>
+        <input type="file" id="joinPhotoInp" class="hidden-input" accept="image/*">
+
+        <!-- Slot 2: Signature -->
+        <div class="modern-dropzone" onclick="triggerSlot('sig')" style="padding:24px 14px;">
+          <div id="joinSigPh">
+            <div class="dropzone-icon">✍️</div>
+            <div class="dropzone-title">2. Upload Signature</div>
+            <div class="dropzone-desc">Click to crop signature</div>
+          </div>
+          <img id="joinSigImg" alt="Signature" style="display:none;max-height:160px;margin:0 auto;border-radius:var(--radius-md);">
+        </div>
+        <input type="file" id="joinSigInp" class="hidden-input" accept="image/*">
+
+      </div>
+
+      <!-- Combined Result Box -->
+      <div id="joinResultCard" style="display:none;background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:20px;text-align:center;">
+        <h4 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">✔ Combined Single Image Preview:</h4>
+        <img id="joinResultImg" alt="Joined Preview" style="max-height:280px;border-radius:var(--radius-md);box-shadow:var(--shadow-md);margin-bottom:14px;">
+        
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <span id="joinMetaLabel" style="font-family:var(--font-mono);font-size:13px;font-weight:700;">File Ready</span>
+          <button class="btn-success" onclick="downloadJoined()" style="font-size:15px;padding:12px 24px;">⬇ Download Combined JPEG</button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal -->
+  <div class="crop-modal-overlay" id="cropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3 id="joinModalTitle">Crop Image</h3>
+        <button class="btn-modal-close" onclick="closeCrop()">×</button>
+      </div>
+      <div class="modal-body-area">
+        <div class="modal-crop-stage"><img id="modalCropImg" src="" alt="Crop"></div>
+      </div>
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyJoinCrop()">✔ Save Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let cropper = null;
+    let photoCanvas = null;
+    let sigCanvas = null;
+    let joinedBlobUrl = null;
+    let currentSlot = null;
+
+    function triggerSlot(slot) {
+      currentSlot = slot;
+      document.getElementById(slot === 'photo' ? 'joinPhotoInp' : 'joinSigInp').click();
+    }
+
+    document.getElementById('joinPhotoInp').addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) readForCrop(e.target.files[0], 'photo', 3.5/4.5);
+    });
+    document.getElementById('joinSigInp').addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) readForCrop(e.target.files[0], 'sig', 4.0/2.0);
+    });
+
+    function readForCrop(file, slot, ar) {
+      currentSlot = slot;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        document.getElementById('joinModalTitle').textContent = `Crop ${slot === 'photo' ? 'Photograph' : 'Signature'}`;
+        document.getElementById('modalCropImg').src = evt.target.result;
+        document.getElementById('cropModal').classList.add('active');
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(document.getElementById('modalCropImg'), {
+          aspectRatio: ar,
+          viewMode: 1,
+          autoCropArea: 0.95
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function closeCrop() {
+      document.getElementById('cropModal').classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyJoinCrop() {
+      if (!cropper) return;
+      const c = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      if (currentSlot === 'photo') {
+        photoCanvas = c;
+        const img = document.getElementById('joinPhotoImg');
+        img.src = c.toDataURL('image/jpeg', 0.9);
+        img.style.display = 'block';
+        document.getElementById('joinPhotoPh').style.display = 'none';
+      } else {
+        sigCanvas = c;
+        const img = document.getElementById('joinSigImg');
+        img.src = c.toDataURL('image/jpeg', 0.9);
+        img.style.display = 'block';
+        document.getElementById('joinSigPh').style.display = 'none';
+      }
+      closeCrop();
+      updateJoined();
+    }
+
+    async function updateJoined() {
+      if (!photoCanvas || !sigCanvas) return;
+      const combined = SarkariEngine.joinPhotoAndSignature(photoCanvas, sigCanvas, 'top-bottom', 350, 500);
+      const res = await SarkariEngine.compressToTargetKB(combined, 10, 50, 200);
+      joinedBlobUrl = res.url;
+
+      document.getElementById('joinResultImg').src = joinedBlobUrl;
+      document.getElementById('joinResultCard').style.display = 'block';
+      document.getElementById('joinMetaLabel').textContent = `350 × 500 px · ${res.sizeKB} KB (Target: <50KB)`;
+    }
+
+    function downloadJoined() {
+      if (joinedBlobUrl) SarkariEngine.triggerDownload(joinedBlobUrl, 'photo_signature_combined.jpg');
+    }
+  </script>
+</body>
+</html>

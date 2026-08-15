@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Watermark PDF Online (Live Visual Preview) – Sarkari Babu Tools</title>
+  <meta name="description" content="Add text watermarks to PDF files with live visual page preview. Adjust text, angle, opacity, and color in real time. 100% private in browser.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Watermark PDF</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Live Visual PDF Preview</span>
+      <h1 class="hero-heading">Watermark PDF with <span class="gradient-text">Live Preview</span></h1>
+      <p class="hero-desc">Stamp custom text watermarks across all pages of your PDF with live visual preview before downloading.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div class="modern-dropzone" onclick="document.getElementById('wmPdfInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title">Click or Drag PDF File Here</div>
+        <div class="dropzone-desc">Upload single or multiple PDF documents</div>
+      </div>
+      <input type="file" id="wmPdfInp" class="hidden-input" accept="application/pdf">
+
+      <!-- Live Studio Area -->
+      <div id="wmStudioArea" style="display:none;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          
+          <!-- Left: Controls -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:16px;">Watermark Options</h3>
+
+            <div class="form-group">
+              <label class="form-label">Watermark Text</label>
+              <input type="text" class="form-input" id="wmTextInp" value="SARKARI BABU" oninput="renderLivePreview()">
+              <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('CONFIDENTIAL')">CONFIDENTIAL</button>
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('DO NOT COPY')">DO NOT COPY</button>
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('SARKARI BABU')">SARKARI BABU</button>
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('SAMPLE')">SAMPLE</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Rotation Angle</label>
+              <select class="form-select" id="wmAngleSel" onchange="renderLivePreview()">
+                <option value="-45" selected>-45° (Diagonal)</option>
+                <option value="0">0° (Horizontal)</option>
+                <option value="45">45° (Diagonal Up)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Opacity</label>
+                <strong id="opacityBadge" style="font-size:13px;color:var(--primary);">25%</strong>
+              </div>
+              <input type="range" class="modern-slider" id="wmOpacityRange" min="10" max="80" value="25" oninput="renderLivePreview()">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Color Style</label>
+              <select class="form-select" id="wmColorSel" onchange="renderLivePreview()">
+                <option value="red" selected>Red Stamp</option>
+                <option value="gray">Subtle Gray</option>
+                <option value="blue">Deep Blue</option>
+              </select>
+            </div>
+
+            <button class="btn-success" onclick="executeDownloadPdf()" style="width:100%;font-size:15px;padding:14px;margin-top:12px;">⬇ Apply Watermark &amp; Download PDF</button>
+          </div>
+
+          <!-- Right: Live Canvas Preview of Page 1 -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:16px;">Live Page Preview</h3>
+            
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;position:relative;">
+              <canvas id="wmCanvasPreview" style="max-height:340px;max-width:100%;object-fit:contain;background:#fff;border-radius:4px;box-shadow:var(--shadow-md);"></canvas>
+              <div id="pdfMetaLabel" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:8px;">Page 1 Preview</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script>
+    let activePdfBuf = null;
+    let page1BaseImage = null;
+
+    const inp = document.getElementById('wmPdfInp');
+    const studio = document.getElementById('wmStudioArea');
+    const previewCanvas = document.getElementById('wmCanvasPreview');
+    const ctx = previewCanvas.getContext('2d');
+    const metaLabel = document.getElementById('pdfMetaLabel');
+    const opBadge = document.getElementById('opacityBadge');
+
+    inp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        activePdfBuf = await file.arrayBuffer();
+
+        // Render Page 1 to image using pdf.js
+        const pages = await SarkariPdfEngine.convertPdfToImages(activePdfBuf, 1.2);
+        if (pages.length > 0) {
+          const img = new Image();
+          img.onload = () => {
+            page1BaseImage = img;
+            studio.style.display = 'block';
+            metaLabel.textContent = `Page 1 of ${pages.length} · ${file.name}`;
+            renderLivePreview();
+          };
+          img.src = pages[0].dataUrl;
+        }
+      }
+    });
+
+    function setTextPreset(t) {
+      document.getElementById('wmTextInp').value = t;
+      renderLivePreview();
+    }
+
+    function renderLivePreview() {
+      if (!page1BaseImage) return;
+
+      previewCanvas.width = page1BaseImage.naturalWidth;
+      previewCanvas.height = page1BaseImage.naturalHeight;
+
+      // Draw base PDF page
+      ctx.drawImage(page1BaseImage, 0, 0);
+
+      // Overlay watermark
+      const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
+      const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
+      const op = parseInt(document.getElementById('wmOpacityRange').value, 10);
+      opBadge.textContent = `${op}%`;
+      const colVal = document.getElementById('wmColorSel').value;
+
+      let color = `rgba(220, 38, 38, ${op / 100})`;
+      if (colVal === 'gray') color = `rgba(100, 116, 139, ${op / 100})`;
+      if (colVal === 'blue') color = `rgba(37, 99, 235, ${op / 100})`;
+
+      const fontSize = Math.max(24, Math.round(previewCanvas.width * 0.08));
+
+      ctx.save();
+      ctx.translate(previewCanvas.width / 2, previewCanvas.height / 2);
+      ctx.rotate((angle * Math.PI) / 180);
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+
+    async function executeDownloadPdf() {
+      if (!activePdfBuf) return;
+      const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
+      const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
+      const op = parseInt(document.getElementById('wmOpacityRange').value, 10) / 100;
+      const colVal = document.getElementById('wmColorSel').value;
+
+      let color = { r: 0.8, g: 0.2, b: 0.2 };
+      if (colVal === 'gray') color = { r: 0.4, g: 0.4, b: 0.4 };
+      if (colVal === 'blue') color = { r: 0.1, g: 0.3, b: 0.8 };
+
+      try {
+        const bytes = await SarkariPdfEngine.addPdfWatermark(activePdfBuf, text, {
+          fontSize: 48,
+          angle,
+          color,
+          opacity: op
+        });
+        SarkariPdfEngine.downloadFile(bytes, 'watermarked_document.pdf');
+      } catch (err) {
+        alert('Error watermarking PDF: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

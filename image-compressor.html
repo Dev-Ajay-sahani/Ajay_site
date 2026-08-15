@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Image Compressor &amp; Cropper (Single &amp; Batch, ZIP &amp; PDF) – Sarkari Babu Tools</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sarkari Babu">
+  <meta property="og:title" content="🗜️ Smart Image Compressor &amp; Cropper – Sarkari Babu Tools">
+  <meta property="og:description" content="Compress &amp; crop JPG, PNG, WEBP images strictly under 20KB, 50KB, 100KB without blur. Live side-by-side quality comparison!">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="🗜️ Smart Image Compressor &amp; Cropper – Sarkari Babu">
+  <meta name="twitter:image" content="./assets/og-banner.jpg">
+  <meta name="theme-color" content="#2563EB">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Image Compressor &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop &amp; Compress Without Blur</span>
+      <h1 class="hero-heading">Compress &amp; Crop <span class="gradient-text">Without Quality Loss</span></h1>
+      <p class="hero-desc">Crop exact aspect ratios and hit government KB limits (&lt;18KB Parivahan, &lt;20KB Sig, &lt;50KB Photo) with live visual preview.</p>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:24px;">
+      <button class="category-tab active" id="singleTab" onclick="switchMode('single')">Single Image</button>
+      <button class="category-tab" id="batchTab" onclick="switchMode('batch')">📁 Batch (Multiple Images)</button>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Dropzone -->
+      <div class="modern-dropzone" onclick="triggerUpload()" style="margin-bottom:24px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title" id="dropTitle">Click or Drag Image Here</div>
+        <div class="dropzone-desc">Upload photos, signatures, or documents (JPG, PNG, WEBP)</div>
+      </div>
+      <input type="file" id="fileInpSingle" class="hidden-input" accept="image/*">
+      <input type="file" id="fileInpBatch" class="hidden-input" accept="image/*" multiple>
+
+      <!-- Active Compressor Controls (Shown when file uploaded) -->
+      <div id="compressorWorkArea" style="display:none;">
+
+        <!-- Quick Presets -->
+        <div style="margin-bottom:20px;">
+          <label class="form-label">Quick Govt KB Presets:</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="category-tab" onclick="applyPreset(18, this)">🚗 Parivahan (&lt;18 KB)</button>
+            <button class="category-tab active" onclick="applyPreset(20, this)">✍️ Sig (&lt;20 KB)</button>
+            <button class="category-tab" onclick="applyPreset(50, this)">📷 Photo (&lt;50 KB)</button>
+            <button class="category-tab" onclick="applyPreset(80, this)">📝 Declaration (&lt;80 KB)</button>
+            <button class="category-tab" onclick="applyPreset(100, this)">📑 Doc (&lt;100 KB)</button>
+            <button class="category-tab" onclick="applyPreset(200, this)">🏛️ UPSC / NTA (&lt;200 KB)</button>
+            <button class="category-tab" onclick="setQuality(95, this)">💎 Max Quality (95%)</button>
+          </div>
+        </div>
+
+        <!-- Live Quality Slider -->
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:18px;margin-bottom:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <strong style="font-size:14px;color:var(--text-primary);">Live Visual Quality:</strong>
+            <span id="qDisplayBadge" style="font-size:13px;font-weight:700;color:var(--primary);">88%</span>
+          </div>
+          <input type="range" class="modern-slider" id="qualitySlider" min="5" max="100" value="88" oninput="onQualitySlider()">
+        </div>
+
+        <!-- SINGLE MODE: Comparison Preview with Crop Action -->
+        <div id="singlePreviewBox">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h4 style="font-family:var(--font-display);font-size:16px;">Side-by-Side Comparison:</h4>
+            <button class="btn-primary" style="padding:6px 14px;font-size:13px;" onclick="openCropperModal()">✂️ Crop / Trim Image</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div style="border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;text-align:center;background:var(--bg-subtle);">
+              <span class="tool-badge yellow" style="margin-bottom:8px;display:inline-block;">ORIGINAL / CROPPED</span>
+              <img id="origImg" alt="Original" style="max-height:220px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);margin:8px 0;">
+              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;">Dimensions: <span id="origDimsLabel" style="color:var(--text-primary);">0x0</span> · <span id="origKbLabel" style="color:var(--warning-text);">0 KB</span></div>
+            </div>
+
+            <div style="border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;text-align:center;background:var(--bg-subtle);">
+              <span class="tool-badge green" style="margin-bottom:8px;display:inline-block;">COMPRESSED PREVIEW</span>
+              <img id="compImg" alt="Compressed" style="max-height:220px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);margin:8px 0;">
+              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;">File Size: <span id="compKbLabel" style="color:var(--success-text);font-size:16px;">0 KB</span></div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+            <button class="btn-secondary" onclick="triggerUpload()">📁 Choose Another</button>
+            <button class="btn-success" id="dlSingleBtn" onclick="downloadSingle()" style="font-size:15px;padding:12px 24px;">⬇ Download Compressed Image</button>
+          </div>
+
+          <!-- Pass to Next Operation Grid -->
+          <div style="border-top:1px solid var(--border-subtle);padding-top:14px;margin-top:14px;">
+            <strong style="font-size:13px;color:var(--text-primary);display:block;margin-bottom:8px;">🚀 Pass Compressed Image to Next Tool:</strong>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passToNext('watermark-image.html')">💧 Add Watermark</button>
+              <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passToNext('passport-photo.html')">🖨️ A4 Passport Sheet</button>
+              <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passToNext('jpg-to-pdf.html')">📄 Convert to PDF</button>
+              <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passToNext('custom-tool.html')">📐 Custom Resize</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BATCH MODE: Multi-Image Grid -->
+        <div id="batchPreviewBox" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <h4 style="font-family:var(--font-display);font-size:16px;">Compressed Files (<span id="batchCount">0</span>):</h4>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-primary" onclick="downloadBatchZip()">📦 Download All as ZIP</button>
+              <button class="btn-secondary" onclick="compileBatchPdf()">📄 Save as PDF</button>
+            </div>
+          </div>
+          <div id="batchGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(170px, 1fr));gap:14px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Interactive Cropper Modal -->
+  <div class="crop-modal-overlay" id="cropperModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>✂️ Crop &amp; Frame Image</h3>
+        <button class="btn-modal-close" onclick="closeCropperModal()">×</button>
+      </div>
+
+      <!-- Aspect Ratio Presets Bar -->
+      <div style="padding:10px 16px;background:var(--bg-subtle);border-bottom:1px solid var(--border-subtle);display:flex;gap:6px;overflow-x:auto;">
+        <button class="category-tab active" onclick="setCropRatio(NaN, this)">Freeform</button>
+        <button class="category-tab" onclick="setCropRatio(3.5/4.5, this)">3.5:4.5 (Passport)</button>
+        <button class="category-tab" onclick="setCropRatio(4.0/2.0, this)">4:2 (Signature)</button>
+        <button class="category-tab" onclick="setCropRatio(1, this)">1:1 (Square)</button>
+        <button class="category-tab" onclick="setCropRatio(4/6, this)">4:6 (Postcard)</button>
+        <button class="category-tab" onclick="setCropRatio(16/9, this)">16:9 (Landscape)</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="modalCropTargetImg" src="" alt="Crop Target">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(-0.1)">🔍 -</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+          <button class="btn-secondary" onclick="cropper && cropper.reset()">↺ Reset</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeCropperModal()">Cancel</button>
+          <button class="btn-primary" onclick="applyCroppedImage()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="./index.html">Home</a>
+      <a href="./watermark-image.html">Watermark</a>
+      <a href="./passport-photo.html">Passport Photo</a>
+      <a href="./merge-pdf.html">Merge PDF</a>
+    </div>
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let mode = 'single';
+    let singleOriginalImg = null;
+    let singleCanvas = null;
+    let singleOrigKb = 0;
+    let singleCompUrl = null;
+    let batchFiles = []; // { name, origKb, rawImg, canvas, compUrl, compKb }
+    let cropper = null;
+    let activeBatchCropIdx = -1;
+
+    const singleInp = document.getElementById('fileInpSingle');
+    const batchInp = document.getElementById('fileInpBatch');
+    const workArea = document.getElementById('compressorWorkArea');
+    const slider = document.getElementById('qualitySlider');
+    const qBadge = document.getElementById('qDisplayBadge');
+    const origImg = document.getElementById('origImg');
+    const compImg = document.getElementById('compImg');
+    const origKb = document.getElementById('origKbLabel');
+    const origDims = document.getElementById('origDimsLabel');
+    const compKb = document.getElementById('compKbLabel');
+    const singleBox = document.getElementById('singlePreviewBox');
+    const batchBox = document.getElementById('batchPreviewBox');
+    const batchGrid = document.getElementById('batchGrid');
+    const batchCount = document.getElementById('batchCount');
+    const cropModal = document.getElementById('cropperModal');
+    const modalCropImg = document.getElementById('modalCropTargetImg');
+
+    function switchMode(m) {
+      mode = m;
+      document.getElementById('singleTab').classList.toggle('active', m === 'single');
+      document.getElementById('batchTab').classList.toggle('active', m === 'batch');
+      document.getElementById('dropTitle').textContent = m === 'single' ? 'Click or Drag 1 Image Here' : 'Click or Drag Multiple Images Here';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariPipeline.initReceiver('.studio-container', (img, meta) => {
+        singleOriginalImg = img;
+        singleCanvas = document.createElement('canvas');
+        singleCanvas.width = img.naturalWidth;
+        singleCanvas.height = img.naturalHeight;
+        singleCanvas.getContext('2d').drawImage(img, 0, 0);
+
+        singleOrigKb = meta.sizeKB || (img.src.length * 0.75 / 1024).toFixed(1);
+        origImg.src = singleCanvas.toDataURL('image/jpeg', 0.95);
+        origKb.textContent = `${singleOrigKb} KB`;
+        origDims.textContent = `${singleCanvas.width}×${singleCanvas.height} px`;
+
+        workArea.style.display = 'block';
+        singleBox.style.display = 'block';
+        batchBox.style.display = 'none';
+
+        applyPreset(50);
+      });
+    });
+
+    function passToNext(targetUrl) {
+      if (!singleCompUrl) {
+        alert('Please compress an image first!');
+        return;
+      }
+      SarkariPipeline.passTo(targetUrl, singleCompUrl, {
+        sourceName: 'Smart Image Compressor',
+        fileName: 'compressed_image.jpg',
+        sizeKB: document.getElementById('compKbLabel').textContent.replace(' KB', '')
+      });
+    }
+
+    function triggerUpload() {
+      if (mode === 'single') singleInp.click();
+      else batchInp.click();
+    }
+
+    singleInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        singleOrigKb = (file.size / 1024).toFixed(1);
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const img = new Image();
+          img.onload = () => {
+            singleOriginalImg = img;
+            singleCanvas = document.createElement('canvas');
+            singleCanvas.width = img.naturalWidth;
+            singleCanvas.height = img.naturalHeight;
+            singleCanvas.getContext('2d').drawImage(img, 0, 0);
+
+            origImg.src = singleCanvas.toDataURL('image/jpeg', 0.95);
+            origKb.textContent = `${singleOrigKb} KB`;
+            origDims.textContent = `${singleCanvas.width}×${singleCanvas.height} px`;
+
+            workArea.style.display = 'block';
+            singleBox.style.display = 'block';
+            batchBox.style.display = 'none';
+
+            applyPreset(50);
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    batchInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        batchFiles = [];
+        for (const file of e.target.files) {
+          if (file.type.startsWith('image/')) {
+            const img = await readImage(file);
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            batchFiles.push({
+              name: file.name,
+              origKb: (file.size / 1024).toFixed(1),
+              rawImg: img,
+              canvas
+            });
+          }
+        }
+
+        workArea.style.display = 'block';
+        singleBox.style.display = 'none';
+        batchBox.style.display = 'block';
+
+        applyPreset(50);
+      }
+    });
+
+    function readImage(file) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.src = e.target.result;
+        };
+        r.readAsDataURL(file);
+      });
+    }
+
+    // CROPPER MODAL CONTROLS
+    function openCropperModal(batchIdx = -1) {
+      activeBatchCropIdx = batchIdx;
+      let sourceUrl = '';
+      if (batchIdx >= 0 && batchFiles[batchIdx]) {
+        sourceUrl = batchFiles[batchIdx].canvas.toDataURL();
+      } else if (singleCanvas) {
+        sourceUrl = singleCanvas.toDataURL();
+      } else {
+        return;
+      }
+
+      modalCropImg.src = sourceUrl;
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(modalCropImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function setCropRatio(ratio, btn) {
+      if (cropper) cropper.setAspectRatio(ratio);
+      if (btn) {
+        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    }
+
+    function closeCropperModal() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyCroppedImage() {
+      if (!cropper) return;
+      const croppedCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+
+      if (activeBatchCropIdx >= 0 && batchFiles[activeBatchCropIdx]) {
+        batchFiles[activeBatchCropIdx].canvas = croppedCanvas;
+      } else {
+        singleCanvas = croppedCanvas;
+        origImg.src = singleCanvas.toDataURL('image/jpeg', 0.95);
+        origDims.textContent = `${singleCanvas.width}×${singleCanvas.height} px`;
+      }
+
+      closeCropperModal();
+      renderLive();
+    }
+
+    function onQualitySlider() {
+      qBadge.textContent = `${slider.value}%`;
+      renderLive();
+    }
+
+    function setQuality(q, btn) {
+      if (btn) {
+        btn.parentElement.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      slider.value = q;
+      qBadge.textContent = `${q}%`;
+      renderLive();
+    }
+
+    async function applyPreset(maxKb, btn) {
+      if (btn) {
+        btn.parentElement.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
+      if (mode === 'single' && singleCanvas) {
+        const res = await SarkariEngine.compressToTargetKB(singleCanvas, Math.max(5, maxKb * 0.4), maxKb, 200);
+        slider.value = Math.round(res.quality * 100);
+        qBadge.textContent = `${slider.value}% (<${maxKb}KB)`;
+        singleCompUrl = res.url;
+        compImg.src = res.url;
+        compKb.textContent = `${res.sizeKB} KB`;
+      } else if (mode === 'batch' && batchFiles.length > 0) {
+        const res = await SarkariEngine.compressToTargetKB(batchFiles[0].canvas, Math.max(5, maxKb * 0.4), maxKb, 200);
+        slider.value = Math.round(res.quality * 100);
+        qBadge.textContent = `${slider.value}% (<${maxKb}KB)`;
+        await renderLive();
+      }
+    }
+
+    async function renderLive() {
+      const q = slider.value / 100;
+
+      if (mode === 'single' && singleCanvas) {
+        singleCanvas.toBlob((blob) => {
+          singleCompUrl = URL.createObjectURL(blob);
+          compImg.src = singleCompUrl;
+          const kb = (blob.size / 1024).toFixed(1);
+          compKb.textContent = `${kb} KB`;
+        }, 'image/jpeg', q);
+      } else if (mode === 'batch') {
+        batchGrid.innerHTML = '';
+        batchCount.textContent = batchFiles.length;
+
+        for (let i = 0; i < batchFiles.length; i++) {
+          const item = batchFiles[i];
+          const blob = await new Promise(res => item.canvas.toBlob(res, 'image/jpeg', q));
+          item.compBlob = blob;
+          item.compUrl = URL.createObjectURL(blob);
+          item.compKb = (blob.size / 1024).toFixed(1);
+
+          const card = document.createElement('div');
+          card.style.cssText = 'border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:10px;text-align:center;background:var(--bg-surface);';
+          card.innerHTML = `
+            <img src="${item.compUrl}" alt="Preview" style="height:100px;width:100%;object-fit:contain;border-radius:4px;margin-bottom:6px;">
+            <div style="font-size:11px;font-weight:700;word-break:break-all;margin-bottom:4px;">${item.name}</div>
+            <div style="font-size:12px;font-weight:700;color:var(--success-text);margin-bottom:6px;">${item.compKb} KB</div>
+          `;
+          
+          const actionsDiv = document.createElement('div');
+          actionsDiv.style.cssText = 'display:flex;gap:4px;margin-top:6px;';
+
+          const cropBtn = document.createElement('button');
+          cropBtn.className = 'btn-secondary';
+          cropBtn.style.cssText = 'padding:4px 6px;font-size:11px;flex:1;';
+          cropBtn.textContent = '✂️ Crop';
+          cropBtn.onclick = () => openCropperModal(i);
+
+          const dlBtn = document.createElement('button');
+          dlBtn.className = 'btn-secondary';
+          dlBtn.style.cssText = 'padding:4px 6px;font-size:11px;flex:1;';
+          dlBtn.textContent = '⬇ Save';
+          dlBtn.onclick = () => SarkariEngine.triggerDownload(item.compUrl, `compressed_${item.name}.jpg`);
+
+          actionsDiv.appendChild(cropBtn);
+          actionsDiv.appendChild(dlBtn);
+          card.appendChild(actionsDiv);
+          batchGrid.appendChild(card);
+        }
+      }
+    }
+
+    function downloadSingle() {
+      if (singleCompUrl) {
+        SarkariEngine.triggerDownload(singleCompUrl, 'compressed_image.jpg');
+      }
+    }
+
+    async function downloadBatchZip() {
+      if (batchFiles.length === 0) return;
+      const zip = new JSZip();
+      batchFiles.forEach(item => {
+        zip.file(`compressed_${item.name}.jpg`, item.compBlob);
+      });
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      SarkariEngine.triggerDownload(URL.createObjectURL(zipBlob), 'compressed_images.zip');
+    }
+
+    async function compileBatchPdf() {
+      if (batchFiles.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      for (let i = 0; i < batchFiles.length; i++) {
+        if (i > 0) doc.addPage();
+        const item = batchFiles[i];
+        const pw = 210, ph = 297, margin = 10;
+        const uw = pw - (margin * 2), uh = ph - (margin * 2);
+        const aspect = item.canvas.width / item.canvas.height;
+
+        let rw = uw;
+        let rh = rw / aspect;
+        if (rh > uh) { rh = uh; rw = rh * aspect; }
+
+        const px = margin + (uw - rw) / 2;
+        const py = margin + (uh - rh) / 2;
+        doc.addImage(item.compUrl, 'JPEG', px, py, rw, rh);
+      }
+
+      doc.save('compressed_documents.pdf');
+    }
+  </script>
+</body>
+</html>

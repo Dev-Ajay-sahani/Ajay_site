@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Document &amp; Marksheet Scanner &amp; Cropper (Live Preview) – Sarkari Babu Tools</title>
+  <meta name="description" content="Crop and enhance marksheets, caste certificates, and identity cards with shadow removal and real-time visual preview. Export to PDF or ZIP.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Document Scanner &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop &amp; Clean Shadows</span>
+      <h1 class="hero-heading">Document Scanner &amp; <span class="gradient-text">Cropper</span></h1>
+      <p class="hero-desc">Crop background clutter and clean up marksheets, caste certificates, and degrees with shadow removal.</p>
+    </div>
+
+    <!-- Mode Selector -->
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:24px;">
+      <button class="category-tab active" id="singleDocTab" onclick="switchDocMode('single')">Single Document</button>
+      <button class="category-tab" id="batchDocTab" onclick="switchDocMode('batch')">📁 Batch (Multiple Marksheets)</button>
+    </div>
+
+    <div class="studio-card">
+
+      <div class="modern-dropzone" onclick="triggerDocUpload()" style="margin-bottom:24px;">
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-title" id="docDropTitle">Click or Drag Document (JPG, PNG) Here</div>
+        <div class="dropzone-desc">Upload certificates, marksheets, or identity cards</div>
+      </div>
+      <input type="file" id="docSingleInp" class="hidden-input" accept="image/*">
+      <input type="file" id="docBatchInp" class="hidden-input" accept="image/*" multiple>
+
+      <!-- Active Work Area -->
+      <div id="docWorkArea" style="display:none;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          
+          <!-- Left: Filter Controls -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <h3 style="font-family:var(--font-display);font-size:18px;">Scanner Options</h3>
+              <button class="btn-primary" style="padding:6px 12px;font-size:12px;" onclick="openDocCropper()">✂️ Crop Document</button>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Filter Enhancement Mode</label>
+              <select class="form-select" id="docFilterSel" onchange="applyDocFilters()">
+                <option value="grayscale" selected>Smooth Grayscale (Standard Marksheets)</option>
+                <option value="bw">Crisp Black &amp; White (Removes All Yellow Paper Tint)</option>
+                <option value="magic-color">Magic Color (Boost Text Contrast)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Target Max File Size</label>
+              <select class="form-select" id="docKbSel" onchange="applyDocFilters()">
+                <option value="100" selected>Under 100 KB (Standard Govt Limit)</option>
+                <option value="300">Under 300 KB (High Definition)</option>
+                <option value="50">Under 50 KB (Caste/EWS Certificate)</option>
+                <option value="500">Under 500 KB (UPSC Portal)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Contrast Boost:</label>
+                <strong id="docContrastVal" style="font-size:13px;color:var(--primary);">1.3x</strong>
+              </div>
+              <input type="range" class="modern-slider" id="docContrastSlider" min="10" max="25" value="13" oninput="applyDocFilters()">
+            </div>
+          </div>
+
+          <!-- Right: Live Visual Preview -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:16px;">Enhanced Live Preview</h3>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <img id="mainDocPrevImg" alt="Scanned Preview" style="max-height:260px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);box-shadow:var(--shadow-md);background:#fff;">
+              <div id="docMetaLabel" style="font-family:var(--font-mono);font-size:12px;color:var(--success-text);font-weight:700;margin-top:8px;">0 KB · Ready</div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+              <button class="btn-success" id="singleDocDlBtn" onclick="downloadSingleDoc()" style="font-size:15px;padding:12px 24px;">⬇ Download Enhanced Scan</button>
+              
+              <div id="batchDocBtns" style="display:none;gap:10px;">
+                <button class="btn-primary" onclick="compileAllDocsToPdf()" style="flex:1;">📄 Save All as 1 PDF</button>
+                <button class="btn-secondary" onclick="downloadAllDocsZip()" style="flex:1;">📦 Download All as ZIP</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Batch Multi-Image Thumb Strip -->
+        <div id="batchDocStrip" style="display:none;margin-top:24px;border-top:1px solid var(--border-subtle);padding-top:16px;">
+          <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">Uploaded Certificates (Click to Preview / Crop):</h4>
+          <div id="batchDocThumbGrid" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Document Cropper Modal -->
+  <div class="crop-modal-overlay" id="docCropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>✂️ Crop Document &amp; Remove Margins</h3>
+        <button class="btn-modal-close" onclick="closeDocCrop()">×</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="docCropTargetImg" src="" alt="Crop Document">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+          <button class="btn-secondary" onclick="cropper && cropper.reset()">↺ Reset</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeDocCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyDocCrop()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let docMode = 'single';
+    let loadedDocs = []; // { name, rawImg, workingCanvas, outCanvas, outUrl, outKb }
+    let activeDocIdx = 0;
+    let cropper = null;
+
+    const singleInp = document.getElementById('docSingleInp');
+    const batchInp = document.getElementById('docBatchInp');
+    const workArea = document.getElementById('docWorkArea');
+    const mainImg = document.getElementById('mainDocPrevImg');
+    const metaLabel = document.getElementById('docMetaLabel');
+    const batchBtns = document.getElementById('batchDocBtns');
+    const batchStrip = document.getElementById('batchDocStrip');
+    const thumbGrid = document.getElementById('batchDocThumbGrid');
+    const cropModal = document.getElementById('docCropModal');
+    const cropTargetImg = document.getElementById('docCropTargetImg');
+
+    function switchDocMode(m) {
+      docMode = m;
+      document.getElementById('singleDocTab').classList.toggle('active', m === 'single');
+      document.getElementById('batchDocTab').classList.toggle('active', m === 'batch');
+      document.getElementById('docDropTitle').textContent = m === 'single' ? 'Click or Drag 1 Document Here' : 'Click or Drag Multiple Documents Here';
+    }
+
+    function triggerDocUpload() {
+      if (docMode === 'single') singleInp.click();
+      else batchInp.click();
+    }
+
+    singleInp.addEventListener('change', (e) => handleDocs(e.target.files));
+    batchInp.addEventListener('change', (e) => handleDocs(e.target.files));
+
+    async function handleDocs(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      loadedDocs = [];
+      activeDocIdx = 0;
+
+      for (const file of fileList) {
+        if (file.type.startsWith('image/')) {
+          const img = await readImage(file);
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+
+          loadedDocs.push({ name: file.name, rawImg: img, workingCanvas: c });
+        }
+      }
+
+      if (loadedDocs.length > 0) {
+        workArea.style.display = 'block';
+        batchBtns.style.display = loadedDocs.length > 1 ? 'flex' : 'none';
+        batchStrip.style.display = loadedDocs.length > 1 ? 'block' : 'none';
+        applyDocFilters();
+      }
+    }
+
+    function readImage(file) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.src = e.target.result;
+        };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function openDocCropper(idx = -1) {
+      if (idx >= 0) activeDocIdx = idx;
+      const active = loadedDocs[activeDocIdx];
+      if (!active) return;
+
+      cropTargetImg.src = active.workingCanvas.toDataURL();
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closeDocCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyDocCrop() {
+      if (!cropper) return;
+      const active = loadedDocs[activeDocIdx];
+      if (!active) return;
+
+      active.workingCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      closeDocCrop();
+      applyDocFilters();
+    }
+
+    async function applyDocFilters() {
+      if (loadedDocs.length === 0) return;
+
+      const mode = document.getElementById('docFilterSel').value;
+      const c = parseFloat(document.getElementById('docContrastSlider').value) / 10;
+      document.getElementById('docContrastVal').textContent = `${c.toFixed(1)}x`;
+      const maxKb = parseInt(document.getElementById('docKbSel').value, 10);
+
+      for (const item of loadedDocs) {
+        const enhanced = SarkariEngine.scanAndEnhanceDocument(item.workingCanvas, mode, c);
+        const res = await SarkariEngine.compressToTargetKB(enhanced, 10, maxKb, 200);
+
+        item.outCanvas = enhanced;
+        item.outUrl = res.url;
+        item.outKb = res.sizeKB;
+      }
+
+      renderActivePreview();
+      renderThumbnails();
+    }
+
+    function renderActivePreview() {
+      const active = loadedDocs[activeDocIdx];
+      if (!active) return;
+      mainImg.src = active.outUrl;
+      metaLabel.textContent = `${active.outKb} KB · ${active.outCanvas.width} × ${active.outCanvas.height} px · ${active.name}`;
+    }
+
+    function renderThumbnails() {
+      if (loadedDocs.length <= 1) return;
+      thumbGrid.innerHTML = '';
+
+      loadedDocs.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+          min-width: 80px;
+          cursor: pointer;
+          border: 2px solid ${idx === activeDocIdx ? 'var(--primary)' : 'var(--border-subtle)'};
+          border-radius: var(--radius-md);
+          padding: 4px;
+          background: var(--bg-surface);
+          text-align: center;
+        `;
+        card.onclick = () => {
+          activeDocIdx = idx;
+          renderActivePreview();
+          renderThumbnails();
+        };
+
+        const img = document.createElement('img');
+        img.src = item.outUrl;
+        img.style.cssText = 'height:50px;width:100%;object-fit:contain;border-radius:4px;';
+
+        const cropBtn = document.createElement('button');
+        cropBtn.className = 'btn-secondary';
+        cropBtn.style.cssText = 'padding:2px 4px;font-size:10px;width:100%;margin-top:4px;';
+        cropBtn.textContent = '✂️ Crop';
+        cropBtn.onclick = (e) => {
+          e.stopPropagation();
+          openDocCropper(idx);
+        };
+
+        card.appendChild(img);
+        card.appendChild(cropBtn);
+        thumbGrid.appendChild(card);
+      });
+    }
+
+    function downloadSingleDoc() {
+      const active = loadedDocs[activeDocIdx];
+      if (active) SarkariEngine.triggerDownload(active.outUrl, `scanned_${active.name}`);
+    }
+
+    async function downloadAllDocsZip() {
+      if (loadedDocs.length === 0) return;
+      const zip = new JSZip();
+      for (const item of loadedDocs) {
+        const blob = await fetch(item.outUrl).then(r => r.blob());
+        zip.file(`scanned_${item.name}.jpg`, blob);
+      }
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      SarkariEngine.triggerDownload(URL.createObjectURL(zipBlob), 'scanned_documents.zip');
+    }
+
+    async function compileAllDocsToPdf() {
+      if (loadedDocs.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      for (let i = 0; i < loadedDocs.length; i++) {
+        if (i > 0) doc.addPage();
+        const item = loadedDocs[i];
+        const pw = 210, ph = 297, margin = 10;
+        const uw = pw - (margin * 2), uh = ph - (margin * 2);
+        const aspect = item.outCanvas.width / item.outCanvas.height;
+
+        let rw = uw;
+        let rh = rw / aspect;
+        if (rh > uh) { rh = uh; rw = rh * aspect; }
+
+        const px = margin + (uw - rw) / 2;
+        const py = margin + (uh - rh) / 2;
+        doc.addImage(item.outUrl, 'JPEG', px, py, rw, rh);
+      }
+
+      doc.save('scanned_documents.pdf');
+    }
+  </script>
+</body>
+</html>

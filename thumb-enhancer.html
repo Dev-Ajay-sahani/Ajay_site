@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thumb Impression Scanner &amp; B&amp;W Enhancer – Sarkari Babu Tools</title>
+  <meta name="description" content="Online Thumb Impression Enhancer for IBPS, SSC, State Police, and Government Jobs. Converts faint ink thumb stamps into crisp, high-contrast black & white impressions under 50 KB.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Thumb Impression Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Binarization &amp; Ridge Filter</span>
+      <h1 class="hero-heading">Thumb Impression <span class="gradient-text">Enhancer</span></h1>
+      <p class="hero-desc">Extract faint ink ridges into high-contrast black &amp; white scans under 50 KB for IBPS, SSC, and Police forms.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+        
+        <!-- Left: Upload & Preview -->
+        <div style="text-align:center;">
+          <div class="modern-dropzone" onclick="document.getElementById('thumbInp').click()" style="padding:28px 16px;">
+            <div id="thumbPh">
+              <div class="dropzone-icon">👍</div>
+              <div class="dropzone-title">Click to Upload Thumb Stamp</div>
+              <div class="dropzone-desc">Upload paper thumb stamp photo</div>
+            </div>
+            <img id="thumbPrevImg" alt="Thumb" style="display:none;max-height:220px;margin:0 auto;border-radius:var(--radius-md);box-shadow:var(--shadow-md);">
+          </div>
+          <div id="thumbMeta" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:10px;">Upload image to enhance</div>
+          <input type="file" id="thumbInp" class="hidden-input" accept="image/*">
+        </div>
+
+        <!-- Right: Filter Settings -->
+        <div>
+          <div class="form-group">
+            <label class="form-label">Target Portal Limit</label>
+            <select class="form-select" id="thumbKbSel" onchange="updateThumbFilter()">
+              <option value="50" selected>IBPS / SBI Bank (240×240 px · Under 50 KB)</option>
+              <option value="20">Police / State Board (Under 20 KB)</option>
+              <option value="100">NTA NEET / JEE (Under 100 KB)</option>
+            </select>
+          </div>
+
+          <!-- Ink Threshold Slider -->
+          <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span class="form-label" style="margin-bottom:0;">Ink Contrast Threshold:</span>
+              <strong id="threshVal" style="font-size:13px;color:var(--primary);">128</strong>
+            </div>
+            <input type="range" class="modern-slider" id="threshSlider" min="40" max="220" value="128" oninput="updateThumbFilter()">
+
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-top:10px;cursor:pointer;">
+              <input type="checkbox" id="invertCheck" onchange="updateThumbFilter()">
+              <span>Invert Colors (White Background / Black Ink)</span>
+            </label>
+          </div>
+
+          <button class="btn-success" id="downloadThumbBtn" style="display:none;width:100%;font-size:15px;padding:14px;" onclick="downloadThumb()">⬇ Download Enhanced Thumb (JPEG)</button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal -->
+  <div class="crop-modal-overlay" id="cropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3>Crop Thumb Impression</h3>
+        <button class="btn-modal-close" onclick="closeCrop()">×</button>
+      </div>
+      <div class="modal-body-area">
+        <div class="modal-crop-stage"><img id="modalCropImg" src="" alt="Crop"></div>
+      </div>
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyThumbCrop()">✔ Apply &amp; Enhance</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let cropper = null;
+    let croppedThumbCanvas = null;
+    let thumbBlobUrl = null;
+
+    const thumbInp = document.getElementById('thumbInp');
+    const thumbPrev = document.getElementById('thumbPrevImg');
+    const thumbPh = document.getElementById('thumbPh');
+    const thumbMeta = document.getElementById('thumbMeta');
+    const downloadBtn = document.getElementById('downloadThumbBtn');
+    const threshSlider = document.getElementById('threshSlider');
+    const threshVal = document.getElementById('threshVal');
+    const invertCheck = document.getElementById('invertCheck');
+
+    thumbInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          document.getElementById('modalCropImg').src = evt.target.result;
+          document.getElementById('cropModal').classList.add('active');
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(document.getElementById('modalCropImg'), {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 0.95
+          });
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+
+    function closeCrop() {
+      document.getElementById('cropModal').classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyThumbCrop() {
+      if (!cropper) return;
+      croppedThumbCanvas = cropper.getCroppedCanvas({ width: 240, height: 240, imageSmoothingQuality: 'high' });
+      closeCrop();
+      updateThumbFilter();
+    }
+
+    async function updateThumbFilter() {
+      if (!croppedThumbCanvas) return;
+      const th = parseInt(threshSlider.value, 10);
+      threshVal.textContent = th;
+      const inv = invertCheck.checked;
+      const enhanced = SarkariEngine.enhanceThumbImpression(croppedThumbCanvas, th, inv);
+
+      const maxKb = parseInt(document.getElementById('thumbKbSel').value, 10);
+      const res = await SarkariEngine.compressToTargetKB(enhanced, 10, maxKb, 200);
+      thumbBlobUrl = res.url;
+
+      thumbPrev.src = thumbBlobUrl;
+      thumbPrev.style.display = 'block';
+      thumbPh.style.display = 'none';
+      thumbMeta.textContent = `240 × 240 px · ${res.sizeKB} KB · Crisp High-Pass B&W`;
+      downloadBtn.style.display = 'block';
+    }
+
+    function downloadThumb() {
+      if (thumbBlobUrl) SarkariEngine.triggerDownload(thumbBlobUrl, 'thumb_impression_enhanced.jpg');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interactive Watermark Studio (Move, Resize, Rotate &amp; Crop) – Sarkari Babu Tools</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sarkari Babu">
+  <meta property="og:title" content="💧 Interactive Watermark Studio &amp; Cropper – Sarkari Babu">
+  <meta property="og:description" content="Drag, move, resize, rotate, and overlay logo or text watermarks on your photos. 100% private in browser with live preview.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2563EB">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <style>
+    .pos-grid-matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .pos-grid-btn {
+      padding: 6px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .pos-grid-btn:hover {
+      background: var(--bg-subtle);
+      border-color: var(--border-strong);
+    }
+    .pos-grid-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .interactive-canvas-container {
+      position: relative;
+      background: var(--bg-subtle);
+      border: 2px dashed var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      text-align: center;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: crosshair;
+    }
+    .interactive-canvas-container:hover {
+      border-color: var(--primary);
+    }
+  </style>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Interactive Watermark &amp; Cropper</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <!-- Hero Intro -->
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🏛️ Crop, Drag, Move, Resize &amp; Rotate</span>
+      <h1 class="hero-heading">Interactive <span class="gradient-text">Watermark &amp; Cropper</span></h1>
+      <p class="hero-desc">Crop your photos, overlay custom image logos, stamps, or text, and drag to position anywhere with live preview.</p>
+    </div>
+
+    <!-- Main Studio Card -->
+    <div class="studio-card">
+
+      <!-- STEP 1: Upload Base Photos -->
+      <div id="uploadStage">
+        <div class="modern-dropzone" id="dropZoneEl" onclick="document.getElementById('fileInp').click()">
+          <div class="dropzone-icon">📁</div>
+          <div class="dropzone-title">Click to Select Photos or Drop Here</div>
+          <div class="dropzone-desc">Upload 1 photo or multiple photos (JPG, PNG, WEBP)</div>
+        </div>
+        <input type="file" id="fileInp" class="hidden-input" accept="image/*" multiple>
+      </div>
+
+      <!-- STEP 2 & 3: Interactive Studio (Appears after upload) -->
+      <div id="editorStage" style="display:none;">
+
+        <!-- Watermark Type Selector Tabs -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;gap:10px;">
+            <button class="category-tab active" id="tabImageWm" onclick="switchWmType('image')">🖼️ Logo / Image Watermark</button>
+            <button class="category-tab" id="tabTextWm" onclick="switchWmType('text')">🔤 Text Watermark</button>
+          </div>
+          <button class="btn-primary" style="padding:7px 14px;font-size:13px;" onclick="openBaseCrop()">✂️ Crop Base Photo</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          
+          <!-- Left: Controls Panel -->
+          <div>
+
+            <!-- A. LOGO WATERMARK CONTROLS -->
+            <div id="imageWmControls">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="font-family:var(--font-display);font-size:16px;">Logo / Stamp Image</h3>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="openLogoCrop()">✂️ Crop Logo</button>
+                  <button class="btn-secondary" style="padding:4px 10px;font-size:12px;" onclick="document.getElementById('logoInp').click()">+ Custom Logo</button>
+                </div>
+              </div>
+              <input type="file" id="logoInp" class="hidden-input" accept="image/*">
+              <span id="logoFileName" style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:12px;font-family:var(--font-mono);">Active: 🏛️ SARKARI BABU Seal</span>
+            </div>
+
+            <!-- B. TEXT WATERMARK CONTROLS -->
+            <div id="textWmControls" style="display:none;margin-bottom:14px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:10px;">Text Options</h3>
+              <div class="form-group">
+                <input type="text" class="form-input" id="wmText" value="SARKARI BABU" oninput="renderInteractive()">
+                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setQuickText('CONFIDENTIAL')">CONFIDENTIAL</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setQuickText('DO NOT COPY')">DO NOT COPY</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setQuickText('SARKARI BABU')">SARKARI BABU</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setQuickText('VERIFIED COPY')">VERIFIED COPY</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Color Style</label>
+                <select class="form-select" id="wmColor" onchange="renderInteractive()">
+                  <option value="red" selected>Red Stamp</option>
+                  <option value="white">White (Ghost Stamp)</option>
+                  <option value="black">Dark Navy / Black</option>
+                  <option value="blue">Deep Blue Stamp</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- TRANSFORM CONTROLS: RESIZE, ROTATE, OPACITY -->
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;margin-bottom:18px;">
+              
+              <!-- 1. RESIZE SLIDER -->
+              <div class="form-group">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <label class="form-label" style="margin-bottom:0;">📐 Watermark Size:</label>
+                  <strong id="scaleValLabel" style="font-size:13px;color:var(--primary);">35%</strong>
+                </div>
+                <input type="range" class="modern-slider" id="scaleSlider" min="10" max="95" value="35" oninput="onScaleChange()">
+              </div>
+
+              <!-- 2. ROTATION SLIDER & QUICK BUTTONS -->
+              <div class="form-group">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <label class="form-label" style="margin-bottom:0;">🔄 Rotation Angle:</label>
+                  <strong id="angleValLabel" style="font-size:13px;color:var(--primary);">0°</strong>
+                </div>
+                <input type="range" class="modern-slider" id="angleSlider" min="-180" max="180" value="0" oninput="onAngleChange()">
+                <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setAnglePreset(0)">0° (Straight)</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setAnglePreset(-30)">-30° (Diagonal)</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setAnglePreset(45)">+45°</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setAnglePreset(90)">90° (Vertical)</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setAnglePreset(180)">180° (Flip)</button>
+                </div>
+              </div>
+
+              <!-- 3. OPACITY SLIDER -->
+              <div class="form-group" style="margin-bottom:0;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <label class="form-label" style="margin-bottom:0;">💧 Transparency (Opacity):</label>
+                  <strong id="opacityValLabel" style="font-size:13px;color:var(--primary);">65%</strong>
+                </div>
+                <input type="range" class="modern-slider" id="opacitySlider" min="10" max="100" value="65" oninput="onOpacityChange()">
+              </div>
+
+            </div>
+
+            <!-- 4. QUICK POSITION 9-POINT PAD -->
+            <div style="margin-bottom:18px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label class="form-label" style="margin-bottom:0;">📍 Quick Position Anchor:</label>
+                <button class="btn-secondary" style="padding:2px 8px;font-size:11px;" onclick="toggleTiling()">
+                  <span id="tileToggleLabel">🔁 Repeat Grid Tile: OFF</span>
+                </button>
+              </div>
+
+              <div class="pos-grid-matrix">
+                <button class="pos-grid-btn" onclick="setAnchorPosition('top-left')">↖ Top-Left</button>
+                <button class="pos-grid-btn" onclick="setAnchorPosition('top-center')">⬆ Top-Center</button>
+                <button class="pos-grid-btn" onclick="setAnchorPosition('top-right')">↗ Top-Right</button>
+                <button class="pos-grid-btn" onclick="setAnchorPosition('mid-left')">⬅ Mid-Left</button>
+                <button class="pos-grid-btn active" onclick="setAnchorPosition('center')">🎯 Center</button>
+                <button class="pos-grid-btn" onclick="setAnchorPosition('mid-right')">➡ Mid-Right</button>
+                <button class="pos-grid-btn" onclick="setAnchorPosition('bottom-left')">↙ Bot-Left</button>
+                <button class="pos-grid-btn" onclick="setAnchorPosition('bottom-center')">⬇ Bot-Center</button>
+                <button class="pos-grid-btn" onclick="setAnchorPosition('bottom-right')">↘ Bot-Right</button>
+              </div>
+            </div>
+
+            <!-- Change Base Photos Button -->
+            <div>
+              <button class="btn-secondary" onclick="document.getElementById('fileInp').click()" style="width:100%;">+ Change / Add Base Photos</button>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Canvas Stage & Download Box -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">
+                Interactive Stage (<span id="fileCountBadge">1</span> photo)
+              </h3>
+              <span style="font-size:11px;color:var(--text-muted);">🖱️ Click &amp; Drag Watermark to Move</span>
+            </div>
+
+            <!-- Interactive HTML5 Canvas Container -->
+            <div class="interactive-canvas-container" id="canvasContainer">
+              <canvas id="interactiveCanvas" style="max-height:320px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);box-shadow:var(--shadow-md);display:block;margin:0 auto;background:#fff;"></canvas>
+              <div id="previewMetaLabel" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:10px;">0 × 0 px · Position: (50%, 50%)</div>
+            </div>
+
+            <!-- Master Action Buttons -->
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:18px;">
+              <button class="btn-success" id="singleDlBtn" onclick="downloadCurrentFile()" style="font-size:15px;padding:14px;">⬇ Download Watermarked Image</button>
+              
+              <!-- Pass to Next Operation Grid -->
+              <div style="border-top:1px solid var(--border-subtle);padding-top:14px;margin-top:14px;">
+                <strong style="font-size:13px;color:var(--text-primary);display:block;margin-bottom:8px;">🚀 Pass Watermarked Image to Next Tool:</strong>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passWmTo('image-compressor.html')">🗜️ Compress KB</button>
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passWmTo('passport-photo.html')">🖨️ A4 Passport Sheet</button>
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passWmTo('jpg-to-pdf.html')">📄 Save as PDF</button>
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="passWmTo('custom-tool.html')">📐 Custom Resize</button>
+                </div>
+              </div>
+
+              <!-- Multi-file action buttons (Shown only when >1 files uploaded) -->
+              <div id="batchActionBtns" style="display:none;gap:10px;">
+                <button class="btn-primary" onclick="downloadAllZip()" style="flex:1;">📦 Download All as ZIP</button>
+                <button class="btn-secondary" onclick="compileAllPdf()" style="flex:1;">📄 Save as PDF</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Multi-Image Thumbnail Strip -->
+        <div id="multiThumbStrip" style="display:none;margin-top:28px;border-top:1px solid var(--border-subtle);padding-top:18px;">
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text-secondary);">Uploaded Photos (Click to Preview / Crop):</h4>
+          <div id="thumbGrid" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Cropper Modal -->
+  <div class="crop-modal-overlay" id="wmCropModal">
+    <div class="crop-modal-window">
+      <div class="modal-header-bar">
+        <h3 id="wmCropTitle">✂️ Crop Image</h3>
+        <button class="btn-modal-close" onclick="closeWmCrop()">×</button>
+      </div>
+
+      <div class="modal-body-area">
+        <div class="modal-crop-stage">
+          <img id="wmCropTargetImg" src="" alt="Crop Target">
+        </div>
+      </div>
+
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="cropper && cropper.zoom(0.1)">🔍 +</button>
+          <button class="btn-secondary" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="closeWmCrop()">Cancel</button>
+          <button class="btn-primary" onclick="applyWmCrop()">✔ Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="./index.html">Home</a>
+      <a href="./image-compressor.html">Compress</a>
+      <a href="./passport-photo.html">Passport Photo</a>
+      <a href="./merge-pdf.html">Merge PDF</a>
+    </div>
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script src="./js/img-tools-engine.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script>
+    let uploadedFiles = []; // { name, rawImg, workingCanvas, canvas, dataUrl }
+    let activeIndex = 0;
+    let currentWmMode = 'image'; // 'image' or 'text'
+    let customWatermarkImg = null;
+    let cropModeType = 'base'; // 'base' or 'logo'
+    let cropper = null;
+
+    // Watermark Transform State
+    let wmState = {
+      scalePercent: 35,
+      angle: 0,
+      opacity: 65,
+      posXPercent: 50,
+      posYPercent: 50,
+      isTiled: false,
+      positionAnchor: 'center'
+    };
+
+    let isDragging = false;
+
+    const fileInp = document.getElementById('fileInp');
+    const logoInp = document.getElementById('logoInp');
+    const dropZone = document.getElementById('dropZoneEl');
+    const uploadStage = document.getElementById('uploadStage');
+    const editorStage = document.getElementById('editorStage');
+    const canvas = document.getElementById('interactiveCanvas');
+    const ctx = canvas.getContext('2d');
+    const metaLabel = document.getElementById('previewMetaLabel');
+    const fileBadge = document.getElementById('fileCountBadge');
+    const batchBtns = document.getElementById('batchActionBtns');
+    const thumbStrip = document.getElementById('multiThumbStrip');
+    const thumbGrid = document.getElementById('thumbGrid');
+    const cropModal = document.getElementById('wmCropModal');
+    const cropTargetImg = document.getElementById('wmCropTargetImg');
+    const cropTitle = document.getElementById('wmCropTitle');
+
+    const scaleSlider = document.getElementById('scaleSlider');
+    const angleSlider = document.getElementById('angleSlider');
+    const opacitySlider = document.getElementById('opacitySlider');
+    const scaleLabel = document.getElementById('scaleValLabel');
+    const angleLabel = document.getElementById('angleValLabel');
+    const opacityLabel = document.getElementById('opacityValLabel');
+
+    function createDefaultDemoWatermark() {
+      const c = document.createElement('canvas');
+      c.width = 260;
+      c.height = 260;
+      const x = c.getContext('2d');
+      x.beginPath();
+      x.arc(130, 130, 120, 0, Math.PI * 2);
+      x.lineWidth = 9;
+      x.strokeStyle = '#DC2626';
+      x.stroke();
+
+      x.beginPath();
+      x.arc(130, 130, 105, 0, Math.PI * 2);
+      x.lineWidth = 3;
+      x.strokeStyle = '#DC2626';
+      x.stroke();
+
+      x.font = 'bold 36px sans-serif';
+      x.fillStyle = '#DC2626';
+      x.textAlign = 'center';
+      x.textBaseline = 'middle';
+      x.fillText('🏛️', 130, 85);
+      x.font = 'bold 22px sans-serif';
+      x.fillText('SARKARI BABU', 130, 138);
+      x.font = 'bold 13px sans-serif';
+      x.fillText('VERIFIED STAMP', 130, 168);
+
+      const img = new Image();
+      img.src = 'assets/logo.png';
+      return img;
+    }
+
+    customWatermarkImg = createDefaultDemoWatermark();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariPipeline.initReceiver('.studio-container', (img, meta) => {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img, 0, 0);
+
+        uploadedFiles = [{ name: meta.fileName || 'transferred_photo.jpg', rawImg: img, workingCanvas: c }];
+        activeIndex = 0;
+
+        uploadStage.style.display = 'none';
+        editorStage.style.display = 'block';
+        fileBadge.textContent = '1';
+        renderInteractive();
+      });
+    });
+
+    function passWmTo(targetUrl) {
+      const active = uploadedFiles[activeIndex];
+      if (!active || !active.dataUrl) {
+        alert('Please generate watermark image first!');
+        return;
+      }
+      SarkariPipeline.passTo(targetUrl, active.dataUrl, {
+        sourceName: 'Watermark Studio',
+        fileName: `watermarked_${active.name}`,
+        sizeKB: (active.dataUrl.length * 0.75 / 1024).toFixed(1)
+      });
+    }
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border-strong)'; });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--border-strong)';
+      if (e.dataTransfer && e.dataTransfer.files.length > 0) handleIncomingFiles(e.dataTransfer.files);
+    });
+    fileInp.addEventListener('change', (e) => { if (e.target.files.length > 0) handleIncomingFiles(e.target.files); });
+
+    logoInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        document.getElementById('logoFileName').textContent = `Uploaded Stamp: ${file.name}`;
+        customWatermarkImg = await loadImage(file);
+        renderInteractive();
+      }
+    });
+
+    // CROPPER FUNCTIONS
+    function openBaseCrop(idx = -1) {
+      if (idx >= 0) activeIndex = idx;
+      const active = uploadedFiles[activeIndex];
+      if (!active) return;
+
+      cropModeType = 'base';
+      cropTitle.textContent = `✂️ Crop Base Photo (${active.name})`;
+      cropTargetImg.src = active.workingCanvas.toDataURL();
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function openLogoCrop() {
+      if (!customWatermarkImg) return;
+      cropModeType = 'logo';
+      cropTitle.textContent = '✂️ Crop Watermark Logo / Stamp';
+      cropTargetImg.src = customWatermarkImg.src;
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropTargetImg, {
+        aspectRatio: NaN,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closeWmCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyWmCrop() {
+      if (!cropper) return;
+      const croppedCanvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+
+      if (cropModeType === 'base') {
+        const active = uploadedFiles[activeIndex];
+        if (active) active.workingCanvas = croppedCanvas;
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          customWatermarkImg = img;
+          renderInteractive();
+        };
+        img.src = croppedCanvas.toDataURL();
+      }
+
+      closeWmCrop();
+      renderInteractive();
+    }
+
+    // MOUSE & TOUCH DRAGGING
+    function handlePointerStart(e) {
+      isDragging = true;
+      wmState.positionAnchor = 'custom';
+      document.querySelectorAll('.pos-grid-btn').forEach(b => b.classList.remove('active'));
+      updatePositionFromPointer(e);
+    }
+
+    function handlePointerMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      updatePositionFromPointer(e);
+    }
+
+    function handlePointerEnd() {
+      isDragging = false;
+    }
+
+    function updatePositionFromPointer(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      let x = (clientX - rect.left) / rect.width;
+      let y = (clientY - rect.top) / rect.height;
+
+      x = Math.max(0.05, Math.min(0.95, x));
+      y = Math.max(0.05, Math.min(0.95, y));
+
+      wmState.posXPercent = Math.round(x * 100);
+      wmState.posYPercent = Math.round(y * 100);
+
+      renderInteractive();
+    }
+
+    canvas.addEventListener('mousedown', handlePointerStart);
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerEnd);
+
+    canvas.addEventListener('touchstart', handlePointerStart, { passive: false });
+    window.addEventListener('touchmove', handlePointerMove, { passive: false });
+    window.addEventListener('touchend', handlePointerEnd);
+
+    function switchWmType(type) {
+      currentWmMode = type;
+      document.getElementById('tabImageWm').classList.toggle('active', type === 'image');
+      document.getElementById('tabTextWm').classList.toggle('active', type === 'text');
+      document.getElementById('imageWmControls').style.display = type === 'image' ? 'block' : 'none';
+      document.getElementById('textWmControls').style.display = type === 'text' ? 'block' : 'none';
+      renderInteractive();
+    }
+
+    async function handleIncomingFiles(fileList) {
+      uploadedFiles = [];
+      activeIndex = 0;
+
+      for (const file of fileList) {
+        if (file.type.startsWith('image/')) {
+          const img = await loadImage(file);
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+
+          uploadedFiles.push({ name: file.name, rawImg: img, workingCanvas: c });
+        }
+      }
+
+      if (uploadedFiles.length > 0) {
+        uploadStage.style.display = 'none';
+        editorStage.style.display = 'block';
+        fileBadge.textContent = uploadedFiles.length;
+        batchBtns.style.display = uploadedFiles.length > 1 ? 'flex' : 'none';
+        thumbStrip.style.display = uploadedFiles.length > 1 ? 'block' : 'none';
+        renderInteractive();
+      }
+    }
+
+    function loadImage(file) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = evt => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.src = evt.target.result;
+        };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function setQuickText(t) {
+      document.getElementById('wmText').value = t;
+      renderInteractive();
+    }
+
+    function onScaleChange() {
+      wmState.scalePercent = parseInt(scaleSlider.value, 10);
+      scaleLabel.textContent = `${wmState.scalePercent}%`;
+      renderInteractive();
+    }
+
+    function onAngleChange() {
+      wmState.angle = parseInt(angleSlider.value, 10);
+      angleLabel.textContent = `${wmState.angle}°`;
+      renderInteractive();
+    }
+
+    function setAnglePreset(deg) {
+      angleSlider.value = deg;
+      onAngleChange();
+    }
+
+    function onOpacityChange() {
+      wmState.opacity = parseInt(opacitySlider.value, 10);
+      opacityLabel.textContent = `${wmState.opacity}%`;
+      renderInteractive();
+    }
+
+    function setAnchorPosition(anchor) {
+      wmState.positionAnchor = anchor;
+      wmState.isTiled = false;
+      document.getElementById('tileToggleLabel').textContent = '🔁 Repeat Grid Tile: OFF';
+
+      document.querySelectorAll('.pos-grid-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.pos-grid-btn')).find(b => b.textContent.toLowerCase().includes(anchor.replace('-', '')));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (anchor === 'top-left') { wmState.posXPercent = 20; wmState.posYPercent = 20; }
+      else if (anchor === 'top-center') { wmState.posXPercent = 50; wmState.posYPercent = 20; }
+      else if (anchor === 'top-right') { wmState.posXPercent = 80; wmState.posYPercent = 20; }
+      else if (anchor === 'mid-left') { wmState.posXPercent = 20; wmState.posYPercent = 50; }
+      else if (anchor === 'center') { wmState.posXPercent = 50; wmState.posYPercent = 50; }
+      else if (anchor === 'mid-right') { wmState.posXPercent = 80; wmState.posYPercent = 50; }
+      else if (anchor === 'bottom-left') { wmState.posXPercent = 20; wmState.posYPercent = 80; }
+      else if (anchor === 'bottom-center') { wmState.posXPercent = 50; wmState.posYPercent = 80; }
+      else if (anchor === 'bottom-right') { wmState.posXPercent = 80; wmState.posYPercent = 80; }
+
+      renderInteractive();
+    }
+
+    function toggleTiling() {
+      wmState.isTiled = !wmState.isTiled;
+      document.getElementById('tileToggleLabel').textContent = wmState.isTiled ? '🔁 Repeat Grid Tile: ON' : '🔁 Repeat Grid Tile: OFF';
+      renderInteractive();
+    }
+
+    function renderInteractive() {
+      if (uploadedFiles.length === 0) return;
+
+      const active = uploadedFiles[activeIndex];
+      if (!active) return;
+
+      uploadedFiles.forEach((item) => {
+        let out = null;
+
+        if (currentWmMode === 'image' && customWatermarkImg) {
+          out = SarkariImgEngine.addImageWatermarkToImage(item.workingCanvas, customWatermarkImg, {
+            scalePercent: wmState.scalePercent,
+            opacity: wmState.opacity / 100,
+            posXPercent: wmState.posXPercent,
+            posYPercent: wmState.posYPercent,
+            position: wmState.positionAnchor,
+            tile: wmState.isTiled,
+            angle: wmState.angle
+          });
+        } else {
+          const text = document.getElementById('wmText').value.trim() || 'SARKARI BABU';
+          const colVal = document.getElementById('wmColor').value;
+          let colorStr = `rgba(220, 38, 38, ${wmState.opacity / 100})`;
+          if (colVal === 'white') colorStr = `rgba(255, 255, 255, ${wmState.opacity / 100})`;
+          if (colVal === 'black') colorStr = `rgba(15, 23, 42, ${wmState.opacity / 100})`;
+          if (colVal === 'blue') colorStr = `rgba(37, 99, 235, ${wmState.opacity / 100})`;
+
+          out = SarkariImgEngine.addWatermarkToImage(item.workingCanvas, {
+            text,
+            scalePercent: wmState.scalePercent,
+            color: colorStr,
+            posXPercent: wmState.posXPercent,
+            posYPercent: wmState.posYPercent,
+            position: wmState.positionAnchor,
+            tile: wmState.isTiled,
+            angle: wmState.angle
+          });
+        }
+
+        item.canvas = out;
+        item.dataUrl = out.toDataURL('image/jpeg', 0.95);
+      });
+
+      canvas.width = active.canvas.width;
+      canvas.height = active.canvas.height;
+      ctx.drawImage(active.canvas, 0, 0);
+
+      metaLabel.textContent = `${active.canvas.width} × ${active.canvas.height} px · Position: (${wmState.posXPercent}%, ${wmState.posYPercent}%) · Angle: ${wmState.angle}°`;
+      renderThumbStrip();
+    }
+
+    function renderThumbStrip() {
+      if (uploadedFiles.length <= 1) return;
+      thumbGrid.innerHTML = '';
+
+      uploadedFiles.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+          min-width: 80px;
+          cursor: pointer;
+          border: 2px solid ${idx === activeIndex ? 'var(--primary)' : 'var(--border-subtle)'};
+          border-radius: var(--radius-md);
+          padding: 4px;
+          background: var(--bg-surface);
+          text-align: center;
+        `;
+        card.onclick = () => {
+          activeIndex = idx;
+          renderInteractive();
+        };
+
+        const img = document.createElement('img');
+        img.src = item.dataUrl;
+        img.style.cssText = 'height:50px;width:100%;object-fit:contain;border-radius:4px;';
+
+        const cropBtn = document.createElement('button');
+        cropBtn.className = 'btn-secondary';
+        cropBtn.style.cssText = 'padding:2px 4px;font-size:10px;width:100%;margin-top:4px;';
+        cropBtn.textContent = '✂️ Crop';
+        cropBtn.onclick = (e) => {
+          e.stopPropagation();
+          openBaseCrop(idx);
+        };
+
+        card.appendChild(img);
+        card.appendChild(cropBtn);
+        thumbGrid.appendChild(card);
+      });
+    }
+
+    function downloadCurrentFile() {
+      const active = uploadedFiles[activeIndex];
+      if (active) {
+        SarkariImgEngine.triggerDownload(active.dataUrl, `watermarked_${active.name}`);
+      }
+    }
+
+    async function downloadAllZip() {
+      if (uploadedFiles.length === 0) return;
+      const zip = new JSZip();
+      uploadedFiles.forEach(item => {
+        const base64 = item.dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+        zip.file(`watermarked_${item.name}.jpg`, base64, { base64: true });
+      });
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      SarkariImgEngine.triggerDownload(URL.createObjectURL(zipBlob), 'watermarked_images.zip');
+    }
+
+    async function compileAllPdf() {
+      if (uploadedFiles.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        if (i > 0) doc.addPage();
+        const item = uploadedFiles[i];
+        const pw = 210, ph = 297, margin = 10;
+        const uw = pw - (margin * 2), uh = ph - (margin * 2);
+        const aspect = item.canvas.width / item.canvas.height;
+
+        let rw = uw;
+        let rh = rw / aspect;
+        if (rh > uh) { rh = uh; rw = rh * aspect; }
+
+        const px = margin + (uw - rw) / 2;
+        const py = margin + (uh - rh) / 2;
+        doc.addImage(item.dataUrl, 'JPEG', px, py, rw, rh);
+      }
+
+      doc.save('watermarked_documents.pdf');
+    }
+  </script>
+</body>
+</html>
