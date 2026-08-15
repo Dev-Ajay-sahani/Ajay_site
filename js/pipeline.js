@@ -1,6 +1,7 @@
 /**
  * Sarkari Babu — Cross-Tool Result Pipeline & Seamless Workflow Chaining
  * Passes results (images/documents) between tools in pure client-side browser memory.
+ * Immediately and automatically auto-loads the file into the destination tool.
  */
 
 const SarkariPipeline = {
@@ -29,7 +30,7 @@ const SarkariPipeline = {
       sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(payload));
       window.location.href = targetUrl;
     } catch (err) {
-      console.warn('SessionStorage quota exceeded, switching to temporary memory pass', err);
+      console.warn('SessionStorage quota warning, transferring directly:', err);
       window.location.href = targetUrl;
     }
   },
@@ -62,76 +63,53 @@ const SarkariPipeline = {
   },
 
   /**
-   * Inject a notification banner if incoming payload is waiting
-   * @param {string} containerSelector Target container element or ID
-   * @param {function} onAccept Callback when user clicks 'Use Image'
+   * Automatic Receiver: Immediately auto-loads the incoming image and shows an alert toast
+   * @param {string|HTMLElement} containerSelector
+   * @param {function} onAccept Callback with (Image, meta)
    */
   initReceiver(containerSelector, onAccept) {
     const data = this.getIncoming();
     if (!data || !data.dataUrl) return;
 
-    const container = typeof containerSelector === 'string' 
-      ? document.querySelector(containerSelector) 
-      : containerSelector;
+    // Immediately consume payload so reloads don't loop
+    this.clear();
 
-    if (!container) return;
-
-    const banner = document.createElement('div');
-    banner.id = 'pipelineBanner';
-    banner.style.cssText = `
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(16, 185, 129, 0.12));
-      border: 1.5px solid var(--primary);
-      border-radius: var(--radius-lg);
-      padding: 14px 18px;
-      margin-bottom: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      box-shadow: var(--shadow-md);
-      animation: fadeIn 0.3s ease;
-    `;
-
-    banner.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="font-size:24px;">✨</div>
-        <div>
-          <div style="font-weight:800;font-size:14px;color:var(--text-primary);">
-            Image Received from ${data.sourceName}
-          </div>
-          <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-mono);">
-            File: ${data.fileName} ${data.sizeKB ? '· ' + data.sizeKB + ' KB' : ''}
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-primary" id="pipelineAcceptBtn" style="padding:7px 14px;font-size:13px;">
-          ⚡ Auto-Load Into This Tool
-        </button>
-        <button class="btn-secondary" id="pipelineDismissBtn" style="padding:7px 10px;font-size:13px;">
-          ✕ Dismiss
-        </button>
-      </div>
-    `;
-
-    container.prepend(banner);
-
-    document.getElementById('pipelineAcceptBtn').onclick = () => {
+    const img = new Image();
+    img.onload = () => {
       if (typeof onAccept === 'function') {
-        const img = new Image();
-        img.onload = () => {
-          onAccept(img, data);
-          banner.remove();
-          SarkariPipeline.clear();
-        };
-        img.src = data.dataUrl;
+        onAccept(img, data);
       }
+
+      // Show sleek floating toast confirming the auto-transfer
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, var(--primary), #10B981);
+        color: #fff;
+        padding: 10px 22px;
+        border-radius: var(--radius-full);
+        font-size: 13.5px;
+        font-weight: 700;
+        box-shadow: var(--shadow-lg);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: fadeIn 0.3s ease;
+      `;
+      toast.innerHTML = `✨ <span>Transferred image auto-loaded from <strong>${data.sourceName}</strong>!</span>`;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => toast.remove(), 500);
+      }, 3500);
     };
 
-    document.getElementById('pipelineDismissBtn').onclick = () => {
-      banner.remove();
-      SarkariPipeline.clear();
-    };
+    img.src = data.dataUrl;
   }
 };

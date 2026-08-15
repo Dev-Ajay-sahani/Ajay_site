@@ -11,6 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/pipeline.js"></script>
   <link rel="icon" type="image/png" href="./assets/favicon.png">
 </head>
 <body>
@@ -130,6 +131,18 @@
     const countLabel = document.getElementById('convertedCount');
     const cropModal = document.getElementById('convCropModal');
     const cropTargetImg = document.getElementById('convCropTargetImg');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariPipeline.initReceiver('.studio-container', async (img, meta) => {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img, 0, 0);
+
+        uploadedList = [{ rawImg: img, workingCanvas: c, baseName: meta.fileName ? meta.fileName.replace(/\.[^/.]+$/, '') : 'converted_image' }];
+        await reprocessAll();
+      });
+    });
 
     inp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files.length > 0) {

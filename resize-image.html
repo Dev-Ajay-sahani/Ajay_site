@@ -11,6 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/pipeline.js"></script>
   <link rel="icon" type="image/png" href="./assets/favicon.png">
 </head>
 <body>
@@ -193,6 +194,24 @@
       if (resMode === 'single') singleInp.click();
       else batchInp.click();
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariPipeline.initReceiver('.studio-container', (img, meta) => {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img, 0, 0);
+
+        loadedResFiles = [{ name: meta.fileName || 'transferred_photo.jpg', workingCanvas: c }];
+        activeResIdx = 0;
+
+        document.getElementById('targetWidthInp').value = c.width;
+        document.getElementById('targetHeightInp').value = c.height;
+
+        workArea.style.display = 'block';
+        applyBatchResize();
+      });
+    });
 
     singleInp.addEventListener('change', (e) => handleResFiles(e.target.files));
     batchInp.addEventListener('change', (e) => handleResFiles(e.target.files));
