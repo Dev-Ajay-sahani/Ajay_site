@@ -503,38 +503,172 @@
       renderInteractive();
     }
 
-    // MOUSE & TOUCH DRAGGING
+    // DIRECT MOUSE, TOUCH & FREEFORM MANIPULATOR (DRAG TO MOVE, CORNER TO RESIZE, TOP HANDLE TO ROTATE, WHEEL/PINCH TO ZOOM)
+    let dragMode = null; // 'move' | 'resize' | 'rotate'
+    let dragStart = null;
+    let initialPinchDist = null;
+
+    function getCanvasPointer(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        px: (clientX - rect.left) * scaleX,
+        py: (clientY - rect.top) * scaleY,
+        normX: Math.max(0.02, Math.min(0.98, (clientX - rect.left) / rect.width)),
+        normY: Math.max(0.02, Math.min(0.98, (clientY - rect.top) / rect.height))
+      };
+    }
+
+    function getWmBoundingBox() {
+      const active = uploadedFiles[activeIndex];
+      if (!active || !active.canvas) return null;
+
+      const baseW = active.canvas.width;
+      const baseH = active.canvas.height;
+      const cx = baseW * (wmState.posXPercent / 100);
+      const cy = baseH * (wmState.posYPercent / 100);
+
+      let boxW = 100, boxH = 100;
+      if (currentWmMode === 'image' && customWatermarkImg) {
+        const aspect = (customWatermarkImg.naturalWidth || customWatermarkImg.width) / (customWatermarkImg.naturalHeight || customWatermarkImg.height);
+        boxW = Math.round(baseW * (wmState.scalePercent / 100));
+        boxH = Math.round(boxW / aspect);
+      } else {
+        const fontSize = Math.round(baseW * (wmState.scalePercent / 100) * 0.15);
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        const text = document.getElementById('wmText').value.trim() || 'SARKARI BABU';
+        const metrics = ctx.measureText(text);
+        boxW = Math.round(metrics.width + 24);
+        boxH = Math.round(fontSize * 1.4);
+      }
+
+      return { cx, cy, boxW, boxH, rad: (wmState.angle * Math.PI) / 180, baseW, baseH };
+    }
+
+    function hitTestWatermark(px, py) {
+      const box = getWmBoundingBox();
+      if (!box || wmState.isTiled) return 'move';
+
+      const dx = px - box.cx;
+      const dy = py - box.cy;
+      const cos = Math.cos(-box.rad);
+      const sin = Math.sin(-box.rad);
+      const lx = dx * cos - dy * sin;
+      const ly = dx * sin + dy * cos;
+
+      const handleRadius = Math.max(14, box.baseW / 40);
+      const rotOffset = Math.max(32, box.boxH * 0.25 + 18);
+
+      // Check rotation handle
+      if (Math.hypot(lx - 0, ly - (-box.boxH / 2 - rotOffset)) <= handleRadius * 1.6) {
+        return 'rotate';
+      }
+
+      // Check 4 corner resize handles
+      const corners = [
+        [-box.boxW / 2, -box.boxH / 2],
+        [box.boxW / 2, -box.boxH / 2],
+        [box.boxW / 2, box.boxH / 2],
+        [-box.boxW / 2, box.boxH / 2]
+      ];
+
+      for (const [hx, hy] of corners) {
+        if (Math.hypot(lx - hx, ly - hy) <= handleRadius * 1.6) {
+          return 'resize';
+        }
+      }
+
+      return 'move';
+    }
+
     function handlePointerStart(e) {
-      isDragging = true;
+      if (e.touches && e.touches.length === 2) {
+        initialPinchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        dragStart = { scale: wmState.scalePercent };
+        return;
+      }
+
+      const p = getCanvasPointer(e);
+      const box = getWmBoundingBox();
+      const hit = hitTestWatermark(p.px, p.py);
+
+      dragMode = hit;
       wmState.positionAnchor = 'custom';
       document.querySelectorAll('.pos-grid-btn').forEach(b => b.classList.remove('active'));
-      updatePositionFromPointer(e);
+
+      dragStart = {
+        pointerX: p.px,
+        pointerY: p.py,
+        normX: wmState.posXPercent,
+        normY: wmState.posYPercent,
+        scale: wmState.scalePercent,
+        angle: wmState.angle,
+        initialDist: box ? Math.hypot(p.px - box.cx, p.py - box.cy) : 1,
+        cx: box ? box.cx : 0,
+        cy: box ? box.cy : 0
+      };
+
+      if (dragMode === 'move') {
+        updatePositionFromPointer(e);
+      }
     }
 
     function handlePointerMove(e) {
-      if (!isDragging) return;
+      if (e.touches && e.touches.length === 2 && initialPinchDist && dragStart) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = dist / initialPinchDist;
+        wmState.scalePercent = Math.max(5, Math.min(130, Math.round(dragStart.scale * factor)));
+        scaleSlider.value = wmState.scalePercent;
+        scaleLabel.textContent = `${wmState.scalePercent}%`;
+        renderInteractive();
+        return;
+      }
+
+      if (!dragMode || !dragStart) return;
       e.preventDefault();
-      updatePositionFromPointer(e);
+
+      const p = getCanvasPointer(e);
+
+      if (dragMode === 'move') {
+        updatePositionFromPointer(e);
+      } else if (dragMode === 'resize') {
+        const currentDist = Math.hypot(p.px - dragStart.cx, p.py - dragStart.cy);
+        const factor = currentDist / (dragStart.initialDist || 1);
+        wmState.scalePercent = Math.max(5, Math.min(130, Math.round(dragStart.scale * factor)));
+        scaleSlider.value = wmState.scalePercent;
+        scaleLabel.textContent = `${wmState.scalePercent}%`;
+        renderInteractive();
+      } else if (dragMode === 'rotate') {
+        const deg = Math.round(Math.atan2(p.py - dragStart.cy, p.px - dragStart.cx) * (180 / Math.PI) + 90);
+        let normDeg = ((deg % 360) + 360) % 360;
+        if (normDeg > 180) normDeg -= 360;
+        wmState.angle = normDeg;
+        angleSlider.value = wmState.angle;
+        angleLabel.textContent = `${wmState.angle}°`;
+        renderInteractive();
+      }
     }
 
     function handlePointerEnd() {
-      isDragging = false;
+      dragMode = null;
+      dragStart = null;
+      initialPinchDist = null;
     }
 
     function updatePositionFromPointer(e) {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-      let x = (clientX - rect.left) / rect.width;
-      let y = (clientY - rect.top) / rect.height;
-
-      x = Math.max(0.05, Math.min(0.95, x));
-      y = Math.max(0.05, Math.min(0.95, y));
-
-      wmState.posXPercent = Math.round(x * 100);
-      wmState.posYPercent = Math.round(y * 100);
-
+      const p = getCanvasPointer(e);
+      wmState.posXPercent = Math.round(p.normX * 100);
+      wmState.posYPercent = Math.round(p.normY * 100);
       renderInteractive();
     }
 
@@ -545,6 +679,15 @@
     canvas.addEventListener('touchstart', handlePointerStart, { passive: false });
     window.addEventListener('touchmove', handlePointerMove, { passive: false });
     window.addEventListener('touchend', handlePointerEnd);
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 3 : -3;
+      wmState.scalePercent = Math.max(5, Math.min(130, wmState.scalePercent + delta));
+      scaleSlider.value = wmState.scalePercent;
+      scaleLabel.textContent = `${wmState.scalePercent}%`;
+      renderInteractive();
+    }, { passive: false });
 
     function switchWmType(type) {
       currentWmMode = type;
@@ -649,6 +792,68 @@
       renderInteractive();
     }
 
+    function drawManipulatorOverlay() {
+      if (wmState.isTiled) return;
+      const box = getWmBoundingBox();
+      if (!box) return;
+
+      const handleRadius = Math.max(7, box.baseW / 90);
+      const rotOffset = Math.max(32, box.boxH * 0.25 + 18);
+
+      ctx.save();
+      ctx.translate(box.cx, box.cy);
+      ctx.rotate(box.rad);
+
+      // Selection Bounding Box (Accent Dashed Blue)
+      ctx.strokeStyle = '#2563EB';
+      ctx.lineWidth = Math.max(2, box.baseW / 450);
+      ctx.setLineDash([6, 6]);
+      ctx.strokeRect(-box.boxW / 2, -box.boxH / 2, box.boxW, box.boxH);
+
+      // Rotation Stem Line
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#2563EB';
+      ctx.beginPath();
+      ctx.moveTo(0, -box.boxH / 2);
+      ctx.lineTo(0, -box.boxH / 2 - rotOffset);
+      ctx.stroke();
+
+      // Top Rotation Handle
+      ctx.fillStyle = '#2563EB';
+      ctx.beginPath();
+      ctx.arc(0, -box.boxH / 2 - rotOffset, handleRadius * 1.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${Math.round(handleRadius * 1.1)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🔄', 0, -box.boxH / 2 - rotOffset);
+
+      // 4 Corner Resize Handles
+      const corners = [
+        [-box.boxW / 2, -box.boxH / 2],
+        [box.boxW / 2, -box.boxH / 2],
+        [box.boxW / 2, box.boxH / 2],
+        [-box.boxW / 2, box.boxH / 2]
+      ];
+
+      corners.forEach(([hx, hy]) => {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(hx, hy, handleRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#2563EB';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
     function renderInteractive() {
       if (uploadedFiles.length === 0) return;
 
@@ -696,7 +901,10 @@
       canvas.height = active.canvas.height;
       ctx.drawImage(active.canvas, 0, 0);
 
-      metaLabel.textContent = `${active.canvas.width} × ${active.canvas.height} px · Position: (${wmState.posXPercent}%, ${wmState.posYPercent}%) · Angle: ${wmState.angle}°`;
+      // Draw direct manipulator overlay on preview
+      drawManipulatorOverlay();
+
+      metaLabel.textContent = `${active.canvas.width} × ${active.canvas.height} px · Position: (${wmState.posXPercent}%, ${wmState.posYPercent}%) · Scale: ${wmState.scalePercent}% · Angle: ${wmState.angle}°`;
       renderThumbStrip();
     }
 
