@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Watermark PDF Online (Live Visual Preview) – Sarkari Babu Tools</title>
-  <meta name="description" content="Add text watermarks to PDF files with live visual page preview. Adjust text, angle, opacity, and color in real time. 100% private in browser.">
+  <title>Watermark PDF Online (Logo &amp; Text Stamp) – Sarkari Babu Tools</title>
+  <meta name="description" content="Add Logo image or text watermarks to PDF files with live visual page preview. Stamp logos, seals, transparency, tile pattern, and rotation. 100% client-side privacy.">
   <link rel="stylesheet" href="./css/style.css">
   <script src="./js/theme.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
@@ -20,7 +20,7 @@
       <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
       <div class="brand-text">
         <span class="brand-title">Sarkari Babu</span>
-        <span class="brand-subtitle">Watermark PDF</span>
+        <span class="brand-subtitle">Watermark PDF Studio</span>
       </div>
     </a>
     <div class="nav-actions">
@@ -32,76 +32,140 @@
   <main class="studio-container">
     
     <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
-      <span class="hero-pill">🏛️ Live Visual PDF Preview</span>
-      <h1 class="hero-heading">Watermark PDF with <span class="gradient-text">Live Preview</span></h1>
-      <p class="hero-desc">Stamp custom text watermarks across all pages of your PDF with live visual preview before downloading.</p>
+      <span class="hero-pill">🏛️ Logo Image &amp; Text PDF Watermark</span>
+      <h1 class="hero-heading">Watermark PDF with <span class="gradient-text">Logo &amp; Text</span></h1>
+      <p class="hero-desc">Stamp custom company logos, government seals, or text watermarks across all pages of your PDF with real-time visual preview.</p>
     </div>
 
     <div class="studio-card">
 
-      <div class="modern-dropzone" onclick="document.getElementById('wmPdfInp').click()" style="margin-bottom:20px;">
+      <div class="modern-dropzone" id="pdfDropZone" onclick="document.getElementById('wmPdfInp').click()" style="margin-bottom:20px;">
         <div class="dropzone-icon">📁</div>
-        <div class="dropzone-title">Click or Drag PDF File Here</div>
-        <div class="dropzone-desc">Upload single or multiple PDF documents</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) PDF Here</div>
+        <div class="dropzone-desc">Upload single or multi-page PDF documents · 100% In-Browser Privacy</div>
       </div>
       <input type="file" id="wmPdfInp" class="hidden-input" accept="application/pdf">
 
       <!-- Live Studio Area -->
       <div id="wmStudioArea" style="display:none;">
 
+        <!-- Watermark Mode Tabs -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;">
+          <div style="display:flex;gap:10px;">
+            <button class="category-tab active" id="tabLogoMode" onclick="switchWmMode('logo')">🖼️ Logo / Stamp Image</button>
+            <button class="category-tab" id="tabTextMode" onclick="switchWmMode('text')">🔤 Text Watermark</button>
+          </div>
+          <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="document.getElementById('wmPdfInp').click()">📁 Change PDF</button>
+        </div>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
           
-          <!-- Left: Controls -->
+          <!-- Left: Controls Panel -->
           <div>
-            <h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:16px;">Watermark Options</h3>
 
-            <div class="form-group">
-              <label class="form-label">Watermark Text</label>
-              <input type="text" class="form-input" id="wmTextInp" value="SARKARI BABU" oninput="renderLivePreview()">
-              <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('CONFIDENTIAL')">CONFIDENTIAL</button>
-                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('DO NOT COPY')">DO NOT COPY</button>
-                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('SARKARI BABU')">SARKARI BABU</button>
-                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('SAMPLE')">SAMPLE</button>
+            <!-- A. LOGO IMAGE WATERMARK CONTROLS -->
+            <div id="logoControlsWrap">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="font-family:var(--font-display);font-size:16px;">Logo / Seal Image</h3>
+                <button class="btn-primary" style="padding:5px 12px;font-size:12px;" onclick="document.getElementById('logoFileInp').click()">+ Upload Custom Logo</button>
+              </div>
+              <input type="file" id="logoFileInp" class="hidden-input" accept="image/*">
+              
+              <!-- Quick Preset Logos -->
+              <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+                <button class="category-tab active" id="btnPresetSeal" onclick="selectPresetLogo('seal', this)">🏛️ Sarkari Seal</button>
+                <button class="category-tab" id="btnPresetVerified" onclick="selectPresetLogo('verified', this)">⭐ Verified Stamp</button>
+                <button class="category-tab" id="btnPresetConfidential" onclick="selectPresetLogo('confidential', this)">🔒 Confidential Seal</button>
+              </div>
+
+              <!-- Logo Scale Slider -->
+              <div class="form-group">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <label class="form-label" style="margin-bottom:0;">Logo Scale (Width %)</label>
+                  <strong id="logoScaleBadge" style="font-size:13px;color:var(--primary);">40%</strong>
+                </div>
+                <input type="range" class="modern-slider" id="logoScaleRange" min="10" max="90" value="40" oninput="renderLivePreview()">
+              </div>
+
+              <!-- Position Selector -->
+              <div class="form-group">
+                <label class="form-label">Position Placement</label>
+                <select class="form-select" id="logoPosSel" onchange="renderLivePreview()">
+                  <option value="center" selected>🎯 Center of Page</option>
+                  <option value="diagonal">📐 Diagonal Full-Center</option>
+                  <option value="tile">🔁 Repeating Grid / Tile Pattern (All Over)</option>
+                  <option value="top-right">↗️ Top Right Corner</option>
+                  <option value="bottom-right">↘️ Bottom Right Corner</option>
+                  <option value="top-left">↖️ Top Left Corner</option>
+                  <option value="bottom-left">↙️ Bottom Left Corner</option>
+                </select>
               </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Rotation Angle</label>
-              <select class="form-select" id="wmAngleSel" onchange="renderLivePreview()">
-                <option value="-45" selected>-45° (Diagonal)</option>
-                <option value="0">0° (Horizontal)</option>
-                <option value="45">45° (Diagonal Up)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <label class="form-label" style="margin-bottom:0;">Opacity</label>
-                <strong id="opacityBadge" style="font-size:13px;color:var(--primary);">25%</strong>
+            <!-- B. TEXT WATERMARK CONTROLS -->
+            <div id="textControlsWrap" style="display:none;">
+              <div class="form-group">
+                <label class="form-label">Watermark Text</label>
+                <input type="text" class="form-input" id="wmTextInp" value="SARKARI BABU" oninput="renderLivePreview()">
+                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('CONFIDENTIAL')">CONFIDENTIAL</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('DO NOT COPY')">DO NOT COPY</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('SARKARI BABU')">SARKARI BABU</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('VERIFIED COPY')">VERIFIED COPY</button>
+                  <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="setTextPreset('SAMPLE')">SAMPLE</button>
+                </div>
               </div>
-              <input type="range" class="modern-slider" id="wmOpacityRange" min="10" max="80" value="25" oninput="renderLivePreview()">
+
+              <div class="form-group">
+                <label class="form-label">Color Style</label>
+                <select class="form-select" id="wmColorSel" onchange="renderLivePreview()">
+                  <option value="red" selected>Red Stamp</option>
+                  <option value="gray">Subtle Gray</option>
+                  <option value="blue">Deep Blue</option>
+                  <option value="green">Official Green</option>
+                </select>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Color Style</label>
-              <select class="form-select" id="wmColorSel" onchange="renderLivePreview()">
-                <option value="red" selected>Red Stamp</option>
-                <option value="gray">Subtle Gray</option>
-                <option value="blue">Deep Blue</option>
-              </select>
+            <!-- SHARED CONTROLS: OPACITY & ROTATION -->
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-top:16px;">
+              
+              <!-- Opacity Slider -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <label class="form-label" style="margin-bottom:0;">Watermark Opacity</label>
+                  <strong id="opacityBadge" style="font-size:13px;color:var(--primary);">25%</strong>
+                </div>
+                <input type="range" class="modern-slider" id="wmOpacityRange" min="5" max="85" value="25" oninput="renderLivePreview()">
+              </div>
+
+              <!-- Rotation Angle -->
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Rotation Angle</label>
+                <select class="form-select" id="wmAngleSel" onchange="renderLivePreview()">
+                  <option value="-45" selected>-45° (Diagonal Up-Right)</option>
+                  <option value="0">0° (Horizontal Straight)</option>
+                  <option value="45">45° (Diagonal Down-Right)</option>
+                  <option value="-30">-30° (Subtle Angle)</option>
+                  <option value="90">90° (Vertical)</option>
+                </select>
+              </div>
+
             </div>
 
-            <button class="btn-success" onclick="executeDownloadPdf()" style="width:100%;font-size:15px;padding:14px;margin-top:12px;">⬇ Apply Watermark &amp; Download PDF</button>
+            <button class="btn-success" onclick="executeDownloadPdf()" style="width:100%;font-size:15px;padding:14px;margin-top:16px;">⬇ Apply Watermark &amp; Download PDF</button>
           </div>
 
           <!-- Right: Live Canvas Preview of Page 1 -->
           <div>
-            <h3 style="font-family:var(--font-display);font-size:18px;margin-bottom:16px;">Live Page Preview</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Live Page Preview</h3>
+              <span id="pdfMetaLabel" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);">Page 1 Preview</span>
+            </div>
             
             <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;position:relative;">
-              <canvas id="wmCanvasPreview" style="max-height:340px;max-width:100%;object-fit:contain;background:#fff;border-radius:4px;box-shadow:var(--shadow-md);"></canvas>
-              <div id="pdfMetaLabel" style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:8px;">Page 1 Preview</div>
+              <canvas id="wmCanvasPreview" style="max-height:420px;max-width:100%;object-fit:contain;background:#fff;border-radius:6px;box-shadow:var(--shadow-md);"></canvas>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Showing real-time visual output of Page 1 (Watermark will be applied across all pages)</div>
             </div>
           </div>
 
@@ -117,38 +181,170 @@
     <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
   </footer>
 
+  <script src="./js/cropper-engine.js"></script>
   <script src="./js/pdf-tools-engine.js"></script>
   <script>
     let activePdfFile = null;
     let page1BaseImage = null;
+    let currentMode = 'logo'; // 'logo' or 'text'
+    let currentLogoImg = null;
+    let currentLogoDataUrl = null;
 
     const inp = document.getElementById('wmPdfInp');
+    const logoFileInp = document.getElementById('logoFileInp');
     const studio = document.getElementById('wmStudioArea');
     const previewCanvas = document.getElementById('wmCanvasPreview');
     const ctx = previewCanvas.getContext('2d');
     const metaLabel = document.getElementById('pdfMetaLabel');
     const opBadge = document.getElementById('opacityBadge');
+    const logoScaleBadge = document.getElementById('logoScaleBadge');
 
-    inp.addEventListener('change', async (e) => {
+    // Create Built-in Vector/Canvas Presets for Logos
+    function createPresetLogo(type) {
+      const c = document.createElement('canvas');
+      c.width = 400;
+      c.height = 400;
+      const g = c.getContext('2d');
+
+      if (type === 'seal') {
+        // Double Circular Sarkari Babu Seal
+        g.strokeStyle = '#1e3a8a';
+        g.lineWidth = 10;
+        g.beginPath();
+        g.arc(200, 200, 180, 0, Math.PI * 2);
+        g.stroke();
+
+        g.lineWidth = 4;
+        g.beginPath();
+        g.arc(200, 200, 160, 0, Math.PI * 2);
+        g.stroke();
+
+        g.fillStyle = '#1e3a8a';
+        g.font = 'bold 30px sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText('GOVT OF INDIA', 200, 100);
+        g.fillText('OFFICIAL SEAL', 200, 300);
+
+        g.font = '64px sans-serif';
+        g.fillText('🏛️', 200, 200);
+      } else if (type === 'verified') {
+        // Verified Stamp Badge
+        g.strokeStyle = '#059669';
+        g.lineWidth = 12;
+        g.beginPath();
+        g.arc(200, 200, 175, 0, Math.PI * 2);
+        g.stroke();
+
+        g.fillStyle = '#059669';
+        g.font = 'bold 36px sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText('★ VERIFIED ★', 200, 110);
+        g.fillText('DOCUMENT', 200, 290);
+
+        g.font = '64px sans-serif';
+        g.fillText('✓', 200, 200);
+      } else {
+        // Confidential Seal
+        g.strokeStyle = '#dc2626';
+        g.lineWidth = 14;
+        g.strokeRect(30, 130, 340, 140);
+
+        g.fillStyle = '#dc2626';
+        g.font = 'bold 42px sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText('CONFIDENTIAL', 200, 200);
+      }
+
+      return {
+        img: c,
+        dataUrl: c.toDataURL('image/png')
+      };
+    }
+
+    // Initialize Default Logo
+    const defaultLogo = createPresetLogo('seal');
+    currentLogoImg = defaultLogo.img;
+    currentLogoDataUrl = defaultLogo.dataUrl;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Universal Clipboard Paste (Ctrl+V)
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+          loadPdfFile(file);
+        } else if (file.type.startsWith('image/')) {
+          loadCustomLogoFile(file);
+        }
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
       if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        activePdfFile = file;
+        loadPdfFile(e.target.files[0]);
+      }
+    });
 
-        // Render Page 1 to image using pdf.js
+    logoFileInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        loadCustomLogoFile(e.target.files[0]);
+      }
+    });
+
+    async function loadPdfFile(file) {
+      activePdfFile = file;
+      try {
         const buf = await file.arrayBuffer();
         const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.2);
         if (pages.length > 0) {
           const img = new Image();
           img.onload = () => {
             page1BaseImage = img;
+            document.getElementById('pdfDropZone').style.display = 'none';
             studio.style.display = 'block';
             metaLabel.textContent = `Page 1 of ${pages.length} · ${file.name}`;
             renderLivePreview();
           };
           img.src = pages[0].dataUrl;
         }
+      } catch (err) {
+        alert('Error loading PDF: ' + err.message);
       }
-    });
+    }
+
+    async function loadCustomLogoFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        currentLogoImg = res.img;
+        currentLogoDataUrl = res.dataUrl;
+        document.querySelectorAll('#logoControlsWrap .category-tab').forEach(b => b.classList.remove('active'));
+        switchWmMode('logo');
+        renderLivePreview();
+      } catch (err) {
+        alert('Error loading logo image: ' + err.message);
+      }
+    }
+
+    function switchWmMode(m) {
+      currentMode = m;
+      document.getElementById('tabLogoMode').classList.toggle('active', m === 'logo');
+      document.getElementById('tabTextMode').classList.toggle('active', m === 'text');
+      document.getElementById('logoControlsWrap').style.display = m === 'logo' ? 'block' : 'none';
+      document.getElementById('textControlsWrap').style.display = m === 'text' ? 'block' : 'none';
+      renderLivePreview();
+    }
+
+    function selectPresetLogo(type, btn) {
+      if (btn) {
+        btn.parentElement.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const preset = createPresetLogo(type);
+      currentLogoImg = preset.img;
+      currentLogoDataUrl = preset.dataUrl;
+      renderLivePreview();
+    }
 
     function setTextPreset(t) {
       document.getElementById('wmTextInp').value = t;
@@ -164,50 +360,127 @@
       // Draw base PDF page
       ctx.drawImage(page1BaseImage, 0, 0);
 
-      // Overlay watermark
-      const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
-      const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
       const op = parseInt(document.getElementById('wmOpacityRange').value, 10);
       opBadge.textContent = `${op}%`;
-      const colVal = document.getElementById('wmColorSel').value;
+      const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
 
-      let color = `rgba(220, 38, 38, ${op / 100})`;
-      if (colVal === 'gray') color = `rgba(100, 116, 139, ${op / 100})`;
-      if (colVal === 'blue') color = `rgba(37, 99, 235, ${op / 100})`;
+      if (currentMode === 'logo' && currentLogoImg) {
+        const scalePct = parseInt(document.getElementById('logoScaleRange').value, 10);
+        logoScaleBadge.textContent = `${scalePct}%`;
+        const position = document.getElementById('logoPosSel').value;
 
-      const fontSize = Math.max(24, Math.round(previewCanvas.width * 0.08));
+        const imgW = currentLogoImg.naturalWidth || currentLogoImg.width;
+        const imgH = currentLogoImg.naturalHeight || currentLogoImg.height;
+        const aspect = imgW / imgH;
 
-      ctx.save();
-      ctx.translate(previewCanvas.width / 2, previewCanvas.height / 2);
-      ctx.rotate((angle * Math.PI) / 180);
-      ctx.font = `bold ${fontSize}px sans-serif`;
-      ctx.fillStyle = color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 0, 0);
-      ctx.restore();
+        const targetW = previewCanvas.width * (scalePct / 100);
+        const targetH = targetW / aspect;
+
+        ctx.save();
+        ctx.globalAlpha = op / 100;
+
+        if (position === 'tile') {
+          const stepX = Math.max(120, targetW * 1.5);
+          const stepY = Math.max(120, targetH * 1.5);
+          for (let x = -targetW; x < previewCanvas.width + targetW; x += stepX) {
+            for (let y = -targetH; y < previewCanvas.height + targetH; y += stepY) {
+              ctx.save();
+              ctx.translate(x + targetW / 2, y + targetH / 2);
+              ctx.rotate((angle * Math.PI) / 180);
+              ctx.drawImage(currentLogoImg, -targetW / 2, -targetH / 2, targetW, targetH);
+              ctx.restore();
+            }
+          }
+        } else {
+          let cx = previewCanvas.width / 2;
+          let cy = previewCanvas.height / 2;
+
+          if (position === 'top-left') {
+            cx = targetW * 0.7;
+            cy = targetH * 0.7;
+          } else if (position === 'top-right') {
+            cx = previewCanvas.width - (targetW * 0.7);
+            cy = targetH * 0.7;
+          } else if (position === 'bottom-left') {
+            cx = targetW * 0.7;
+            cy = previewCanvas.height - (targetH * 0.7);
+          } else if (position === 'bottom-right') {
+            cx = previewCanvas.width - (targetW * 0.7);
+            cy = previewCanvas.height - (targetH * 0.7);
+          }
+
+          ctx.translate(cx, cy);
+          ctx.rotate((angle * Math.PI) / 180);
+          ctx.drawImage(currentLogoImg, -targetW / 2, -targetH / 2, targetW, targetH);
+        }
+
+        ctx.restore();
+      } else {
+        // Text Watermark
+        const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
+        const colVal = document.getElementById('wmColorSel').value;
+
+        let color = `rgba(220, 38, 38, ${op / 100})`;
+        if (colVal === 'gray') color = `rgba(100, 116, 139, ${op / 100})`;
+        if (colVal === 'blue') color = `rgba(37, 99, 235, ${op / 100})`;
+        if (colVal === 'green') color = `rgba(5, 150, 105, ${op / 100})`;
+
+        const fontSize = Math.max(28, Math.round(previewCanvas.width * 0.08));
+
+        ctx.save();
+        ctx.translate(previewCanvas.width / 2, previewCanvas.height / 2);
+        ctx.rotate((angle * Math.PI) / 180);
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
     }
 
     async function executeDownloadPdf() {
-      if (!activePdfFile) return;
-      const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
+      if (!activePdfFile) {
+        alert('Please upload a PDF file first.');
+        return;
+      }
+
       const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
       const op = parseInt(document.getElementById('wmOpacityRange').value, 10) / 100;
-      const colVal = document.getElementById('wmColorSel').value;
-
-      let color = { r: 0.8, g: 0.2, b: 0.2 };
-      if (colVal === 'gray') color = { r: 0.4, g: 0.4, b: 0.4 };
-      if (colVal === 'blue') color = { r: 0.1, g: 0.3, b: 0.8 };
 
       try {
         const freshBuf = await activePdfFile.arrayBuffer();
-        const bytes = await SarkariPdfEngine.addPdfWatermark(freshBuf, text, {
-          fontSize: 48,
-          angle,
-          color,
-          opacity: op
-        });
-        SarkariPdfEngine.downloadFile(bytes, 'watermarked_document.pdf');
+        let bytes = null;
+
+        if (currentMode === 'logo' && currentLogoDataUrl) {
+          const scalePct = parseInt(document.getElementById('logoScaleRange').value, 10) / 100;
+          const position = document.getElementById('logoPosSel').value;
+
+          bytes = await SarkariPdfEngine.addPdfImageWatermark(freshBuf, currentLogoDataUrl, {
+            scale: scalePct,
+            opacity: op,
+            angle,
+            position
+          });
+        } else {
+          const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
+          const colVal = document.getElementById('wmColorSel').value;
+
+          let color = { r: 0.8, g: 0.2, b: 0.2 };
+          if (colVal === 'gray') color = { r: 0.4, g: 0.4, b: 0.4 };
+          if (colVal === 'blue') color = { r: 0.1, g: 0.3, b: 0.8 };
+          if (colVal === 'green') color = { r: 0.05, g: 0.6, b: 0.4 };
+
+          bytes = await SarkariPdfEngine.addPdfWatermark(freshBuf, text, {
+            fontSize: 48,
+            angle,
+            color,
+            opacity: op
+          });
+        }
+
+        const base = activePdfFile.name.replace(/\.[^/.]+$/, '');
+        SarkariPdfEngine.downloadFile(bytes, `${base}_watermarked.pdf`);
       } catch (err) {
         alert('Error watermarking PDF: ' + err.message);
       }

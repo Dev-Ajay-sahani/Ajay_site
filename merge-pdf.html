@@ -65,6 +65,7 @@
     <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
   </footer>
 
+  <script src="./js/cropper-engine.js"></script>
   <script src="./js/pdf-tools-engine.js"></script>
   <script>
     let pdfFiles = []; // { file, buffer, thumbUrl, pageCount }
@@ -77,13 +78,17 @@
 
     mergeInp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files.length > 0) {
-        for (const file of e.target.files) {
+        SarkariEngine.showProgress('Reading PDF Files', 20, `Processing ${e.target.files.length} document(s)...`);
+        for (let i = 0; i < e.target.files.length; i++) {
+          const file = e.target.files[i];
           if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
             let thumbUrl = '';
             let pageCount = 1;
 
             try {
               const buffer = await file.arrayBuffer();
+              const pct = 20 + Math.round(((i + 1) / e.target.files.length) * 70);
+              SarkariEngine.updateProgress(pct, `Generating preview for ${file.name}...`);
               const pages = await SarkariPdfEngine.convertPdfToImages(buffer, 0.8);
               if (pages.length > 0) thumbUrl = pages[0].dataUrl;
               pageCount = pages.length;
@@ -94,6 +99,7 @@
             pdfFiles.push({ file, thumbUrl, pageCount });
           }
         }
+        SarkariEngine.hideProgress();
         renderPdfList();
       }
     });
@@ -172,17 +178,26 @@
       }
 
       mergeBtn.textContent = '⏳ Merging in Browser...';
+      SarkariEngine.showProgress('Merging PDFs', 20, `Combining ${pdfFiles.length} documents...`);
       try {
         const buffers = [];
-        for (const item of pdfFiles) {
+        for (let i = 0; i < pdfFiles.length; i++) {
+          const item = pdfFiles[i];
+          const pct = 20 + Math.round(((i + 1) / pdfFiles.length) * 60);
+          SarkariEngine.updateProgress(pct, `Reading ${item.file.name}...`);
           const buf = await item.file.arrayBuffer();
           buffers.push(buf);
         }
+        SarkariEngine.updateProgress(85, 'Compiling merged document...');
         const mergedBytes = await SarkariPdfEngine.mergePDFs(buffers);
+        SarkariEngine.updateProgress(100, 'Done!');
+        setTimeout(SarkariEngine.hideProgress, 200);
+
         SarkariPdfEngine.downloadFile(mergedBytes, 'merged_document.pdf');
         mergeBtn.textContent = '✔ Merged Successfully!';
         setTimeout(() => { mergeBtn.textContent = '📄 Merge PDFs & Download'; }, 2000);
       } catch (err) {
+        SarkariEngine.hideProgress();
         alert('Error merging PDFs: ' + err.message);
         mergeBtn.textContent = '📄 Merge PDFs & Download';
       }

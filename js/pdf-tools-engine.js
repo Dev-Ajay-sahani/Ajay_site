@@ -102,6 +102,7 @@ const SarkariPdfEngine = (function() {
    * @returns {Promise<Uint8Array>}
    */
   async function addPdfWatermark(pdfBuffer, watermarkText, options = {}) {
+    if (window.SarkariEngine) window.SarkariEngine.showProgress('Applying Text Watermark', 25, 'Loading PDF structure...');
     const { PDFDocument, rgb, degrees, StandardFonts } = window.PDFLib;
     const cloned = safeCloneBuffer(pdfBuffer);
     const doc = await PDFDocument.load(cloned);
@@ -114,6 +115,8 @@ const SarkariPdfEngine = (function() {
       angle = -45,
       color = { r: 0.8, g: 0.2, b: 0.2 } // Reddish by default
     } = options;
+
+    if (window.SarkariEngine) window.SarkariEngine.updateProgress(60, `Stamping text across ${pages.length} pages...`);
 
     pages.forEach(page => {
       const { width, height } = page.getSize();
@@ -131,7 +134,137 @@ const SarkariPdfEngine = (function() {
       });
     });
 
-    return await doc.save();
+    if (window.SarkariEngine) window.SarkariEngine.updateProgress(90, 'Saving watermarked document...');
+    const result = await doc.save();
+    if (window.SarkariEngine) window.SarkariEngine.hideProgress();
+    return result;
+  }
+
+  /**
+   * Add Logo / Stamp Image Watermark across PDF Pages
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
+   * @param {string|Uint8Array|ArrayBuffer} imageInput (DataURL, Uint8Array, or ArrayBuffer)
+   * @param {object} options 
+   * @returns {Promise<Uint8Array>}
+   */
+  async function addPdfImageWatermark(pdfBuffer, imageInput, options = {}) {
+    if (window.SarkariEngine) window.SarkariEngine.showProgress('Applying Logo Watermark', 20, 'Loading PDF document...');
+    const { PDFDocument, degrees } = window.PDFLib;
+    const cloned = safeCloneBuffer(pdfBuffer);
+    const doc = await PDFDocument.load(cloned);
+
+    if (window.SarkariEngine) window.SarkariEngine.updateProgress(40, 'Embedding logo image...');
+    
+    let imgBytes = null;
+    let isPng = false;
+
+    if (typeof imageInput === 'string') {
+      if (imageInput.startsWith('data:image/png')) {
+        isPng = true;
+      }
+      const base64Data = imageInput.split(',')[1] || imageInput;
+      const binaryString = window.atob(base64Data);
+      const len = binaryString.length;
+      imgBytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        imgBytes[i] = binaryString.charCodeAt(i);
+      }
+    } else if (imageInput instanceof Uint8Array || imageInput instanceof ArrayBuffer) {
+      imgBytes = new Uint8Array(safeCloneBuffer(imageInput));
+      // Check magic bytes for PNG (0x89, 0x50, 0x4E, 0x47)
+      if (imgBytes[0] === 0x89 && imgBytes[1] === 0x50) {
+        isPng = true;
+      }
+    }
+
+    let embeddedImage = null;
+    try {
+      if (isPng) {
+        embeddedImage = await doc.embedPng(imgBytes);
+      } else {
+        embeddedImage = await doc.embedJpg(imgBytes);
+      }
+    } catch (e) {
+      try {
+        embeddedImage = await doc.embedPng(imgBytes);
+      } catch (e2) {
+        embeddedImage = await doc.embedJpg(imgBytes);
+      }
+    }
+
+    const {
+      scale = 0.40, // 40% of page width
+      opacity = 0.25,
+      angle = 0,
+      position = 'center', // 'center', 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'tile', 'diagonal'
+      customX = null,
+      customY = null
+    } = options;
+
+    const pages = doc.getPages();
+    if (window.SarkariEngine) window.SarkariEngine.updateProgress(65, `Stamping logo across ${pages.length} pages...`);
+
+    pages.forEach(page => {
+      const { width: pWidth, height: pHeight } = page.getSize();
+      
+      const aspect = embeddedImage.width / embeddedImage.height;
+      const targetW = pWidth * scale;
+      const targetH = targetW / aspect;
+
+      if (position === 'tile') {
+        const stepX = Math.max(120, targetW * 1.5);
+        const stepY = Math.max(120, targetH * 1.5);
+        for (let x = -targetW; x < pWidth + targetW; x += stepX) {
+          for (let y = -targetH; y < pHeight + targetH; y += stepY) {
+            page.drawImage(embeddedImage, {
+              x,
+              y,
+              width: targetW,
+              height: targetH,
+              opacity,
+              rotate: degrees(angle)
+            });
+          }
+        }
+      } else {
+        let x = (pWidth - targetW) / 2;
+        let y = (pHeight - targetH) / 2;
+
+        if (position === 'top-left') {
+          x = pWidth * 0.05;
+          y = pHeight * 0.95 - targetH;
+        } else if (position === 'top-right') {
+          x = pWidth * 0.95 - targetW;
+          y = pHeight * 0.95 - targetH;
+        } else if (position === 'bottom-left') {
+          x = pWidth * 0.05;
+          y = pHeight * 0.05;
+        } else if (position === 'bottom-right') {
+          x = pWidth * 0.95 - targetW;
+          y = pHeight * 0.05;
+        } else if (position === 'diagonal') {
+          x = (pWidth - targetW) / 2;
+          y = (pHeight - targetH) / 2;
+        } else if (position === 'custom' && customX !== null && customY !== null) {
+          x = customX;
+          y = customY;
+        }
+
+        page.drawImage(embeddedImage, {
+          x,
+          y,
+          width: targetW,
+          height: targetH,
+          opacity,
+          rotate: degrees(angle)
+        });
+      }
+    });
+
+    if (window.SarkariEngine) window.SarkariEngine.updateProgress(90, 'Saving watermarked document...');
+    const result = await doc.save();
+    if (window.SarkariEngine) window.SarkariEngine.hideProgress();
+    return result;
   }
 
   /**
@@ -195,6 +328,8 @@ const SarkariPdfEngine = (function() {
       throw new Error('PDF.js library is not loaded.');
     }
 
+    if (window.SarkariEngine) window.SarkariEngine.showProgress('Reading PDF Document', 15, 'Parsing document structure...');
+
     // Always copy data to a new Uint8Array to prevent worker transfer from detaching user's buffer
     const safeData = new Uint8Array(safeCloneBuffer(pdfBuffer));
     const loadingTask = window.pdfjsLib.getDocument({ data: safeData });
@@ -203,6 +338,11 @@ const SarkariPdfEngine = (function() {
     const results = [];
 
     for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+      const pct = 20 + Math.round((pageNum / pageCount) * 75);
+      if (window.SarkariEngine) {
+        window.SarkariEngine.updateProgress(pct, `Rendering Page ${pageNum} of ${pageCount}...`);
+      }
+
       const page = await pdfDoc.getPage(pageNum);
       const viewport = page.getViewport({ scale });
 
@@ -220,6 +360,11 @@ const SarkariPdfEngine = (function() {
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
 
       results.push({ pageNum, dataUrl, canvas });
+    }
+
+    if (window.SarkariEngine) {
+      window.SarkariEngine.updateProgress(100, 'All pages ready!');
+      setTimeout(window.SarkariEngine.hideProgress, 200);
     }
 
     return results;
@@ -266,6 +411,7 @@ const SarkariPdfEngine = (function() {
     extractPdfPages,
     rotatePdfPages,
     addPdfWatermark,
+    addPdfImageWatermark,
     addPageNumbers,
     convertPdfToImages,
     reorderOrDeletePages,

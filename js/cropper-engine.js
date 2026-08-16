@@ -799,6 +799,62 @@ const SarkariEngine = (function() {
   }
 
   /**
+   * Universal Progress Bar Overlay Engine
+   */
+  function showProgress(title = 'Processing File...', percent = 15, subtitle = 'Reading file contents...') {
+    let overlay = document.getElementById('sarkariProgressOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'sarkariProgressOverlay';
+      overlay.className = 'sarkari-progress-overlay';
+      overlay.innerHTML = `
+        <div class="sarkari-progress-card">
+          <div class="sarkari-progress-icon-wrap">
+            <div class="sarkari-progress-spinner"></div>
+            <span class="sarkari-progress-icon">⚡</span>
+          </div>
+          <div class="sarkari-progress-title" id="sarkariProgTitle">Processing File...</div>
+          <div class="sarkari-progress-track">
+            <div class="sarkari-progress-fill" id="sarkariProgFill" style="width: 0%;"></div>
+          </div>
+          <div class="sarkari-progress-info">
+            <span class="sarkari-progress-subtitle" id="sarkariProgSub">Please wait...</span>
+            <strong class="sarkari-progress-percent" id="sarkariProgPercent">0%</strong>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    document.getElementById('sarkariProgTitle').textContent = title;
+    document.getElementById('sarkariProgSub').textContent = subtitle;
+    const p = Math.min(100, Math.max(0, percent));
+    document.getElementById('sarkariProgFill').style.width = `${p}%`;
+    document.getElementById('sarkariProgPercent').textContent = `${Math.round(p)}%`;
+    overlay.classList.add('active');
+  }
+
+  function updateProgress(percent = 0, subtitle = '') {
+    const overlay = document.getElementById('sarkariProgressOverlay');
+    if (!overlay) return;
+    const p = Math.min(100, Math.max(0, percent));
+    document.getElementById('sarkariProgFill').style.width = `${p}%`;
+    document.getElementById('sarkariProgPercent').textContent = `${Math.round(p)}%`;
+    if (subtitle) {
+      document.getElementById('sarkariProgSub').textContent = subtitle;
+    }
+  }
+
+  function hideProgress() {
+    const overlay = document.getElementById('sarkariProgressOverlay');
+    if (overlay) {
+      updateProgress(100, 'Complete!');
+      setTimeout(() => {
+        overlay.classList.remove('active');
+      }, 250);
+    }
+  }
+
+  /**
    * Ultra-Resilient Large File & High-Resolution Image Loader
    * Handles 50MB–100MB+ images, camera RAW, 108MP mobile photos with zero memory exhaustion.
    * @param {File|Blob|string} fileInput
@@ -807,11 +863,16 @@ const SarkariEngine = (function() {
   async function loadLargeImage(fileInput) {
     if (!fileInput) throw new Error('No file provided');
 
+    const fileName = fileInput.name || 'image';
+    const fileSizeStr = fileInput.size ? ` (${(fileInput.size / (1024 * 1024)).toFixed(1)} MB)` : '';
+    showProgress(`Loading Image`, 20, `Reading ${fileName}${fileSizeStr}...`);
+
     // 1. If it is HEIC/HEIF and heic2any is present, convert first
     let processedInput = fileInput;
     if (fileInput instanceof Blob || fileInput instanceof File) {
       if (fileInput.name && (fileInput.name.toLowerCase().endsWith('.heic') || fileInput.name.toLowerCase().endsWith('.heif')) && window.heic2any) {
         try {
+          updateProgress(35, 'Converting iPhone HEIC photo to JPEG...');
           const convertedBlob = await window.heic2any({ blob: fileInput, toType: 'image/jpeg', quality: 0.95 });
           processedInput = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
         } catch (e) {
@@ -839,8 +900,11 @@ const SarkariEngine = (function() {
     } else if (typeof processedInput === 'string') {
       srcUrl = processedInput;
     } else {
+      hideProgress();
       throw new Error('Invalid image input type');
     }
+
+    updateProgress(50, 'Decoding high-resolution image...');
 
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -851,10 +915,12 @@ const SarkariEngine = (function() {
       }
 
       img.onload = () => {
+        updateProgress(75, 'Optimizing resolution & memory...');
         const origW = img.naturalWidth || img.width;
         const origH = img.naturalHeight || img.height;
 
         if (!origW || !origH) {
+          hideProgress();
           reject(new Error('Could not read image dimensions'));
           return;
         }
@@ -884,6 +950,9 @@ const SarkariEngine = (function() {
 
         const dataUrl = (targetW === origW && !isCreatedBlobUrl) ? srcUrl : canvas.toDataURL('image/jpeg', 0.96);
 
+        updateProgress(100, 'Image ready!');
+        setTimeout(hideProgress, 200);
+
         resolve({
           img,
           canvas,
@@ -900,6 +969,7 @@ const SarkariEngine = (function() {
         // Fallback: If blob URL failed, try FileReader as backup
         if (isCreatedBlobUrl && processedInput instanceof Blob) {
           URL.revokeObjectURL(srcUrl);
+          updateProgress(60, 'Applying fallback reader...');
           const r = new FileReader();
           r.onload = evt => {
             const fallbackImg = new Image();
@@ -908,6 +978,8 @@ const SarkariEngine = (function() {
               canvas.width = fallbackImg.naturalWidth;
               canvas.height = fallbackImg.naturalHeight;
               canvas.getContext('2d').drawImage(fallbackImg, 0, 0);
+              updateProgress(100, 'Image ready!');
+              setTimeout(hideProgress, 200);
               resolve({
                 img: fallbackImg,
                 canvas,
@@ -919,12 +991,13 @@ const SarkariEngine = (function() {
                 revoke: () => {}
               });
             };
-            fallbackImg.onerror = reject;
+            fallbackImg.onerror = (e) => { hideProgress(); reject(e); };
             fallbackImg.src = evt.target.result;
           };
-          r.onerror = reject;
+          r.onerror = (e) => { hideProgress(); reject(e); };
           r.readAsDataURL(processedInput);
         } else {
+          hideProgress();
           reject(err);
         }
       };
@@ -951,6 +1024,9 @@ const SarkariEngine = (function() {
     triggerDownload,
     setupClipboardPaste,
     loadLargeImage,
+    showProgress,
+    updateProgress,
+    hideProgress,
     showToast,
     GOVT_PRESETS_2026
   };
