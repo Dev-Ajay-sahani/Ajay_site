@@ -79,11 +79,11 @@
       if (e.target.files && e.target.files.length > 0) {
         for (const file of e.target.files) {
           if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-            const buffer = await file.arrayBuffer();
             let thumbUrl = '';
             let pageCount = 1;
 
             try {
+              const buffer = await file.arrayBuffer();
               const pages = await SarkariPdfEngine.convertPdfToImages(buffer, 0.8);
               if (pages.length > 0) thumbUrl = pages[0].dataUrl;
               pageCount = pages.length;
@@ -91,7 +91,7 @@
               console.log('Error generating thumb', err);
             }
 
-            pdfFiles.push({ file, buffer, thumbUrl, pageCount });
+            pdfFiles.push({ file, thumbUrl, pageCount });
           }
         }
         renderPdfList();
@@ -173,7 +173,11 @@
 
       mergeBtn.textContent = '⏳ Merging in Browser...';
       try {
-        const buffers = pdfFiles.map(p => p.buffer);
+        const buffers = [];
+        for (const item of pdfFiles) {
+          const buf = await item.file.arrayBuffer();
+          buffers.push(buf);
+        }
         const mergedBytes = await SarkariPdfEngine.mergePDFs(buffers);
         SarkariPdfEngine.downloadFile(mergedBytes, 'merged_document.pdf');
         mergeBtn.textContent = '✔ Merged Successfully!';

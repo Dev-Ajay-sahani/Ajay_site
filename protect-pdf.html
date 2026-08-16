@@ -86,22 +86,22 @@
   </footer>
 
   <script>
-    let rawPdfBytes = null;
+    let activePdfFile = null;
     let originalName = 'document.pdf';
 
-    const pdfInp = document.getElementById('pdfInp');
+    const pdfInp = document.getElementById('protectPdfInp');
+    const dropzone = document.getElementById('protectDropzone');
     const workArea = document.getElementById('protectWorkArea');
-    const dropzone = document.getElementById('pdfDropzone');
     const nameLabel = document.getElementById('pdfFileName');
     const sizeLabel = document.getElementById('pdfFileSize');
 
     pdfInp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
+        activePdfFile = file;
         originalName = file.name;
         nameLabel.textContent = file.name;
         sizeLabel.textContent = (file.size / 1024).toFixed(1) + ' KB';
-        rawPdfBytes = await file.arrayBuffer();
 
         dropzone.style.display = 'none';
         workArea.style.display = 'block';
@@ -109,6 +109,7 @@
     });
 
     async function encryptAndDownloadPdf() {
+      if (!activePdfFile) return;
       const p1 = document.getElementById('userPassInp').value;
       const p2 = document.getElementById('confirmPassInp').value;
 
@@ -123,7 +124,8 @@
 
       try {
         const { PDFDocument } = window.PDFLib;
-        const pdfDoc = await PDFDocument.load(rawPdfBytes);
+        const freshBytes = await activePdfFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(freshBytes);
         
         const pdfBytes = await pdfDoc.save({
           userPassword: p1,

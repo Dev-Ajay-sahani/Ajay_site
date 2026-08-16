@@ -81,7 +81,7 @@
   </footer>
 
   <script>
-    let rawPdfBytes = null;
+    let activePdfFile = null;
     let originalName = 'unlocked_document.pdf';
 
     const pdfInp = document.getElementById('pdfInp');
@@ -93,10 +93,10 @@
     pdfInp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
+        activePdfFile = file;
         originalName = file.name;
         nameLabel.textContent = file.name;
         sizeLabel.textContent = (file.size / 1024).toFixed(1) + ' KB';
-        rawPdfBytes = await file.arrayBuffer();
 
         dropzone.style.display = 'none';
         workArea.style.display = 'block';
@@ -104,12 +104,14 @@
     });
 
     async function decryptAndDownloadPdf() {
+      if (!activePdfFile) return;
       const password = document.getElementById('currentPassInp').value;
 
       try {
         const { PDFDocument } = window.PDFLib;
+        const freshBytes = await activePdfFile.arrayBuffer();
         // Load with password
-        const pdfDoc = await PDFDocument.load(rawPdfBytes, { password });
+        const pdfDoc = await PDFDocument.load(freshBytes, { password });
         
         // Save clean without password
         const pdfBytes = await pdfDoc.save();

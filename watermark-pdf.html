@@ -119,7 +119,7 @@
 
   <script src="./js/pdf-tools-engine.js"></script>
   <script>
-    let activePdfBuf = null;
+    let activePdfFile = null;
     let page1BaseImage = null;
 
     const inp = document.getElementById('wmPdfInp');
@@ -132,10 +132,11 @@
     inp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
-        activePdfBuf = await file.arrayBuffer();
+        activePdfFile = file;
 
         // Render Page 1 to image using pdf.js
-        const pages = await SarkariPdfEngine.convertPdfToImages(activePdfBuf, 1.2);
+        const buf = await file.arrayBuffer();
+        const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.2);
         if (pages.length > 0) {
           const img = new Image();
           img.onload = () => {
@@ -188,7 +189,7 @@
     }
 
     async function executeDownloadPdf() {
-      if (!activePdfBuf) return;
+      if (!activePdfFile) return;
       const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
       const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
       const op = parseInt(document.getElementById('wmOpacityRange').value, 10) / 100;
@@ -199,7 +200,8 @@
       if (colVal === 'blue') color = { r: 0.1, g: 0.3, b: 0.8 };
 
       try {
-        const bytes = await SarkariPdfEngine.addPdfWatermark(activePdfBuf, text, {
+        const freshBuf = await activePdfFile.arrayBuffer();
+        const bytes = await SarkariPdfEngine.addPdfWatermark(freshBuf, text, {
           fontSize: 48,
           angle,
           color,

@@ -12,8 +12,25 @@ const SarkariPdfEngine = (function() {
   }
 
   /**
-   * Merge Multiple PDF ArrayBuffers into a Single PDF
-   * @param {Array<ArrayBuffer>} pdfArrayBuffers 
+   * Helper to safely clone an ArrayBuffer or Uint8Array to prevent buffer detachment
+   */
+  function safeCloneBuffer(bufferOrTypedArray) {
+    if (!bufferOrTypedArray) return new ArrayBuffer(0);
+    if (bufferOrTypedArray instanceof ArrayBuffer) {
+      return bufferOrTypedArray.slice(0);
+    }
+    if (bufferOrTypedArray.buffer instanceof ArrayBuffer) {
+      return bufferOrTypedArray.buffer.slice(
+        bufferOrTypedArray.byteOffset,
+        bufferOrTypedArray.byteOffset + bufferOrTypedArray.byteLength
+      );
+    }
+    return bufferOrTypedArray;
+  }
+
+  /**
+   * Merge Multiple PDF ArrayBuffers or Uint8Arrays into a Single PDF
+   * @param {Array<ArrayBuffer|Uint8Array>} pdfArrayBuffers 
    * @returns {Promise<Uint8Array>}
    */
   async function mergePDFs(pdfArrayBuffers) {
@@ -21,7 +38,8 @@ const SarkariPdfEngine = (function() {
     const mergedDoc = await PDFDocument.create();
 
     for (const buffer of pdfArrayBuffers) {
-      const srcDoc = await PDFDocument.load(buffer);
+      const cloned = safeCloneBuffer(buffer);
+      const srcDoc = await PDFDocument.load(cloned);
       const copiedPages = await mergedDoc.copyPages(srcDoc, srcDoc.getPageIndices());
       copiedPages.forEach((page) => mergedDoc.addPage(page));
     }
@@ -31,13 +49,14 @@ const SarkariPdfEngine = (function() {
 
   /**
    * Split PDF by extracting specified page numbers (1-indexed)
-   * @param {ArrayBuffer} pdfBuffer 
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
    * @param {Array<number>} pageNumbers (e.g. [1, 2, 4, 5])
    * @returns {Promise<Uint8Array>}
    */
   async function extractPdfPages(pdfBuffer, pageNumbers) {
     const { PDFDocument } = window.PDFLib;
-    const srcDoc = await PDFDocument.load(pdfBuffer);
+    const cloned = safeCloneBuffer(pdfBuffer);
+    const srcDoc = await PDFDocument.load(cloned);
     const newDoc = await PDFDocument.create();
 
     const totalPages = srcDoc.getPageCount();
@@ -53,14 +72,15 @@ const SarkariPdfEngine = (function() {
 
   /**
    * Rotate PDF Pages
-   * @param {ArrayBuffer} pdfBuffer 
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
    * @param {number} rotationDegrees (90, 180, 270)
    * @param {Array<number>|'all'} pagesToRotate 
    * @returns {Promise<Uint8Array>}
    */
   async function rotatePdfPages(pdfBuffer, rotationDegrees = 90, pagesToRotate = 'all') {
     const { PDFDocument, degrees } = window.PDFLib;
-    const doc = await PDFDocument.load(pdfBuffer);
+    const cloned = safeCloneBuffer(pdfBuffer);
+    const doc = await PDFDocument.load(cloned);
     const pages = doc.getPages();
 
     pages.forEach((page, idx) => {
@@ -76,14 +96,15 @@ const SarkariPdfEngine = (function() {
 
   /**
    * Add Text Watermark across PDF Pages
-   * @param {ArrayBuffer} pdfBuffer 
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
    * @param {string} watermarkText (e.g. "CONFIDENTIAL")
    * @param {object} options 
    * @returns {Promise<Uint8Array>}
    */
   async function addPdfWatermark(pdfBuffer, watermarkText, options = {}) {
     const { PDFDocument, rgb, degrees, StandardFonts } = window.PDFLib;
-    const doc = await PDFDocument.load(pdfBuffer);
+    const cloned = safeCloneBuffer(pdfBuffer);
+    const doc = await PDFDocument.load(cloned);
     const font = await doc.embedFont(StandardFonts.HelveticaBold);
     const pages = doc.getPages();
 
@@ -115,13 +136,14 @@ const SarkariPdfEngine = (function() {
 
   /**
    * Add Page Numbers to PDF
-   * @param {ArrayBuffer} pdfBuffer 
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
    * @param {object} options 
    * @returns {Promise<Uint8Array>}
    */
   async function addPageNumbers(pdfBuffer, options = {}) {
     const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
-    const doc = await PDFDocument.load(pdfBuffer);
+    const cloned = safeCloneBuffer(pdfBuffer);
+    const doc = await PDFDocument.load(cloned);
     const font = await doc.embedFont(StandardFonts.Helvetica);
     const pages = doc.getPages();
     const totalPages = pages.length;
@@ -164,7 +186,7 @@ const SarkariPdfEngine = (function() {
 
   /**
    * Render PDF Pages as Canvas / Images using PDF.js
-   * @param {ArrayBuffer} pdfBuffer 
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
    * @param {number} scale (e.g. 1.5 for crisp HD)
    * @returns {Promise<Array<{pageNum: number, dataUrl: string, canvas: HTMLCanvasElement}>>}
    */
@@ -173,7 +195,9 @@ const SarkariPdfEngine = (function() {
       throw new Error('PDF.js library is not loaded.');
     }
 
-    const loadingTask = window.pdfjsLib.getDocument({ data: pdfBuffer });
+    // Always copy data to a new Uint8Array to prevent worker transfer from detaching user's buffer
+    const safeData = new Uint8Array(safeCloneBuffer(pdfBuffer));
+    const loadingTask = window.pdfjsLib.getDocument({ data: safeData });
     const pdfDoc = await loadingTask.promise;
     const pageCount = pdfDoc.numPages;
     const results = [];
@@ -203,13 +227,14 @@ const SarkariPdfEngine = (function() {
 
   /**
    * Delete or Reorganize Pages in a PDF
-   * @param {ArrayBuffer} pdfBuffer 
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
    * @param {Array<number>} newPageOrder (1-indexed, e.g. [3, 1, 2] to reorder or omit numbers to delete)
    * @returns {Promise<Uint8Array>}
    */
   async function reorderOrDeletePages(pdfBuffer, newPageOrder) {
     const { PDFDocument } = window.PDFLib;
-    const srcDoc = await PDFDocument.load(pdfBuffer);
+    const cloned = safeCloneBuffer(pdfBuffer);
+    const srcDoc = await PDFDocument.load(cloned);
     const newDoc = await PDFDocument.create();
 
     const indices = newPageOrder.map(n => n - 1);

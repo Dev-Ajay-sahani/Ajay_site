@@ -94,7 +94,7 @@
 
   <script src="./js/pdf-tools-engine.js"></script>
   <script>
-    let activePdfBuf = null;
+    let activePdfFile = null;
     const inp = document.getElementById('rotPdfInp');
     const studio = document.getElementById('rotStudioArea');
     const prevImg = document.getElementById('rotPreviewImg');
@@ -104,9 +104,10 @@
     inp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
-        activePdfBuf = await file.arrayBuffer();
+        activePdfFile = file;
 
-        const pages = await SarkariPdfEngine.convertPdfToImages(activePdfBuf, 1.0);
+        const buf = await file.arrayBuffer();
+        const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.0);
         if (pages.length > 0) {
           prevImg.src = pages[0].dataUrl;
           studio.style.display = 'block';
@@ -127,10 +128,11 @@
     }
 
     async function executeRotate() {
-      if (!activePdfBuf) return;
+      if (!activePdfFile) return;
       const angle = parseInt(angleSel.value, 10);
       try {
-        const bytes = await SarkariPdfEngine.rotatePdfPages(activePdfBuf, angle, 'all');
+        const freshBuf = await activePdfFile.arrayBuffer();
+        const bytes = await SarkariPdfEngine.rotatePdfPages(freshBuf, angle, 'all');
         SarkariPdfEngine.downloadFile(bytes, 'rotated_document.pdf');
       } catch (err) {
         alert('Error rotating PDF: ' + err.message);

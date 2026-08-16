@@ -153,7 +153,7 @@
 
   <script src="./js/pdf-tools-engine.js"></script>
   <script>
-    let activePdfBuffer = null;
+    let activePdfFile = null;
     let pageThumbnails = []; // { pageNum, dataUrl, isSelected }
     let totalPages = 0;
 
@@ -169,14 +169,15 @@
     inp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
+        activePdfFile = file;
         docName.textContent = `Document: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
         dropZone.style.display = 'none';
         loading.style.display = 'block';
         studio.style.display = 'none';
 
         try {
-          activePdfBuffer = await file.arrayBuffer();
-          const rendered = await SarkariPdfEngine.convertPdfToImages(activePdfBuffer, 1.0);
+          const buf = await file.arrayBuffer();
+          const rendered = await SarkariPdfEngine.convertPdfToImages(buf, 1.0);
           totalPages = rendered.length;
 
           pageThumbnails = rendered.map((p, idx) => ({
@@ -275,6 +276,7 @@
     }
 
     async function executeVisualSplit() {
+      if (!activePdfFile) return;
       const selected = pageThumbnails.filter(p => p.isSelected).map(p => p.pageNum);
       if (selected.length === 0) {
         alert('Please select at least 1 page to extract.');
@@ -282,7 +284,8 @@
       }
 
       try {
-        const bytes = await SarkariPdfEngine.extractPdfPages(activePdfBuffer, selected);
+        const freshBuf = await activePdfFile.arrayBuffer();
+        const bytes = await SarkariPdfEngine.extractPdfPages(freshBuf, selected);
         SarkariPdfEngine.downloadFile(bytes, 'extracted_document.pdf');
       } catch (err) {
         alert('Error splitting PDF: ' + err.message);
