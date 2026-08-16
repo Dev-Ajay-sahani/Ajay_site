@@ -19,46 +19,39 @@
     document.referrer.includes('android-app://');
 
   window.addEventListener('DOMContentLoaded', () => {
-    const navInstallBtn = document.getElementById('navInstallBtn');
     const fabInstallBtn = document.getElementById('fabInstallBtn');
 
     if (isStandalone) {
-      if (navInstallBtn) navInstallBtn.style.display = 'none';
       if (fabInstallBtn) fabInstallBtn.style.display = 'none';
       return;
     }
 
-    // Always display install buttons on mobile / desktop web if not in standalone
-    if (navInstallBtn) navInstallBtn.style.display = 'inline-flex';
+    // Display floating install button on mobile / desktop web if not in standalone
     if (fabInstallBtn) fabInstallBtn.style.display = 'flex';
 
     // 3. Listen for browser install prompt
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      if (navInstallBtn) navInstallBtn.style.display = 'inline-flex';
       if (fabInstallBtn) fabInstallBtn.style.display = 'flex';
     });
 
     // 4. Handle installed event
     window.addEventListener('appinstalled', () => {
       deferredPrompt = null;
-      if (navInstallBtn) navInstallBtn.style.display = 'none';
       if (fabInstallBtn) fabInstallBtn.style.display = 'none';
       showToast('🎉 Sarkari Babu App Installed Successfully!');
     });
   });
 
-  // Global trigger function for install buttons
+  // Global trigger function for install button
   window.triggerPWAInstall = async function () {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         deferredPrompt = null;
-        const navInstallBtn = document.getElementById('navInstallBtn');
         const fabInstallBtn = document.getElementById('fabInstallBtn');
-        if (navInstallBtn) navInstallBtn.style.display = 'none';
         if (fabInstallBtn) fabInstallBtn.style.display = 'none';
       }
     } else {
