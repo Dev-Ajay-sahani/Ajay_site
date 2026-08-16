@@ -452,11 +452,16 @@
         const freshBuf = await activePdfFile.arrayBuffer();
         let bytes = null;
 
-        if (currentMode === 'logo' && currentLogoDataUrl) {
+        if (currentMode === 'logo') {
+          const logoSource = currentLogoImg || currentLogoDataUrl;
+          if (!logoSource) {
+            alert('Please select or upload a logo image.');
+            return;
+          }
           const scalePct = parseInt(document.getElementById('logoScaleRange').value, 10) / 100;
           const position = document.getElementById('logoPosSel').value;
 
-          bytes = await SarkariPdfEngine.addPdfImageWatermark(freshBuf, currentLogoDataUrl, {
+          bytes = await SarkariPdfEngine.addPdfImageWatermark(freshBuf, logoSource, {
             scale: scalePct,
             opacity: op,
             angle,

@@ -141,9 +141,60 @@ const SarkariPdfEngine = (function() {
   }
 
   /**
+   * Universal helper to convert any image input (Blob URL, DataURL, Canvas, File, or Bytes) to Uint8Array
+   */
+  async function getImageBytes(imageInput) {
+    if (!imageInput) throw new Error('No image provided');
+    if (imageInput instanceof Uint8Array) {
+      return safeCloneBuffer(imageInput);
+    }
+    if (imageInput instanceof ArrayBuffer) {
+      return new Uint8Array(safeCloneBuffer(imageInput));
+    }
+    if (imageInput instanceof Blob || imageInput instanceof File) {
+      const ab = await imageInput.arrayBuffer();
+      return new Uint8Array(ab);
+    }
+    if (imageInput instanceof HTMLCanvasElement) {
+      const blob = await new Promise(res => imageInput.toBlob(res, 'image/png'));
+      const ab = await blob.arrayBuffer();
+      return new Uint8Array(ab);
+    }
+    if (imageInput instanceof HTMLImageElement) {
+      const c = document.createElement('canvas');
+      c.width = imageInput.naturalWidth || imageInput.width;
+      c.height = imageInput.naturalHeight || imageInput.height;
+      c.getContext('2d').drawImage(imageInput, 0, 0);
+      const blob = await new Promise(res => c.toBlob(res, 'image/png'));
+      const ab = await blob.arrayBuffer();
+      return new Uint8Array(ab);
+    }
+    if (typeof imageInput === 'string') {
+      try {
+        const response = await fetch(imageInput);
+        const ab = await response.arrayBuffer();
+        return new Uint8Array(ab);
+      } catch (e) {
+        if (imageInput.includes('base64,')) {
+          const base64 = imageInput.split('base64,')[1].trim();
+          const binStr = window.atob(base64);
+          const len = binStr.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binStr.charCodeAt(i);
+          }
+          return bytes;
+        }
+        throw e;
+      }
+    }
+    throw new Error('Unsupported image format');
+  }
+
+  /**
    * Add Logo / Stamp Image Watermark across PDF Pages
    * @param {ArrayBuffer|Uint8Array} pdfBuffer 
-   * @param {string|Uint8Array|ArrayBuffer} imageInput (DataURL, Uint8Array, or ArrayBuffer)
+   * @param {string|Uint8Array|ArrayBuffer|HTMLImageElement|HTMLCanvasElement} imageInput 
    * @param {object} options 
    * @returns {Promise<Uint8Array>}
    */
@@ -155,27 +206,8 @@ const SarkariPdfEngine = (function() {
 
     if (window.SarkariEngine) window.SarkariEngine.updateProgress(40, 'Embedding logo image...');
     
-    let imgBytes = null;
-    let isPng = false;
-
-    if (typeof imageInput === 'string') {
-      if (imageInput.startsWith('data:image/png')) {
-        isPng = true;
-      }
-      const base64Data = imageInput.split(',')[1] || imageInput;
-      const binaryString = window.atob(base64Data);
-      const len = binaryString.length;
-      imgBytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        imgBytes[i] = binaryString.charCodeAt(i);
-      }
-    } else if (imageInput instanceof Uint8Array || imageInput instanceof ArrayBuffer) {
-      imgBytes = new Uint8Array(safeCloneBuffer(imageInput));
-      // Check magic bytes for PNG (0x89, 0x50, 0x4E, 0x47)
-      if (imgBytes[0] === 0x89 && imgBytes[1] === 0x50) {
-        isPng = true;
-      }
-    }
+    const imgBytes = await getImageBytes(imageInput);
+    const isPng = (imgBytes[0] === 0x89 && imgBytes[1] === 0x50 && imgBytes[2] === 0x4E && imgBytes[3] === 0x47);
 
     let embeddedImage = null;
     try {
@@ -188,7 +220,26 @@ const SarkariPdfEngine = (function() {
       try {
         embeddedImage = await doc.embedPng(imgBytes);
       } catch (e2) {
-        embeddedImage = await doc.embedJpg(imgBytes);
+        try {
+          embeddedImage = await doc.embedJpg(imgBytes);
+        } catch (e3) {
+          // Final fallback: Render into a clean canvas and export standard PNG
+          const img = new Image();
+          const objectUrl = URL.createObjectURL(new Blob([imgBytes]));
+          await new Promise((res, rej) => {
+            img.onload = res;
+            img.onerror = rej;
+            img.src = objectUrl;
+          });
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+          const pngBlob = await new Promise(res => c.toBlob(res, 'image/png'));
+          const pngBuffer = await pngBlob.arrayBuffer();
+          URL.revokeObjectURL(objectUrl);
+          embeddedImage = await doc.embedPng(new Uint8Array(pngBuffer));
+        }
       }
     }
 
