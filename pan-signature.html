@@ -69,9 +69,9 @@
 
             <!-- Rotation & Re-Crop Buttons -->
             <div style="display:flex;gap:8px;margin-top:10px;">
-              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) cropper.rotate(-90)">↺ Rotate Left</button>
-              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) cropper.rotate(90)">↻ Rotate Right</button>
-              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) cropper.reset()">⟲ Reset</button>
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) { cropper.rotate(-90); renderResult(); }">↺ Rotate Left</button>
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) { cropper.rotate(90); renderResult(); }">↻ Rotate Right</button>
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) { cropper.reset(); renderResult(); }">⟲ Reset</button>
             </div>
           </div>
 

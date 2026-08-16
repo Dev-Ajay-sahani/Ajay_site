@@ -194,8 +194,8 @@
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
               <h4 style="font-family:var(--font-display);font-size:15px;margin:0;">2. Adjust Dynamic Crop Box</h4>
               <div style="display:flex;gap:4px;">
-                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="cropper && cropper.rotate(90)">🔄 Rotate</button>
-                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="cropper && cropper.reset()">↺ Reset</button>
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="if(cropper) { cropper.rotate(90); renderCustomResult(); }">🔄 Rotate</button>
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="if(cropper) { cropper.reset(); renderCustomResult(); }">↺ Reset</button>
               </div>
             </div>
 
