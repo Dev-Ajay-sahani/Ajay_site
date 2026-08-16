@@ -215,16 +215,18 @@
 
     function openCrop(src, title) {
       cropTitle.textContent = title;
-      cropImg.src = src;
       cropModal.classList.add('active');
 
-      if (cropper) cropper.destroy();
-      // Standard Aadhaar Card Aspect Ratio 8.6 / 5.4 = 1.59
-      cropper = new Cropper(cropImg, {
-        aspectRatio: 8.6 / 5.4,
-        viewMode: 1,
-        autoCropArea: 0.95
-      });
+      cropImg.onload = () => {
+        if (cropper) cropper.destroy();
+        // Standard Aadhaar Card Aspect Ratio 8.6 / 5.4 = 1.59
+        cropper = new Cropper(cropImg, {
+          aspectRatio: 8.6 / 5.4,
+          viewMode: 1,
+          autoCropArea: 0.95
+        });
+      };
+      cropImg.src = src;
     }
 
     function closeCrop() {

@@ -595,7 +595,18 @@
     async function loadModalImageFile(file) {
       try {
         const res = await SarkariEngine.loadLargeImage(file);
-        modalImg.src = res.img.src;
+        
+        modalImg.onload = () => {
+          if (cropper) cropper.destroy();
+          const ar = currentModalSlot === 'pan' ? (2.5 / 3.5) : (3.5 / 4.5);
+          cropper = new Cropper(modalImg, {
+            aspectRatio: ar,
+            viewMode: 1,
+            autoCropArea: 0.95
+          });
+        };
+
+        modalImg.src = res.dataUrl || res.img.src;
         
         cropView.style.display = 'block';
         resultView.style.display = 'none';
@@ -603,14 +614,6 @@
         resultBtns.style.display = 'none';
 
         modal.classList.add('active');
-        if (cropper) cropper.destroy();
-
-        const ar = currentModalSlot === 'pan' ? (2.5 / 3.5) : (3.5 / 4.5);
-        cropper = new Cropper(modalImg, {
-          aspectRatio: ar,
-          viewMode: 1,
-          autoCropArea: 0.95
-        });
       } catch (err) {
         console.error('Error loading image in modal:', err);
         alert('Could not load image file: ' + err.message);

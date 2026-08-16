@@ -171,11 +171,12 @@
     });
 
     function setupCropper(img) {
+      cropImg.onload = () => {
+        initCropper();
+      };
       cropImg.src = img.src;
       dropzone.style.display = 'none';
       workArea.style.display = 'block';
-
-      initCropper();
     }
 
     function initCropper() {
@@ -217,16 +218,17 @@
       const maxKB = currentStandard === 'uti' ? 28 : 45;
 
       const raw = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      if (!raw) return;
+
       const down = SarkariEngine.highQualityDownsample(raw, targetW, targetH);
       const sharp = SarkariEngine.applyMicroSharpen(down, 0.15);
 
       finalCanvas = sharp;
-      const blob = await SarkariEngine.compressToTargetKB(sharp, maxKB, 'image/jpeg', dpi);
-      finalDataUrl = URL.createObjectURL(blob);
+      const res = await SarkariEngine.compressToTargetKB(sharp, 10, maxKB, dpi);
+      finalDataUrl = res.url;
 
-      resImg.src = finalDataUrl;
-      const sizeKB = (blob.size / 1024).toFixed(1);
-      resMeta.textContent = `${targetW} × ${targetH} px · ${sizeKB} KB · ${dpi} DPI (${currentStandard.toUpperCase()})`;
+      resImg.src = res.url;
+      resMeta.textContent = `${targetW} × ${targetH} px · ${res.sizeKB} KB · ${dpi} DPI (${currentStandard.toUpperCase()})`;
     }
 
     function downloadPanPhoto() {

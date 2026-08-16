@@ -187,6 +187,17 @@ const SarkariEngine = (function() {
    * - Avoids crushing JPEG quality below 0.40; if needed, applies clean anti-aliased scaling.
    */
   async function compressToTargetKB(canvas, minKB = 10, maxKB = 50, targetDpi = 200, options = {}) {
+    // Handle flexible argument order if minKB is actually targetMaxKB
+    if (typeof minKB === 'number' && (typeof maxKB !== 'number' || maxKB < minKB)) {
+      if (typeof maxKB !== 'number') {
+        maxKB = minKB;
+        minKB = Math.max(5, Math.round(maxKB * 0.2));
+      }
+    }
+    if (typeof targetDpi !== 'number') {
+      targetDpi = 200;
+    }
+
     const { applySharpen = true } = options;
 
     // Apply micro-sharpening before compression

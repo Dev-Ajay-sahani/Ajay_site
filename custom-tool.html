@@ -343,11 +343,12 @@
     });
 
     function setupCropperWithImage(img) {
+      cropImg.onload = () => {
+        onDimensionChange();
+      };
       cropImg.src = img.src;
       uploadZone.style.display = 'none';
       workArea.style.display = 'block';
-
-      onDimensionChange();
     }
 
     function onDimensionChange() {
@@ -367,13 +368,14 @@
         cropper = new Cropper(cropImg, {
           aspectRatio: aspect,
           viewMode: 1,
-          autoCropArea: 0.95
+          autoCropArea: 0.95,
+          ready: () => renderCustomResult(),
+          cropend: () => renderCustomResult()
         });
       } else {
         cropper.setAspectRatio(aspect);
+        renderCustomResult();
       }
-
-      renderCustomResult();
     }
 
     function applyDimPreset(w, h, unit, dpi, btn) {

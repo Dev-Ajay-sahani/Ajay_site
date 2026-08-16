@@ -190,11 +190,12 @@
     });
 
     function setupCropper(img) {
+      cropImg.onload = () => {
+        initCropper();
+      };
       cropImg.src = img.src;
       dropzone.style.display = 'none';
       workArea.style.display = 'block';
-
-      initCropper();
     }
 
     function initCropper() {
@@ -225,6 +226,8 @@
       const p = PRESETS[presetSel.value] || PRESETS['pan-uti'];
 
       const raw = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      if (!raw) return;
+
       let processed = raw;
 
       // Apply Auto-Clean Ink Booster if checked
@@ -236,12 +239,11 @@
       const sharp = SarkariEngine.applyMicroSharpen(down, 0.2);
 
       finalCanvas = sharp;
-      const blob = await SarkariEngine.compressToTargetKB(sharp, p.maxKB, 'image/jpeg', p.dpi);
-      finalDataUrl = URL.createObjectURL(blob);
+      const res = await SarkariEngine.compressToTargetKB(sharp, 10, p.maxKB, p.dpi);
+      finalDataUrl = res.url;
 
-      resImg.src = finalDataUrl;
-      const sizeKB = (blob.size / 1024).toFixed(1);
-      resMeta.textContent = `${p.w} × ${p.h} px · ${sizeKB} KB · ${p.dpi} DPI (${p.name})`;
+      resImg.src = res.url;
+      resMeta.textContent = `${p.w} × ${p.h} px · ${res.sizeKB} KB · ${p.dpi} DPI (${p.name})`;
     }
 
     function downloadSigResult() {
