@@ -981,3 +981,90 @@ body {
   font-family: var(--font-mono);
   font-weight: 700;
 }
+
+/* ==========================================================================
+   PWA INSTALL BUTTONS (Top Nav & Floating Action Button)
+   ========================================================================== */
+.nav-install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.nav-install-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Floating Action Button (FAB) at Bottom-Right */
+.fab-install-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 50px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.45), 0 0 20px rgba(99, 102, 241, 0.3);
+  animation: fabPulse 2.8s infinite ease-in-out;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.fab-install-btn:hover {
+  transform: scale(1.06) translateY(-2px);
+  box-shadow: 0 14px 35px rgba(79, 70, 229, 0.6), 0 0 25px rgba(139, 92, 246, 0.4);
+}
+.fab-install-btn .fab-icon {
+  font-size: 18px;
+}
+.fab-install-btn .fab-badge {
+  background: #22c55e;
+  color: #ffffff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-left: 2px;
+}
+
+@keyframes fabPulse {
+  0%, 100% {
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.45), 0 0 0 0 rgba(99, 102, 241, 0.6);
+  }
+  50% {
+    box-shadow: 0 12px 35px rgba(79, 70, 229, 0.65), 0 0 0 12px rgba(99, 102, 241, 0);
+  }
+}
+
+@media (max-width: 640px) {
+  .fab-install-btn {
+    bottom: 20px;
+    right: 18px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .fab-install-btn .fab-badge {
+    display: none;
+  }
+}
+

@@ -28,6 +28,11 @@
   <link rel="stylesheet" href="./css/style.css">
   <script src="./js/theme.js"></script>
 
+  <link rel="manifest" href="./manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+
   <!-- External CDNs -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -36,6 +41,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="./js/pipeline.js"></script>
+  <script src="./js/pwa-installer.js" defer></script>
   <link rel="icon" type="image/png" href="./assets/favicon.png">
 </head>
 <body>
@@ -50,6 +56,7 @@
       </div>
     </a>
     <div class="nav-actions">
+      <button id="navInstallBtn" class="nav-install-btn" onclick="triggerPWAInstall()" style="display:none;">📲 <span class="hide-mobile">Install App</span></button>
       <a href="./exam-guidelines.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">📋 Exam Rules</a>
       <button class="btn-primary" style="padding:7px 14px;font-size:13px;" onclick="openShareModal()">📤 <span class="hide-mobile">Share</span></button>
       <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 <span class="hide-mobile">Dark</span></button>
@@ -964,5 +971,13 @@
       });
     }
   </script>
+
+  <!-- Floating PWA Install Action Button (Bottom-Right) -->
+  <button id="fabInstallBtn" class="fab-install-btn" onclick="triggerPWAInstall()" style="display:none;" aria-label="Install Sarkari Babu App">
+    <span class="fab-icon">📲</span>
+    <span>Install App</span>
+    <span class="fab-badge">Free</span>
+  </button>
+
 </body>
 </html>
