@@ -343,12 +343,17 @@
     });
 
     function setupCropperWithImage(img) {
+      uploadZone.style.display = 'none';
+      workArea.style.display = 'block';
+
+      const src = img.src || img.dataUrl || img;
       cropImg.onload = () => {
         onDimensionChange();
       };
-      cropImg.src = img.src;
-      uploadZone.style.display = 'none';
-      workArea.style.display = 'block';
+      cropImg.src = src;
+      if (cropImg.complete && cropImg.naturalWidth > 0) {
+        onDimensionChange();
+      }
     }
 
     function onDimensionChange() {

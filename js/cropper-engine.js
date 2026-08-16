@@ -805,37 +805,61 @@ const SarkariEngine = (function() {
    * @returns {Promise<{img: HTMLImageElement, canvas: HTMLCanvasElement, width: number, height: number, dataUrl: string, revoke: Function}>}
    */
   async function loadLargeImage(fileInput) {
-    let objectUrl = null;
-    let isBlob = false;
+    if (!fileInput) throw new Error('No file provided');
 
+    // 1. If it is HEIC/HEIF and heic2any is present, convert first
+    let processedInput = fileInput;
     if (fileInput instanceof Blob || fileInput instanceof File) {
       if (fileInput.name && (fileInput.name.toLowerCase().endsWith('.heic') || fileInput.name.toLowerCase().endsWith('.heif')) && window.heic2any) {
         try {
           const convertedBlob = await window.heic2any({ blob: fileInput, toType: 'image/jpeg', quality: 0.95 });
-          objectUrl = URL.createObjectURL(Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob);
+          processedInput = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
         } catch (e) {
           console.warn('HEIC conversion fallback:', e);
-          objectUrl = URL.createObjectURL(fileInput);
         }
-      } else {
-        objectUrl = URL.createObjectURL(fileInput);
       }
-      isBlob = true;
-    } else if (typeof fileInput === 'string') {
-      objectUrl = fileInput;
+    }
+
+    // 2. Load into HTMLImageElement
+    let srcUrl = null;
+    let isCreatedBlobUrl = false;
+
+    if (processedInput instanceof Blob || processedInput instanceof File) {
+      try {
+        srcUrl = URL.createObjectURL(processedInput);
+        isCreatedBlobUrl = true;
+      } catch (e) {
+        srcUrl = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = evt => res(evt.target.result);
+          r.onerror = rej;
+          r.readAsDataURL(processedInput);
+        });
+      }
+    } else if (typeof processedInput === 'string') {
+      srcUrl = processedInput;
     } else {
-      throw new Error('Invalid image input');
+      throw new Error('Invalid image input type');
     }
 
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+
+      // Only set crossOrigin for remote HTTP/HTTPS images (NEVER for blob: or data: URLs)
+      if (typeof srcUrl === 'string' && (srcUrl.startsWith('http://') || srcUrl.startsWith('https://'))) {
+        img.crossOrigin = 'anonymous';
+      }
 
       img.onload = () => {
         const origW = img.naturalWidth || img.width;
         const origH = img.naturalHeight || img.height;
 
-        // If dimensions are insanely huge (e.g. > 6000px), safely cap max allocation to 5000px to prevent browser canvas crash
+        if (!origW || !origH) {
+          reject(new Error('Could not read image dimensions'));
+          return;
+        }
+
+        // Cap huge dimensions safely (e.g. max 5000px)
         const MAX_DIM = 5000;
         let targetW = origW;
         let targetH = origH;
@@ -858,7 +882,7 @@ const SarkariEngine = (function() {
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, targetW, targetH);
 
-        const dataUrl = targetW === origW ? (isBlob ? objectUrl : img.src) : canvas.toDataURL('image/jpeg', 0.96);
+        const dataUrl = (targetW === origW && !isCreatedBlobUrl) ? srcUrl : canvas.toDataURL('image/jpeg', 0.96);
 
         resolve({
           img,
@@ -867,17 +891,45 @@ const SarkariEngine = (function() {
           height: targetH,
           originalWidth: origW,
           originalHeight: origH,
-          dataUrl: objectUrl || dataUrl,
-          revoke: () => { if (isBlob && objectUrl) URL.revokeObjectURL(objectUrl); }
+          dataUrl: srcUrl || dataUrl,
+          revoke: () => { if (isCreatedBlobUrl) URL.revokeObjectURL(srcUrl); }
         });
       };
 
       img.onerror = (err) => {
-        if (isBlob && objectUrl) URL.revokeObjectURL(objectUrl);
-        reject(err);
+        // Fallback: If blob URL failed, try FileReader as backup
+        if (isCreatedBlobUrl && processedInput instanceof Blob) {
+          URL.revokeObjectURL(srcUrl);
+          const r = new FileReader();
+          r.onload = evt => {
+            const fallbackImg = new Image();
+            fallbackImg.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = fallbackImg.naturalWidth;
+              canvas.height = fallbackImg.naturalHeight;
+              canvas.getContext('2d').drawImage(fallbackImg, 0, 0);
+              resolve({
+                img: fallbackImg,
+                canvas,
+                width: fallbackImg.naturalWidth,
+                height: fallbackImg.naturalHeight,
+                originalWidth: fallbackImg.naturalWidth,
+                originalHeight: fallbackImg.naturalHeight,
+                dataUrl: evt.target.result,
+                revoke: () => {}
+              });
+            };
+            fallbackImg.onerror = reject;
+            fallbackImg.src = evt.target.result;
+          };
+          r.onerror = reject;
+          r.readAsDataURL(processedInput);
+        } else {
+          reject(err);
+        }
       };
 
-      img.src = objectUrl;
+      img.src = srcUrl;
     });
   }
 

@@ -189,21 +189,30 @@
     async function openPassportCropWithFile(file) {
       try {
         const res = await SarkariEngine.loadLargeImage(file);
-        document.getElementById('modalCropImg').src = res.img.src;
+        const cropEl = document.getElementById('modalCropImg');
         document.getElementById('cropModal').classList.add('active');
-        if (cropper) cropper.destroy();
-        const std = stdSel.value;
-        let ar = 3.5 / 4.5;
-        if (std === 'postcard') ar = 4 / 6;
-        else if (std === 'visa') ar = 1;
-        else if (std === 'passport-seva') ar = 630 / 810;
-        else if (std === 'parivahan') ar = 420 / 525;
 
-        cropper = new Cropper(document.getElementById('modalCropImg'), {
-          aspectRatio: ar,
-          viewMode: 1,
-          autoCropArea: 0.95
-        });
+        const initPassCrop = () => {
+          if (cropper) cropper.destroy();
+          const std = stdSel.value;
+          let ar = 3.5 / 4.5;
+          if (std === 'postcard') ar = 4 / 6;
+          else if (std === 'visa') ar = 1;
+          else if (std === 'passport-seva') ar = 630 / 810;
+          else if (std === 'parivahan') ar = 420 / 525;
+
+          cropper = new Cropper(cropEl, {
+            aspectRatio: ar,
+            viewMode: 1,
+            autoCropArea: 0.95
+          });
+        };
+
+        cropEl.onload = initPassCrop;
+        cropEl.src = res.dataUrl || res.img.src;
+        if (cropEl.complete && cropEl.naturalWidth > 0) {
+          initPassCrop();
+        }
       } catch (err) {
         console.error('Error loading passport photo:', err);
         alert('Could not load image: ' + err.message);

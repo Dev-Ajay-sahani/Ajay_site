@@ -190,12 +190,17 @@
     });
 
     function setupCropper(img) {
+      dropzone.style.display = 'none';
+      workArea.style.display = 'block';
+
+      const src = img.src || img.dataUrl || img;
       cropImg.onload = () => {
         initCropper();
       };
-      cropImg.src = img.src;
-      dropzone.style.display = 'none';
-      workArea.style.display = 'block';
+      cropImg.src = src;
+      if (cropImg.complete && cropImg.naturalWidth > 0) {
+        initCropper();
+      }
     }
 
     function initCropper() {
