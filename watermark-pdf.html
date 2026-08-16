@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Watermark PDF Online (Logo &amp; Text Stamp) – Sarkari Babu Tools</title>
-  <meta name="description" content="Add Logo image or text watermarks to PDF files with live visual page preview. Stamp logos, seals, transparency, tile pattern, and rotation. 100% client-side privacy.">
+  <title>PDF Watermark &amp; Clickable Link Studio – Sarkari Babu Tools</title>
+  <meta name="description" content="Add clickable hyperlinks, custom logo stamps, and text watermarks across all pages of your PDF document. 100% private in-browser.">
   <link rel="stylesheet" href="./css/style.css">
   <script src="./js/theme.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
   <link rel="icon" type="image/png" href="./assets/favicon.png">
 </head>
 <body>
@@ -20,7 +22,7 @@
       <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
       <div class="brand-text">
         <span class="brand-title">Sarkari Babu</span>
-        <span class="brand-subtitle">Watermark PDF Studio</span>
+        <span class="brand-subtitle">PDF Watermark &amp; Link Studio</span>
       </div>
     </a>
     <div class="nav-actions">
@@ -32,9 +34,9 @@
   <main class="studio-container">
     
     <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
-      <span class="hero-pill">🏛️ Logo Image &amp; Text PDF Watermark</span>
-      <h1 class="hero-heading">Watermark PDF with <span class="gradient-text">Logo &amp; Text</span></h1>
-      <p class="hero-desc">Stamp custom company logos, government seals, or text watermarks across all pages of your PDF with real-time visual preview.</p>
+      <span class="hero-pill">🔗 Clickable URL &amp; Watermark Studio</span>
+      <h1 class="hero-heading">PDF Watermark &amp; <span class="gradient-text">Clickable Link Studio</span></h1>
+      <p class="hero-desc">Add interactive clickable website/Telegram links, custom logo stamps, or text watermarks across all pages with zero zoom distortion.</p>
     </div>
 
     <div class="studio-card">
@@ -51,8 +53,9 @@
 
         <!-- Watermark Mode Tabs -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;">
-          <div style="display:flex;gap:10px;">
-            <button class="category-tab active" id="tabLogoMode" onclick="switchWmMode('logo')">🖼️ Logo / Stamp Image</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="category-tab active" id="tabLinkOnlyMode" onclick="switchWmMode('link-only')">🔗 Clickable Link / URL (No Watermark)</button>
+            <button class="category-tab" id="tabLogoMode" onclick="switchWmMode('logo')">🖼️ Logo / Stamp Watermark</button>
             <button class="category-tab" id="tabTextMode" onclick="switchWmMode('text')">🔤 Text Watermark</button>
           </div>
           <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="document.getElementById('wmPdfInp').click()">📁 Change PDF</button>
@@ -63,8 +66,41 @@
           <!-- Left: Controls Panel -->
           <div>
 
-            <!-- A. LOGO IMAGE WATERMARK CONTROLS -->
-            <div id="logoControlsWrap">
+            <!-- A. LINK ONLY CONTROLS (DEFAULT / NO WATERMARK) -->
+            <div id="linkOnlyControlsWrap">
+              <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                  <span style="font-size:20px;">🔗</span>
+                  <h3 style="font-family:var(--font-display);font-size:16px;margin:0;">Clickable URL / Link Settings</h3>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Target Destination URL (Website, Telegram, Channel)</label>
+                  <input type="url" class="form-input" id="linkOnlyUrlInp" value="https://ajays.is-a.dev/" placeholder="https://yourwebsite.com or t.me/channel" oninput="renderLivePreview()">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Click Action Style</label>
+                  <select class="form-select" id="linkOnlyScopeSel" onchange="renderLivePreview()">
+                    <option value="full-page" selected>📄 Invisible Full Page (Clicking anywhere opens link)</option>
+                    <option value="bottom-banner">📌 Bottom Clickable Banner Bar</option>
+                    <option value="top-banner">📌 Top Clickable Banner Bar</option>
+                  </select>
+                </div>
+
+                <div class="form-group" id="bannerTextWrap" style="display:none;">
+                  <label class="form-label">Banner Label Text</label>
+                  <input type="text" class="form-input" id="bannerTextInp" value="🌐 Official Portal: Click to Visit Website" oninput="renderLivePreview()">
+                </div>
+
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+                  ✨ <em>Zero zoom disruption: Pinch-to-zoom and zoom-in/out gestures remain completely unaffected. When readers click/tap the document in Chrome, Adobe Reader, Safari or mobile PDF apps, it opens your destination link.</em>
+                </div>
+              </div>
+            </div>
+
+            <!-- B. LOGO IMAGE WATERMARK CONTROLS -->
+            <div id="logoControlsWrap" style="display:none;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <h3 style="font-family:var(--font-display);font-size:16px;">Logo / Seal Image</h3>
                 <button class="btn-primary" style="padding:5px 12px;font-size:12px;" onclick="document.getElementById('logoFileInp').click()">+ Upload Custom Logo</button>
@@ -102,7 +138,7 @@
               </div>
             </div>
 
-            <!-- B. TEXT WATERMARK CONTROLS -->
+            <!-- C. TEXT WATERMARK CONTROLS -->
             <div id="textControlsWrap" style="display:none;">
               <div class="form-group">
                 <label class="form-label">Watermark Text</label>
@@ -127,8 +163,8 @@
               </div>
             </div>
 
-            <!-- SHARED CONTROLS: OPACITY & ROTATION -->
-            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-top:16px;">
+            <!-- SHARED CONTROLS: OPACITY & ROTATION (FOR LOGO & TEXT) -->
+            <div id="sharedWmControlsWrap" style="display:none;background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-top:16px;">
               
               <!-- Opacity Slider -->
               <div class="form-group" style="margin-bottom:12px;">
@@ -151,39 +187,20 @@
                 </select>
               </div>
 
-            </div>
-
-            <!-- C. CLICKABLE HYPERLINK SETTINGS (NEW) -->
-            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-top:16px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:0;">
-                  <input type="checkbox" id="wmLinkToggle" onchange="toggleLinkSettings()" style="width:18px;height:18px;accent-color:var(--primary);">
-                  <span>🔗 Add Clickable Hyperlink to PDF</span>
+              <!-- Optional Hyperlink inside Logo/Text Mode -->
+              <div style="margin-top:14px;border-top:1px dashed var(--border-subtle);padding-top:12px;">
+                <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:6px;">
+                  <input type="checkbox" id="wmLogoTextLinkToggle" onchange="toggleLogoTextLink()" style="width:16px;height:16px;accent-color:var(--primary);">
+                  <span>🔗 Make Watermark Clickable</span>
                 </label>
-                <span class="tool-badge green" style="font-size:10px;">Safe Link</span>
-              </div>
-
-              <div id="wmLinkDetailsWrap" style="display:none;margin-top:10px;">
-                <div class="form-group" style="margin-bottom:10px;">
-                  <label class="form-label" style="font-size:12px;">Target Website / Telegram / Channel URL</label>
-                  <input type="url" class="form-input" id="wmLinkUrlInp" value="https://ajays.is-a.dev/" placeholder="https://yourwebsite.com or t.me/channel" oninput="renderLivePreview()">
-                </div>
-
-                <div class="form-group" style="margin-bottom:8px;">
-                  <label class="form-label" style="font-size:12px;">Click Action Area</label>
-                  <select class="form-select" id="wmLinkScopeSel" onchange="renderLivePreview()" style="font-size:13px;">
-                    <option value="watermark" selected>🎯 Watermark / Logo Area Only (Recommended)</option>
-                    <option value="full-page">📄 Entire Document Page (Any Click Opens Link)</option>
-                  </select>
-                </div>
-
-                <div style="font-size:11px;color:var(--text-muted);line-height:1.4;">
-                  ✨ <em>Standard PDF Link: Clicking the watermark opens your link in the reader's browser, while normal pinch-to-zoom and zoom-in/out gestures remain completely unaffected.</em>
+                <div id="logoTextLinkInputWrap" style="display:none;margin-top:8px;">
+                  <input type="url" class="form-input" id="logoTextLinkUrlInp" value="https://ajays.is-a.dev/" placeholder="https://..." oninput="renderLivePreview()">
                 </div>
               </div>
+
             </div>
 
-            <button class="btn-success" onclick="executeDownloadPdf()" style="width:100%;font-size:15px;padding:14px;margin-top:16px;">⬇ Apply Watermark &amp; Download PDF</button>
+            <button class="btn-success" id="mainActionBtn" onclick="executeDownloadPdf()" style="width:100%;font-size:15px;padding:14px;margin-top:16px;">⬇ Apply &amp; Download PDF</button>
           </div>
 
           <!-- Right: Live Canvas Preview of Page 1 -->
@@ -195,7 +212,7 @@
             
             <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;position:relative;">
               <canvas id="wmCanvasPreview" style="max-height:420px;max-width:100%;object-fit:contain;background:#fff;border-radius:6px;box-shadow:var(--shadow-md);"></canvas>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Showing real-time visual output of Page 1 (Watermark will be applied across all pages)</div>
+              <div id="livePreviewHint" style="font-size:11.5px;color:var(--text-muted);margin-top:10px;">Showing real-time visual output of Page 1</div>
             </div>
           </div>
 
@@ -211,12 +228,10 @@
     <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
   </footer>
 
-  <script src="./js/cropper-engine.js"></script>
-  <script src="./js/pdf-tools-engine.js"></script>
   <script>
     let activePdfFile = null;
     let page1BaseImage = null;
-    let currentMode = 'logo'; // 'logo' or 'text'
+    let currentMode = 'link-only'; // 'link-only', 'logo', 'text'
     let currentLogoImg = null;
     let currentLogoDataUrl = null;
 
@@ -237,7 +252,6 @@
       const g = c.getContext('2d');
 
       if (type === 'seal') {
-        // Double Circular Sarkari Babu Seal
         g.strokeStyle = '#1e3a8a';
         g.lineWidth = 10;
         g.beginPath();
@@ -259,7 +273,6 @@
         g.font = '64px sans-serif';
         g.fillText('🏛️', 200, 200);
       } else if (type === 'verified') {
-        // Verified Stamp Badge
         g.strokeStyle = '#059669';
         g.lineWidth = 12;
         g.beginPath();
@@ -276,36 +289,36 @@
         g.font = '64px sans-serif';
         g.fillText('✓', 200, 200);
       } else {
-        // Confidential Seal
         g.strokeStyle = '#dc2626';
-        g.lineWidth = 14;
-        g.strokeRect(30, 130, 340, 140);
+        g.lineWidth = 10;
+        g.beginPath();
+        g.arc(200, 200, 175, 0, Math.PI * 2);
+        g.stroke();
 
         g.fillStyle = '#dc2626';
-        g.font = 'bold 42px sans-serif';
+        g.font = 'bold 34px sans-serif';
         g.textAlign = 'center';
         g.textBaseline = 'middle';
-        g.fillText('CONFIDENTIAL', 200, 200);
+        g.fillText('CONFIDENTIAL', 200, 110);
+        g.fillText('TOP SECRET', 200, 290);
+
+        g.font = '64px sans-serif';
+        g.fillText('🔒', 200, 200);
       }
 
-      return {
-        img: c,
-        dataUrl: c.toDataURL('image/png')
-      };
+      const img = new Image();
+      img.src = c.toDataURL('image/png');
+      return { img, dataUrl: img.src };
     }
 
-    // Initialize Default Logo
-    const defaultLogo = createPresetLogo('seal');
-    currentLogoImg = defaultLogo.img;
-    currentLogoDataUrl = defaultLogo.dataUrl;
-
     window.addEventListener('DOMContentLoaded', () => {
-      // Universal Clipboard Paste (Ctrl+V)
+      const p = createPresetLogo('seal');
+      currentLogoImg = p.img;
+      currentLogoDataUrl = p.dataUrl;
+
       SarkariEngine.setupClipboardPaste(async (file) => {
         if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
           loadPdfFile(file);
-        } else if (file.type.startsWith('image/')) {
-          loadCustomLogoFile(file);
         }
       });
     });
@@ -316,68 +329,87 @@
       }
     });
 
-    logoFileInp.addEventListener('change', (e) => {
+    logoFileInp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
-        loadCustomLogoFile(e.target.files[0]);
+        try {
+          const res = await SarkariEngine.loadLargeImage(e.target.files[0]);
+          currentLogoImg = res.img;
+          currentLogoDataUrl = res.dataUrl;
+          document.querySelectorAll('#logoControlsWrap .category-tab').forEach(b => b.classList.remove('active'));
+          renderLivePreview();
+        } catch (err) {
+          alert('Error loading logo: ' + err.message);
+        }
       }
     });
 
     async function loadPdfFile(file) {
       activePdfFile = file;
+      SarkariEngine.showProgress('Loading PDF', 15, 'Rendering high-resolution Page 1 preview...');
+
       try {
         const buf = await file.arrayBuffer();
-        const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.2);
+        const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.3);
+
         if (pages.length > 0) {
-          const img = new Image();
-          img.onload = () => {
-            page1BaseImage = img;
-            document.getElementById('pdfDropZone').style.display = 'none';
-            studio.style.display = 'block';
-            metaLabel.textContent = `Page 1 of ${pages.length} · ${file.name}`;
-            renderLivePreview();
-          };
-          img.src = pages[0].dataUrl;
+          page1BaseImage = new Image();
+          await new Promise((res, rej) => {
+            page1BaseImage.onload = res;
+            page1BaseImage.onerror = rej;
+            page1BaseImage.src = pages[0].dataUrl;
+          });
+
+          document.getElementById('pdfDropZone').style.display = 'none';
+          studio.style.display = 'block';
+          metaLabel.textContent = `${file.name} · ${pages.length} Pages`;
+
+          SarkariEngine.hideProgress();
+          renderLivePreview();
         }
       } catch (err) {
+        SarkariEngine.hideProgress();
         alert('Error loading PDF: ' + err.message);
       }
     }
 
-    async function loadCustomLogoFile(file) {
-      try {
-        const res = await SarkariEngine.loadLargeImage(file);
-        currentLogoImg = res.img;
-        currentLogoDataUrl = res.dataUrl;
-        document.querySelectorAll('#logoControlsWrap .category-tab').forEach(b => b.classList.remove('active'));
-        switchWmMode('logo');
-        renderLivePreview();
-      } catch (err) {
-        alert('Error loading logo image: ' + err.message);
-      }
-    }
+    function switchWmMode(mode) {
+      currentMode = mode;
+      document.getElementById('tabLinkOnlyMode').classList.toggle('active', mode === 'link-only');
+      document.getElementById('tabLogoMode').classList.toggle('active', mode === 'logo');
+      document.getElementById('tabTextMode').classList.toggle('active', mode === 'text');
 
-    function switchWmMode(m) {
-      currentMode = m;
-      document.getElementById('tabLogoMode').classList.toggle('active', m === 'logo');
-      document.getElementById('tabTextMode').classList.toggle('active', m === 'text');
-      document.getElementById('logoControlsWrap').style.display = m === 'logo' ? 'block' : 'none';
-      document.getElementById('textControlsWrap').style.display = m === 'text' ? 'block' : 'none';
+      document.getElementById('linkOnlyControlsWrap').style.display = mode === 'link-only' ? 'block' : 'none';
+      document.getElementById('logoControlsWrap').style.display = mode === 'logo' ? 'block' : 'none';
+      document.getElementById('textControlsWrap').style.display = mode === 'text' ? 'block' : 'none';
+      document.getElementById('sharedWmControlsWrap').style.display = mode === 'link-only' ? 'none' : 'block';
+
+      const btn = document.getElementById('mainActionBtn');
+      if (mode === 'link-only') {
+        btn.textContent = '⬇ Embed Clickable Link & Download PDF';
+      } else {
+        btn.textContent = '⬇ Apply Watermark & Download PDF';
+      }
+
       renderLivePreview();
     }
 
     function selectPresetLogo(type, btn) {
-      if (btn) {
-        btn.parentElement.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-      const preset = createPresetLogo(type);
-      currentLogoImg = preset.img;
-      currentLogoDataUrl = preset.dataUrl;
+      document.querySelectorAll('#logoControlsWrap .category-tab').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const p = createPresetLogo(type);
+      currentLogoImg = p.img;
+      currentLogoDataUrl = p.dataUrl;
       renderLivePreview();
     }
 
     function setTextPreset(t) {
       document.getElementById('wmTextInp').value = t;
+      renderLivePreview();
+    }
+
+    function toggleLogoTextLink() {
+      const isChecked = document.getElementById('wmLogoTextLinkToggle').checked;
+      document.getElementById('logoTextLinkInputWrap').style.display = isChecked ? 'block' : 'none';
       renderLivePreview();
     }
 
@@ -393,6 +425,54 @@
       const op = parseInt(document.getElementById('wmOpacityRange').value, 10);
       opBadge.textContent = `${op}%`;
       const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
+
+      if (currentMode === 'link-only') {
+        const scope = document.getElementById('linkOnlyScopeSel').value;
+        const bannerWrap = document.getElementById('bannerTextWrap');
+        bannerWrap.style.display = (scope === 'bottom-banner' || scope === 'top-banner') ? 'block' : 'none';
+
+        const url = document.getElementById('linkOnlyUrlInp').value.trim() || 'https://ajays.is-a.dev/';
+        const bannerText = document.getElementById('bannerTextInp').value.trim() || url;
+
+        if (scope === 'bottom-banner') {
+          const bh = Math.round(previewCanvas.height * 0.05);
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+          ctx.fillRect(0, previewCanvas.height - bh, previewCanvas.width, bh);
+          ctx.fillStyle = '#60a5fa';
+          ctx.font = `bold ${Math.round(bh * 0.45)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`🔗 ${bannerText}`, previewCanvas.width / 2, previewCanvas.height - (bh / 2));
+        } else if (scope === 'top-banner') {
+          const bh = Math.round(previewCanvas.height * 0.05);
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+          ctx.fillRect(0, 0, previewCanvas.width, bh);
+          ctx.fillStyle = '#60a5fa';
+          ctx.font = `bold ${Math.round(bh * 0.45)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`🔗 ${bannerText}`, previewCanvas.width / 2, bh / 2);
+        } else {
+          // Full page invisible clickable indicator in preview
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 4;
+          ctx.setLineDash([12, 8]);
+          ctx.strokeRect(10, 10, previewCanvas.width - 20, previewCanvas.height - 20);
+          ctx.setLineDash([]);
+
+          // Badge
+          ctx.fillStyle = 'rgba(59, 130, 246, 0.90)';
+          ctx.fillRect(previewCanvas.width / 2 - 140, 20, 280, 36);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 13px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`🔗 Clickable: ${url}`, previewCanvas.width / 2, 38);
+        }
+
+        document.getElementById('livePreviewHint').textContent = `Clickable link mapped to: ${url} (No watermark on page)`;
+        return;
+      }
 
       if (currentMode === 'logo' && currentLogoImg) {
         const scalePct = parseInt(document.getElementById('logoScaleRange').value, 10);
@@ -445,8 +525,7 @@
         }
 
         ctx.restore();
-      } else {
-        // Text Watermark
+      } else if (currentMode === 'text') {
         const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
         const colVal = document.getElementById('wmColorSel').value;
 
@@ -467,6 +546,8 @@
         ctx.fillText(text, 0, 0);
         ctx.restore();
       }
+
+      document.getElementById('livePreviewHint').textContent = 'Showing real-time visual output of Page 1';
     }
 
     async function executeDownloadPdf() {
@@ -475,24 +556,21 @@
         return;
       }
 
-      const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
-      const op = parseInt(document.getElementById('wmOpacityRange').value, 10) / 100;
-
-      const isLinkEnabled = document.getElementById('wmLinkToggle').checked;
-      const linkUrl = document.getElementById('wmLinkUrlInp').value.trim();
-      const linkScope = document.getElementById('wmLinkScopeSel').value;
-
-      const hyperlink = isLinkEnabled && linkUrl ? {
-        enabled: true,
-        url: linkUrl,
-        scope: linkScope
-      } : null;
-
       try {
         const freshBuf = await activePdfFile.arrayBuffer();
         let bytes = null;
 
-        if (currentMode === 'logo') {
+        if (currentMode === 'link-only') {
+          const url = document.getElementById('linkOnlyUrlInp').value.trim() || 'https://ajays.is-a.dev/';
+          const scope = document.getElementById('linkOnlyScopeSel').value;
+          const bannerText = (scope === 'bottom-banner' || scope === 'top-banner') ? (document.getElementById('bannerTextInp').value.trim() || url) : '';
+
+          bytes = await SarkariPdfEngine.addPdfLinkOnly(freshBuf, {
+            url,
+            scope,
+            bannerText
+          });
+        } else if (currentMode === 'logo') {
           const logoSource = currentLogoImg || currentLogoDataUrl;
           if (!logoSource) {
             alert('Please select or upload a logo image.');
@@ -500,6 +578,12 @@
           }
           const scalePct = parseInt(document.getElementById('logoScaleRange').value, 10) / 100;
           const position = document.getElementById('logoPosSel').value;
+          const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
+          const op = parseInt(document.getElementById('wmOpacityRange').value, 10) / 100;
+
+          const isLink = document.getElementById('wmLogoTextLinkToggle').checked;
+          const linkUrl = document.getElementById('logoTextLinkUrlInp').value.trim();
+          const hyperlink = isLink && linkUrl ? { enabled: true, url: linkUrl, scope: 'watermark' } : null;
 
           bytes = await SarkariPdfEngine.addPdfImageWatermark(freshBuf, logoSource, {
             scale: scalePct,
@@ -511,11 +595,17 @@
         } else {
           const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
           const colVal = document.getElementById('wmColorSel').value;
+          const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
+          const op = parseInt(document.getElementById('wmOpacityRange').value, 10) / 100;
 
           let color = { r: 0.8, g: 0.2, b: 0.2 };
           if (colVal === 'gray') color = { r: 0.4, g: 0.4, b: 0.4 };
           if (colVal === 'blue') color = { r: 0.1, g: 0.3, b: 0.8 };
           if (colVal === 'green') color = { r: 0.05, g: 0.6, b: 0.4 };
+
+          const isLink = document.getElementById('wmLogoTextLinkToggle').checked;
+          const linkUrl = document.getElementById('logoTextLinkUrlInp').value.trim();
+          const hyperlink = isLink && linkUrl ? { enabled: true, url: linkUrl, scope: 'watermark' } : null;
 
           bytes = await SarkariPdfEngine.addPdfWatermark(freshBuf, text, {
             fontSize: 48,
@@ -527,16 +617,10 @@
         }
 
         const base = activePdfFile.name.replace(/\.[^/.]+$/, '');
-        SarkariPdfEngine.downloadFile(bytes, `${base}_watermarked.pdf`);
+        SarkariPdfEngine.downloadFile(bytes, `${base}_linked.pdf`);
       } catch (err) {
-        alert('Error watermarking PDF: ' + err.message);
+        alert('Error processing PDF: ' + err.message);
       }
-    }
-
-    function toggleLinkSettings() {
-      const isChecked = document.getElementById('wmLinkToggle').checked;
-      document.getElementById('wmLinkDetailsWrap').style.display = isChecked ? 'block' : 'none';
-      renderLivePreview();
     }
   </script>
 </body>

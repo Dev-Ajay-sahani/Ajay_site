@@ -125,12 +125,19 @@ const SarkariPdfEngine = (function() {
       const posX = (width / 2) - (textWidth / 2) * Math.cos((angle * Math.PI) / 180);
       const posY = (height / 2) - (textHeight / 2);
 
+      let drawColor = rgb(0.8, 0.2, 0.2);
+      if (color && typeof color.r === 'number' && typeof color.g === 'number' && typeof color.b === 'number') {
+        drawColor = rgb(color.r, color.g, color.b);
+      } else if (color && color.type === 'RGB') {
+        drawColor = color;
+      }
+
       page.drawText(watermarkText, {
         x: posX,
         y: posY,
         size: fontSize,
         font,
-        color: rgb(color.r, color.g, color.b),
+        color: drawColor,
         opacity,
         rotate: degrees(angle)
       });
@@ -171,27 +178,115 @@ const SarkariPdfEngine = (function() {
       cleanUrl = 'https://' + cleanUrl;
     }
 
-    const { PDFName, PDFString } = window.PDFLib;
-    const linkAnnot = doc.context.obj({
-      Type: 'Annot',
-      Subtype: 'Link',
-      Rect: rect, // [x1, y1, x2, y2]
-      Border: [0, 0, 0], // Invisible border
-      C: [0, 0, 0],
-      A: {
-        Type: 'Action',
-        S: 'URI',
-        URI: PDFString.of(cleanUrl)
-      }
+    const { PDFName, PDFString, PDFNumber } = window.PDFLib;
+    const [x1, y1, x2, y2] = rect;
+    const minX = Math.min(x1, x2);
+    const maxX = Math.max(x1, x2);
+    const minY = Math.min(y1, y2);
+    const maxY = Math.max(y1, y2);
+
+    const actionDict = doc.context.obj({
+      Type: PDFName.of('Action'),
+      S: PDFName.of('URI'),
+      URI: PDFString.of(cleanUrl)
     });
 
-    const linkAnnotRef = doc.context.register(linkAnnot);
-    let annots = page.node.lookup(PDFName.of('Annots'));
+    const linkAnnotDict = doc.context.obj({
+      Type: PDFName.of('Annot'),
+      Subtype: PDFName.of('Link'),
+      Rect: doc.context.obj([
+        PDFNumber.of(minX),
+        PDFNumber.of(minY),
+        PDFNumber.of(maxX),
+        PDFNumber.of(maxY)
+      ]),
+      Border: doc.context.obj([PDFNumber.of(0), PDFNumber.of(0), PDFNumber.of(0)]),
+      F: PDFNumber.of(4), // Print flag
+      A: actionDict
+    });
+
+    const linkAnnotRef = doc.context.register(linkAnnotDict);
+
+    let annots = page.node.Annots();
     if (!annots) {
       annots = doc.context.obj([]);
       page.node.set(PDFName.of('Annots'), annots);
     }
     annots.push(linkAnnotRef);
+  }
+
+  /**
+   * Add Clickable Hyperlink Annotation across PDF Pages (No Visible Watermark)
+   * @param {ArrayBuffer|Uint8Array} pdfBuffer 
+   * @param {object} options 
+   * @returns {Promise<Uint8Array>}
+   */
+  async function addPdfLinkOnly(pdfBuffer, options = {}) {
+    if (window.SarkariEngine) window.SarkariEngine.showProgress('Adding Clickable Link', 25, 'Loading PDF document...');
+    const { PDFDocument, rgb } = window.PDFLib;
+    const cloned = safeCloneBuffer(pdfBuffer);
+    const doc = await PDFDocument.load(cloned);
+
+    const {
+      url = 'https://ajays.is-a.dev/',
+      scope = 'full-page', // 'full-page', 'bottom-banner', 'top-banner'
+      bannerText = ''
+    } = options;
+
+    const pages = doc.getPages();
+    if (window.SarkariEngine) window.SarkariEngine.updateProgress(60, `Embedding clickable URL across ${pages.length} pages...`);
+
+    pages.forEach(page => {
+      const { width, height } = page.getSize();
+
+      if (scope === 'bottom-banner') {
+        const bannerH = 34;
+        addPdfLinkAnnotation(doc, page, [0, 0, width, bannerH], url);
+        if (bannerText) {
+          page.drawRectangle({
+            x: 0,
+            y: 0,
+            width,
+            height: bannerH,
+            color: rgb(0.06, 0.09, 0.16),
+            opacity: 0.90
+          });
+          page.drawText(bannerText, {
+            x: 20,
+            y: 11,
+            size: 11,
+            color: rgb(0.38, 0.53, 0.96)
+          });
+        }
+      } else if (scope === 'top-banner') {
+        const bannerH = 34;
+        addPdfLinkAnnotation(doc, page, [0, height - bannerH, width, height], url);
+        if (bannerText) {
+          page.drawRectangle({
+            x: 0,
+            y: height - bannerH,
+            width,
+            height: bannerH,
+            color: rgb(0.06, 0.09, 0.16),
+            opacity: 0.90
+          });
+          page.drawText(bannerText, {
+            x: 20,
+            y: height - bannerH + 11,
+            size: 11,
+            color: rgb(0.38, 0.53, 0.96)
+          });
+        }
+      } else {
+        // Full page clickable
+        addPdfLinkAnnotation(doc, page, [0, 0, width, height], url);
+      }
+    });
+
+    if (window.SarkariEngine) window.SarkariEngine.updateProgress(90, 'Saving linked PDF...');
+    const result = await doc.save();
+    if (window.SarkariEngine) window.SarkariEngine.hideProgress();
+    return result;
   }
 
   /**
@@ -531,9 +626,15 @@ const SarkariPdfEngine = (function() {
     rotatePdfPages,
     addPdfWatermark,
     addPdfImageWatermark,
+    addPdfLinkOnly,
     addPageNumbers,
     convertPdfToImages,
     reorderOrDeletePages,
     downloadFile
   };
 })();
+
+if (typeof window !== 'undefined') {
+  window.SarkariPdfEngine = SarkariPdfEngine;
+}
+
