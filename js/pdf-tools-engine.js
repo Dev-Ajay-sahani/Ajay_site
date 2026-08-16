@@ -122,22 +122,76 @@ const SarkariPdfEngine = (function() {
       const { width, height } = page.getSize();
       const textWidth = font.widthOfTextAtSize(watermarkText, fontSize);
       const textHeight = font.heightAtSize(fontSize);
+      const posX = (width / 2) - (textWidth / 2) * Math.cos((angle * Math.PI) / 180);
+      const posY = (height / 2) - (textHeight / 2);
 
       page.drawText(watermarkText, {
-        x: (width / 2) - (textWidth / 2) * Math.cos((angle * Math.PI) / 180),
-        y: (height / 2) - (textHeight / 2),
+        x: posX,
+        y: posY,
         size: fontSize,
         font,
         color: rgb(color.r, color.g, color.b),
         opacity,
         rotate: degrees(angle)
       });
+
+      // Interactive Clickable Hyperlink Annotation
+      if (options.hyperlink && options.hyperlink.enabled && options.hyperlink.url) {
+        const url = options.hyperlink.url;
+        if (options.hyperlink.scope === 'full-page') {
+          addPdfLinkAnnotation(doc, page, [0, 0, width, height], url);
+        } else {
+          const rectPad = 15;
+          const minX = Math.max(0, posX - rectPad);
+          const minY = Math.max(0, posY - rectPad);
+          const maxX = Math.min(width, posX + textWidth + rectPad);
+          const maxY = Math.min(height, posY + textHeight + rectPad);
+          addPdfLinkAnnotation(doc, page, [minX, minY, maxX, maxY], url);
+        }
+      }
     });
 
     if (window.SarkariEngine) window.SarkariEngine.updateProgress(90, 'Saving watermarked document...');
     const result = await doc.save();
     if (window.SarkariEngine) window.SarkariEngine.hideProgress();
     return result;
+  }
+
+  /**
+   * Embed clickable URI Link Annotation onto PDF page without interfering with zoom gestures
+   * @param {PDFDocument} doc 
+   * @param {PDFPage} page 
+   * @param {number[]} rect [x1, y1, x2, y2]
+   * @param {string} url 
+   */
+  function addPdfLinkAnnotation(doc, page, rect, url) {
+    if (!url || !url.trim()) return;
+    let cleanUrl = url.trim();
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://') && !cleanUrl.startsWith('mailto:') && !cleanUrl.startsWith('tel:')) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+
+    const { PDFName, PDFString } = window.PDFLib;
+    const linkAnnot = doc.context.obj({
+      Type: 'Annot',
+      Subtype: 'Link',
+      Rect: rect, // [x1, y1, x2, y2]
+      Border: [0, 0, 0], // Invisible border
+      C: [0, 0, 0],
+      A: {
+        Type: 'Action',
+        S: 'URI',
+        URI: PDFString.of(cleanUrl)
+      }
+    });
+
+    const linkAnnotRef = doc.context.register(linkAnnot);
+    let annots = page.node.lookup(PDFName.of('Annots'));
+    if (!annots) {
+      annots = doc.context.obj([]);
+      page.node.set(PDFName.of('Annots'), annots);
+    }
+    annots.push(linkAnnotRef);
   }
 
   /**
@@ -309,6 +363,20 @@ const SarkariPdfEngine = (function() {
           opacity,
           rotate: degrees(angle)
         });
+
+        // Interactive Clickable Hyperlink Annotation
+        if (options.hyperlink && options.hyperlink.enabled && options.hyperlink.url) {
+          const url = options.hyperlink.url;
+          if (options.hyperlink.scope === 'full-page') {
+            addPdfLinkAnnotation(doc, page, [0, 0, pWidth, pHeight], url);
+          } else {
+            addPdfLinkAnnotation(doc, page, [x, y, x + targetW, y + targetH], url);
+          }
+        }
+      }
+
+      if (position === 'tile' && options.hyperlink && options.hyperlink.enabled && options.hyperlink.url) {
+        addPdfLinkAnnotation(doc, page, [0, 0, pWidth, pHeight], options.hyperlink.url);
       }
     });
 

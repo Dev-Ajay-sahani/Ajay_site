@@ -153,6 +153,36 @@
 
             </div>
 
+            <!-- C. CLICKABLE HYPERLINK SETTINGS (NEW) -->
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-top:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:0;">
+                  <input type="checkbox" id="wmLinkToggle" onchange="toggleLinkSettings()" style="width:18px;height:18px;accent-color:var(--primary);">
+                  <span>🔗 Add Clickable Hyperlink to PDF</span>
+                </label>
+                <span class="tool-badge green" style="font-size:10px;">Safe Link</span>
+              </div>
+
+              <div id="wmLinkDetailsWrap" style="display:none;margin-top:10px;">
+                <div class="form-group" style="margin-bottom:10px;">
+                  <label class="form-label" style="font-size:12px;">Target Website / Telegram / Channel URL</label>
+                  <input type="url" class="form-input" id="wmLinkUrlInp" value="https://ajays.is-a.dev/" placeholder="https://yourwebsite.com or t.me/channel" oninput="renderLivePreview()">
+                </div>
+
+                <div class="form-group" style="margin-bottom:8px;">
+                  <label class="form-label" style="font-size:12px;">Click Action Area</label>
+                  <select class="form-select" id="wmLinkScopeSel" onchange="renderLivePreview()" style="font-size:13px;">
+                    <option value="watermark" selected>🎯 Watermark / Logo Area Only (Recommended)</option>
+                    <option value="full-page">📄 Entire Document Page (Any Click Opens Link)</option>
+                  </select>
+                </div>
+
+                <div style="font-size:11px;color:var(--text-muted);line-height:1.4;">
+                  ✨ <em>Standard PDF Link: Clicking the watermark opens your link in the reader's browser, while normal pinch-to-zoom and zoom-in/out gestures remain completely unaffected.</em>
+                </div>
+              </div>
+            </div>
+
             <button class="btn-success" onclick="executeDownloadPdf()" style="width:100%;font-size:15px;padding:14px;margin-top:16px;">⬇ Apply Watermark &amp; Download PDF</button>
           </div>
 
@@ -448,6 +478,16 @@
       const angle = parseInt(document.getElementById('wmAngleSel').value, 10);
       const op = parseInt(document.getElementById('wmOpacityRange').value, 10) / 100;
 
+      const isLinkEnabled = document.getElementById('wmLinkToggle').checked;
+      const linkUrl = document.getElementById('wmLinkUrlInp').value.trim();
+      const linkScope = document.getElementById('wmLinkScopeSel').value;
+
+      const hyperlink = isLinkEnabled && linkUrl ? {
+        enabled: true,
+        url: linkUrl,
+        scope: linkScope
+      } : null;
+
       try {
         const freshBuf = await activePdfFile.arrayBuffer();
         let bytes = null;
@@ -465,7 +505,8 @@
             scale: scalePct,
             opacity: op,
             angle,
-            position
+            position,
+            hyperlink
           });
         } else {
           const text = document.getElementById('wmTextInp').value.trim() || 'WATERMARK';
@@ -480,7 +521,8 @@
             fontSize: 48,
             angle,
             color,
-            opacity: op
+            opacity: op,
+            hyperlink
           });
         }
 
@@ -489,6 +531,12 @@
       } catch (err) {
         alert('Error watermarking PDF: ' + err.message);
       }
+    }
+
+    function toggleLinkSettings() {
+      const isChecked = document.getElementById('wmLinkToggle').checked;
+      document.getElementById('wmLinkDetailsWrap').style.display = isChecked ? 'block' : 'none';
+      renderLivePreview();
     }
   </script>
 </body>
