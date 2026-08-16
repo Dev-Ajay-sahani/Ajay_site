@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Offline Exam OMR Practice Sheet Generator &amp; Score Calculator – Sarkari Babu Tools</title>
+  <meta name="description" content="Generate printable 100/150/200 questions OMR Answer Sheets in A4 PDF format for offline test practice. Calculate raw marks and negative marking penalty.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">OMR Sheet Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🎯 Offline Test Mock Practice</span>
+      <h1 class="hero-heading">OMR Practice Sheet Generator &amp; <span class="gradient-text">Score Calculator</span></h1>
+      <p class="hero-desc">Generate official 100 / 150 / 200 questions printable A4 OMR sheets and calculate test scores with 1/3rd or 1/4th negative marking.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+        <!-- Generator Settings -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">1. OMR Sheet Generator</h3>
+
+          <div class="form-group">
+            <label class="form-label">Total Questions</label>
+            <select class="form-select" id="qCountSel" onchange="renderOmrPreview()">
+              <option value="100" selected>100 Questions (SSC CGL / Railway / Police Standard)</option>
+              <option value="150">150 Questions (CTET / State TET / UPSSSC)</option>
+              <option value="200">200 Questions (NEET / UPSC Prelims CSAT)</option>
+              <option value="50">50 Questions (Quick Practice Mock)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Options per Question</label>
+            <select class="form-select" id="optCountSel" onchange="renderOmrPreview()">
+              <option value="4" selected>4 Options: (A) (B) (C) (D)</option>
+              <option value="5">5 Options: (A) (B) (C) (D) (E) - Banking / BPSC Standard</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mock Test Title</label>
+            <input type="text" class="form-input" id="testTitleInp" value="SARKARI BABU ALL INDIA MOCK TEST 2026" oninput="renderOmrPreview()">
+          </div>
+
+          <button class="btn-success" onclick="downloadOmrPdf()" style="width:100%;padding:12px;font-size:15px;margin-top:10px;">📄 Download Printable A4 OMR Sheet (PDF)</button>
+
+          <!-- Score Calculator -->
+          <div style="margin-top:24px;border-top:1px solid var(--border-subtle);padding-top:16px;">
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">2. Quick Score Calculator</h3>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <div>
+                <label class="form-label">Correct Answers</label>
+                <input type="number" class="form-input" id="correctInp" value="75" oninput="calcScore()">
+              </div>
+              <div>
+                <label class="form-label">Wrong Answers</label>
+                <input type="number" class="form-input" id="wrongInp" value="15" oninput="calcScore()">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div>
+                <label class="form-label">Marks per Correct</label>
+                <input type="number" class="form-input" id="marksPerQ" value="2" oninput="calcScore()">
+              </div>
+              <div>
+                <label class="form-label">Negative Marking</label>
+                <select class="form-select" id="negSel" onchange="calcScore()">
+                  <option value="0.25" selected>1/4th (0.50 marks for 2 marks Q)</option>
+                  <option value="0.333">1/3rd (0.66 marks for 2 marks Q)</option>
+                  <option value="0">No Negative Marking</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:10px 14px;display:flex;justify-content:space-between;font-size:13.5px;">
+              <span>Net Raw Score: <strong style="color:var(--primary);font-size:16px;" id="netScoreVal">142.5 / 200</strong></span>
+              <span>Accuracy: <strong style="color:var(--success-text);" id="accVal">83.3%</strong></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Live OMR Sheet Canvas Preview -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">Live Sheet Preview</h3>
+
+          <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+            <canvas id="omrCanvas" style="max-height:540px;max-width:100%;object-fit:contain;background:#fff;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    const canvas = document.getElementById('omrCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function renderOmrPreview() {
+      // Standard A4
+      canvas.width = 1240;
+      canvas.height = 1754;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Header Bar
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(40, 40, canvas.width - 80, 50);
+
+      const title = document.getElementById('testTitleInp').value.trim() || 'OMR ANSWER SHEET';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(title, canvas.width / 2, 72);
+
+      // Candidate Info Box
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(40, 105, canvas.width - 80, 80);
+
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'left';
+      ctx.fillText('Candidate Name: _________________________________', 55, 135);
+      ctx.fillText('Roll No: [  ] [  ] [  ] [  ] [  ] [  ] [  ] [  ]', 55, 165);
+      ctx.fillText('Booklet Series: (A) (B) (C) (D)', 750, 135);
+      ctx.fillText('Candidate Sign: __________________', 750, 165);
+
+      // Questions Columns
+      const qCount = parseInt(document.getElementById('qCountSel').value, 10);
+      const optCount = parseInt(document.getElementById('optCountSel').value, 10);
+      const options = optCount === 5 ? ['A', 'B', 'C', 'D', 'E'] : ['A', 'B', 'C', 'D'];
+
+      const cols = qCount <= 100 ? 4 : 5;
+      const qPerCol = Math.ceil(qCount / cols);
+      const colW = (canvas.width - 80) / cols;
+      const startY = 210;
+
+      for (let q = 1; q <= qCount; q++) {
+        const colIdx = Math.floor((q - 1) / qPerCol);
+        const rowIdx = (q - 1) % qPerCol;
+
+        const x = 45 + colIdx * colW;
+        const y = startY + rowIdx * 28;
+
+        // Q Number
+        ctx.font = 'bold 12px monospace';
+        ctx.fillStyle = '#0f172a';
+        ctx.textAlign = 'right';
+        ctx.fillText(String(q).padStart(3, ' ') + '.', x + 30, y + 14);
+
+        // Bubbles
+        options.forEach((opt, oIdx) => {
+          const bx = x + 50 + oIdx * 28;
+          const by = y + 10;
+
+          ctx.beginPath();
+          ctx.arc(bx, by, 9, 0, Math.PI * 2);
+          ctx.strokeStyle = '#0f172a';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          ctx.font = 'bold 9px sans-serif';
+          ctx.fillStyle = '#0f172a';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(opt, bx, by);
+        });
+      }
+    }
+
+    function calcScore() {
+      const c = parseInt(document.getElementById('correctInp').value, 10) || 0;
+      const w = parseInt(document.getElementById('wrongInp').value, 10) || 0;
+      const marksPerQ = parseFloat(document.getElementById('marksPerQ').value) || 1;
+      const negRate = parseFloat(document.getElementById('negSel').value) || 0;
+
+      const penaltyPerWrong = marksPerQ * negRate;
+      const net = (c * marksPerQ) - (w * penaltyPerWrong);
+      const totalAttempt = c + w;
+      const acc = totalAttempt > 0 ? ((c / totalAttempt) * 100).toFixed(1) : '0';
+
+      document.getElementById('netScoreVal').textContent = `${net.toFixed(2)}`;
+      document.getElementById('accVal').textContent = `${acc}%`;
+    }
+
+    function downloadOmrPdf() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, pageW, pageH);
+      pdf.save('omr_practice_answer_sheet.pdf');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderOmrPreview();
+      calcScore();
+    });
+  </script>
+</body>
+</html>

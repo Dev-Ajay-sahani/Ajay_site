@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NTA NEET &amp; JEE Postcard Photo Studio (4×6 Inch) – Sarkari Babu Tools</title>
+  <meta name="description" content="Create 4x6 inch (10x15 cm) Postcard size photograph for NTA NEET & JEE applications. Add Candidate Name & Date of Photo with 80% face guide and target KB compression.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">NEET Postcard Photo</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🩺 Official NTA 2026 Guidelines</span>
+      <h1 class="hero-heading">NTA NEET &amp; JEE <span class="gradient-text">Postcard Photo Studio</span></h1>
+      <p class="hero-desc">Create exact 4×6 inch (10×15 cm) postcard photos with Candidate Name, Date of Photo stamp, 80% face guide, and 50KB–200KB compression.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('photoInp').click()">
+        <div class="dropzone-icon">📸</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Portrait Photo Here</div>
+        <div class="dropzone-desc">Supports large RAW/HD photos (up to 100MB) · 100% In-Browser Privacy</div>
+      </div>
+      <input type="file" id="photoInp" class="hidden-input" accept="image/*">
+
+      <!-- Studio Work Area -->
+      <div id="studioArea" style="display:none;margin-top:24px;">
+        
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;">
+
+          <!-- Left: Cropper Stage -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">1. Align 4×6 Postcard Frame</h3>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="if(cropper){cropper.rotate(-90);renderResult();}">↺ Left</button>
+                <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="if(cropper){cropper.rotate(90);renderResult();}">↻ Right</button>
+                <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="if(cropper){cropper.reset();renderResult();}">⟲ Reset</button>
+              </div>
+            </div>
+
+            <div style="position:relative;height:380px;background:#111;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border-subtle);">
+              <img id="cropperStageImg" style="max-height:100%;max-width:100%;display:block;">
+            </div>
+            
+            <div style="font-size:12px;color:var(--text-muted);margin-top:8px;display:flex;justify-content:space-between;">
+              <span>Aspect Ratio: <strong>4:6 Portrait (10×15 cm)</strong></span>
+              <span>Guide: <strong>Ensure 80% face coverage</strong></span>
+            </div>
+          </div>
+
+          <!-- Right: Controls & Preview -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">2. Name, Date &amp; Specifications</h3>
+
+            <!-- Candidate Name -->
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label">Candidate Name (Capital Letters)</label>
+              <input type="text" class="form-input" id="candName" placeholder="e.g. AJAY SAHANI" oninput="renderResult()">
+            </div>
+
+            <!-- Date of Photo -->
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label">Date of Taking Photograph (D.O.P)</label>
+              <input type="date" class="form-input" id="photoDate" oninput="renderResult()">
+            </div>
+
+            <!-- Target KB & DPI -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Target File Size</label>
+                <select class="form-select" id="targetKBSel" onchange="renderResult()">
+                  <option value="150" selected>Max 200 KB (Recommended)</option>
+                  <option value="100">Max 100 KB</option>
+                  <option value="50">Max 50 KB</option>
+                  <option value="300">Max 300 KB</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Print Quality (DPI)</label>
+                <select class="form-select" id="dpiSel" onchange="renderResult()">
+                  <option value="200" selected>200 DPI (800×1200 px)</option>
+                  <option value="300">300 DPI (1200×1800 px HD)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Result Card -->
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:12px;font-weight:700;">Live Postcard Output</span>
+                <span id="outputMetaBadge" style="font-family:var(--font-mono);font-size:11px;color:var(--primary);font-weight:700;">Calculating...</span>
+              </div>
+
+              <img id="resultImg" style="max-height:160px;max-width:100%;object-fit:contain;border:1px solid var(--border-subtle);border-radius:4px;background:#fff;box-shadow:var(--shadow-sm);margin-bottom:12px;">
+
+              <div style="display:flex;gap:8px;">
+                <button class="btn-success" id="downloadBtn" onclick="downloadPostcard()" style="flex:1;padding:10px;font-size:14px;">⬇ Download Postcard Photo</button>
+                <button class="btn-secondary" onclick="passToNextTool()" style="padding:10px 14px;font-size:13px;" title="Transfer to another tool">⚡ Next Tool</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let cropper = null;
+    let currentResultBlob = null;
+    let currentResultDataUrl = null;
+
+    const inp = document.getElementById('photoInp');
+    const stageImg = document.getElementById('cropperStageImg');
+    const dropZone = document.getElementById('dropZone');
+    const studioArea = document.getElementById('studioArea');
+    const resultImg = document.getElementById('resultImg');
+    const metaBadge = document.getElementById('outputMetaBadge');
+
+    // Default Today's Date
+    document.getElementById('photoDate').valueAsDate = new Date();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type.startsWith('image/')) loadFile(file);
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+    });
+
+    async function loadFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        stageImg.src = res.dataUrl;
+        dropZone.style.display = 'none';
+        studioArea.style.display = 'block';
+
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(stageImg, {
+          aspectRatio: 4 / 6, // 4x6 inch
+          viewMode: 1,
+          autoCropArea: 0.95,
+          responsive: true,
+          ready: () => renderResult(),
+          cropend: () => renderResult()
+        });
+      } catch (err) {
+        alert('Error loading image: ' + err.message);
+      }
+    }
+
+    async function renderResult() {
+      if (!cropper) return;
+
+      const dpi = parseInt(document.getElementById('dpiSel').value, 10);
+      const targetKB = parseInt(document.getElementById('targetKBSel').value, 10);
+      const targetW = dpi === 300 ? 1200 : 800;
+      const targetH = dpi === 300 ? 1800 : 1200;
+
+      const croppedCanvas = cropper.getCroppedCanvas({
+        width: targetW,
+        height: targetH,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+      });
+
+      if (!croppedCanvas) return;
+
+      const name = document.getElementById('candName').value.trim();
+      const dateVal = document.getElementById('photoDate').value;
+      let dateStr = '';
+      if (dateVal) {
+        const d = new Date(dateVal);
+        dateStr = `D.O.P: ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+      }
+
+      let finalCanvas = croppedCanvas;
+      if (name || dateStr) {
+        finalCanvas = SarkariEngine.addNameAndDateToPhoto(croppedCanvas, name, dateStr, {
+          barHeightRatio: 0.12,
+          textColor: '#000000',
+          bgColor: '#ffffff'
+        });
+      }
+
+      const res = await SarkariEngine.compressToTargetKB(finalCanvas, targetKB, 'image/jpeg');
+      currentResultBlob = res.blob;
+      currentResultDataUrl = res.url;
+      resultImg.src = res.url;
+      metaBadge.textContent = `${res.sizeKB} KB · ${targetW}×${targetH}px (${dpi} DPI)`;
+    }
+
+    function downloadPostcard() {
+      if (!currentResultBlob) return;
+      SarkariEngine.triggerDownload(currentResultBlob, 'NEET_Postcard_4x6_Photo.jpg');
+    }
+
+    function passToNextTool() {
+      if (!currentResultDataUrl) return;
+      SarkariPipeline.passTo('jpg-to-pdf.html', currentResultDataUrl, {
+        sourceTool: 'neet-postcard-photo',
+        width: 800,
+        height: 1200
+      });
+    }
+  </script>
+</body>
+</html>

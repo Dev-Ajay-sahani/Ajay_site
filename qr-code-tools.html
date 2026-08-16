@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cyber Cafe Instant QR Code Generator &amp; Scanner – Sarkari Babu Tools</title>
+  <meta name="description" content="Generate instant QR codes for Admit Card links, Result URLs, UPI Fee payment, and roll numbers. Share links directly to customer mobile phones. 100% private.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Cyber Cafe QR Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">📲 Cyber Cafe Fast Link Transfer</span>
+      <h1 class="hero-heading">Instant QR Code <span class="gradient-text">Generator &amp; Scanner</span></h1>
+      <p class="hero-desc">Generate instant QR codes to transfer admit card links, exam results, or UPI fee payments directly to customer mobile phones.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;">
+
+        <!-- Generator Controls -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">1. Choose Template &amp; Enter Data</h3>
+
+          <!-- Template Tabs -->
+          <div class="form-group">
+            <label class="form-label">Quick Template</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="category-tab active" id="btnTplUrl" onclick="setTemplate('url', this)">🔗 Admit Card / Result URL</button>
+              <button class="category-tab" id="btnTplUpi" onclick="setTemplate('upi', this)">💳 UPI Fee Payment</button>
+              <button class="category-tab" id="btnTplText" onclick="setTemplate('text', this)">📝 Text / Roll No</button>
+            </div>
+          </div>
+
+          <!-- URL / Link Input -->
+          <div class="form-group" id="urlWrap">
+            <label class="form-label">Admit Card / Portal Web Link (URL)</label>
+            <input type="url" class="form-input" id="qrUrlInp" value="https://ssc.gov.in/login" oninput="generateQR()">
+          </div>
+
+          <!-- UPI Form (Conditional) -->
+          <div id="upiWrap" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">UPI ID / VPA</label>
+              <input type="text" class="form-input" id="upiVpaInp" placeholder="e.g. cybercafe@upi" oninput="generateQR()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Application Fee Amount (₹)</label>
+              <input type="number" class="form-input" id="upiAmtInp" placeholder="100" oninput="generateQR()">
+            </div>
+          </div>
+
+          <!-- Custom Text Form (Conditional) -->
+          <div id="textWrap" style="display:none;" class="form-group">
+            <label class="form-label">Registration / Roll Number &amp; Password</label>
+            <textarea class="form-input" id="qrTextInp" rows="3" oninput="generateQR()">Reg No: 2201004589&#10;DOB: 15/08/2000</textarea>
+          </div>
+
+          <!-- QR Customization -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group">
+              <label class="form-label">QR Code Size</label>
+              <select class="form-select" id="qrSizeSel" onchange="generateQR()">
+                <option value="256" selected>256 × 256 px (Medium)</option>
+                <option value="400">400 × 400 px (Large / Print)</option>
+                <option value="180">180 × 180 px (Compact)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">QR Color Theme</label>
+              <select class="form-select" id="qrColorSel" onchange="generateQR()">
+                <option value="#0f172a" selected>Classic Black</option>
+                <option value="#1e3a8a">Official Navy Blue</option>
+                <option value="#059669">Verified Green</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <button class="btn-success" onclick="downloadQrPng()" style="flex:1;padding:12px;font-size:14px;">⬇ Download QR Image (PNG)</button>
+          </div>
+
+        </div>
+
+        <!-- Live QR Code Display -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">2. Scan with Phone Camera</h3>
+
+          <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:24px;text-align:center;">
+            
+            <div id="qrcodeBox" style="display:inline-block;padding:14px;background:#ffffff;border-radius:12px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);"></div>
+            
+            <div style="font-size:13px;font-weight:700;margin-top:14px;color:var(--text-primary);" id="qrCaptionLabel">Admit Card Link</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Customer can open camera app on Android/iPhone to instantly open this link.</div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let qrcode = null;
+    let currentTemplate = 'url';
+
+    function setTemplate(t, btn) {
+      currentTemplate = t;
+      if (btn) {
+        btn.parentElement.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
+      document.getElementById('urlWrap').style.display = t === 'url' ? 'block' : 'none';
+      document.getElementById('upiWrap').style.display = t === 'upi' ? 'block' : 'none';
+      document.getElementById('textWrap').style.display = t === 'text' ? 'block' : 'none';
+
+      generateQR();
+    }
+
+    function generateQR() {
+      let qrText = '';
+      const caption = document.getElementById('qrCaptionLabel');
+
+      if (currentTemplate === 'url') {
+        qrText = document.getElementById('qrUrlInp').value.trim() || 'https://ssc.gov.in';
+        caption.textContent = '🔗 Scan to Open Admit Card / Result Portal';
+      } else if (currentTemplate === 'upi') {
+        const vpa = document.getElementById('upiVpaInp').value.trim() || 'cybercafe@upi';
+        const amt = document.getElementById('upiAmtInp').value.trim() || '100';
+        qrText = `upi://pay?pa=${vpa}&pn=CyberCafe&am=${amt}&cu=INR`;
+        caption.textContent = `💳 Scan with GPay / PhonePe / Paytm to Pay ₹${amt}`;
+      } else {
+        qrText = document.getElementById('qrTextInp').value.trim() || 'Reg No: 12345';
+        caption.textContent = '📝 Scan to Copy Registration Details';
+      }
+
+      const size = parseInt(document.getElementById('qrSizeSel').value, 10);
+      const color = document.getElementById('qrColorSel').value;
+      const box = document.getElementById('qrcodeBox');
+      box.innerHTML = '';
+
+      qrcode = new QRCode(box, {
+        text: qrText,
+        width: size,
+        height: size,
+        colorDark: color,
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    function downloadQrPng() {
+      const img = document.querySelector('#qrcodeBox img');
+      if (img && img.src) {
+        const a = document.createElement('a');
+        a.href = img.src;
+        a.download = 'cyber_cafe_qr_code.png';
+        a.click();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', generateQR);
+  </script>
+</body>
+</html>

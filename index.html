@@ -69,294 +69,560 @@
     <!-- Search Input -->
     <div class="search-container">
       <span class="search-icon">🔍</span>
-      <input type="search" id="toolSearch" class="search-input" placeholder="Search 20+ tools (e.g. Custom Size, SSC DOP, PAN Card, Merge PDF, Watermark, Compress)..." oninput="filterTools()">
+      <input type="search" id="toolSearch" class="search-input" placeholder="Search 50 tools (e.g. Custom Size, SSC DOP, PAN Card, Merge PDF, Watermark, Compress)..." oninput="filterTools()">
     </div>
 
-    <!-- Category Filter Tabs -->
+        <!-- Category Filter Tabs -->
     <div class="category-tabs">
-      <button class="category-tab active" onclick="setCategory('all', this)">🔥 All Tools (20+)</button>
+      <button class="category-tab active" onclick="setCategory('all', this)">🔥 All Tools (50)</button>
       <button class="category-tab" onclick="setCategory('sarkari', this)">🇮🇳 Sarkari Exam Portals</button>
+      <button class="category-tab" onclick="setCategory('photo', this)">📸 Photo &amp; Signature</button>
       <button class="category-tab" onclick="setCategory('pdf', this)">📄 PDF Tools</button>
-      <button class="category-tab" onclick="setCategory('image', this)">🖼️ Image Tools</button>
+      <button class="category-tab" onclick="setCategory('card', this)">🆔 Cards &amp; Certificates</button>
+      <button class="category-tab" onclick="setCategory('calc', this)">🧮 Calculators &amp; Helpers</button>
     </div>
   </section>
 
-  <!-- Main Tools Grid -->
+    <!-- Main Tools Grid (50 Tools) -->
   <main class="tools-grid" id="toolsGrid">
 
-    <!-- 0. Custom Dimension & Size Chooser Studio (NEW) -->
+    <!-- Custom Dimension & Size Chooser -->
     <a href="./custom-tool.html" class="tool-card" data-category="sarkari image custom dimensions size width height crop dpi pixel cm mm" style="border: 1.5px solid var(--primary);">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#6366F1;">📐</div>
+        <div class="tool-icon-wrap">📐</div>
         <span class="tool-badge green">⭐ CUSTOM STUDIO</span>
       </div>
-      <div class="tool-title">Custom Dimension &amp; Size Chooser</div>
+      <div class="tool-title">Custom Dimension & Size Chooser</div>
       <div class="tool-desc">Set custom Width, Height, Units (px/cm/mm/in), DPI (200-600), and custom KB. Dynamic crop box matches your exact aspect ratio.</div>
-      <div class="tool-footer-link" style="color:var(--primary);font-weight:800;">Open Custom Studio →</div>
+      <div class="tool-footer-link">Open Custom Studio →</div>
     </a>
 
-    <!-- 1. Dedicated PAN Card Photo Studio (NEW) -->
+    <!-- Smart Photo & Document Compressor -->
+    <a href="./image-compressor.html" class="tool-card" data-category="image compressor reduce kb resize ssc upsc size mb to kb">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">⚡</div>
+        <span class="tool-badge green">20KB - 200KB</span>
+      </div>
+      <div class="tool-title">Smart Photo & Document Compressor</div>
+      <div class="tool-desc">Compress photos and scanned certificates to exact government target sizes (20KB, 50KB, 100KB, 200KB) without blurry text.</div>
+      <div class="tool-footer-link">Compress Image KB →</div>
+    </a>
+
+    <!-- PAN Card Photo Resizer -->
     <a href="./pan-photo.html" class="tool-card" data-category="sarkari pan nsdl uti photo 213x213 2.5x3.5cm 300dpi">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#4F46E5;">💳</div>
-        <span class="tool-badge blue">NSDL &amp; UTIITSL</span>
+        <div class="tool-icon-wrap">💳</div>
+        <span class="tool-badge blue">NSDL & UTIITSL</span>
       </div>
       <div class="tool-title">PAN Card Photo Resizer</div>
-      <div class="tool-desc">Exact presets for NSDL (2.5×3.5 cm &lt;50KB) and UTIITSL (213×213 px, 300 DPI &lt;30KB).</div>
+      <div class="tool-desc">Exact presets for NSDL (2.5×3.5 cm <50KB) and UTIITSL (213×213 px, 300 DPI <30KB).</div>
       <div class="tool-footer-link">Open PAN Photo Studio →</div>
     </a>
 
-    <!-- 1.1 Dedicated PAN & Govt Signature Studio (NEW) -->
+    <!-- PAN & Exam Signature Resizer -->
     <a href="./pan-signature.html" class="tool-card" data-category="sarkari signature pan nsdl uti ssc upsc ibps parivahan ink booster">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#0284C7;">✍️</div>
+        <div class="tool-icon-wrap">✍️</div>
         <span class="tool-badge yellow">✨ Ink Booster</span>
       </div>
-      <div class="tool-title">PAN &amp; Exam Signature Resizer</div>
-      <div class="tool-desc">UTIITSL (400×200 px), NSDL (2×4.5 cm), SSC (4×2 cm) &amp; IBPS (140×60 px) with auto shadow cleanup.</div>
-      <div class="tool-footer-link">Crop &amp; Boost Signature →</div>
+      <div class="tool-title">PAN & Exam Signature Resizer</div>
+      <div class="tool-desc">UTIITSL (400×200 px), NSDL (2×4.5 cm), SSC (4×2 cm) & IBPS (140×60 px) with auto shadow cleanup.</div>
+      <div class="tool-footer-link">Crop & Boost Signature →</div>
     </a>
 
-    <!-- 1.2 Aadhaar Card Front & Back Formatter (NEW) -->
-    <a href="./aadhaar-formatter.html" class="tool-card" data-category="sarkari aadhaar card formatter merger front back a4 sheet print">
+    <!-- Aadhaar Front & Back Formatter -->
+    <a href="./aadhaar-formatter.html" class="tool-card" data-category="sarkari card aadhaar card formatter merger front back a4 sheet print">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#10B981;">🆔</div>
-        <span class="tool-badge green">A4 &amp; Combined JPG</span>
+        <div class="tool-icon-wrap">🆔</div>
+        <span class="tool-badge green">A4 & Combined JPG</span>
       </div>
-      <div class="tool-title">Aadhaar Front &amp; Back Formatter</div>
-      <div class="tool-desc">Crop Front &amp; Back sides and merge into single printable A4 sheet or combined JPG file.</div>
+      <div class="tool-title">Aadhaar Front & Back Formatter</div>
+      <div class="tool-desc">Crop Front & Back sides and merge into single printable A4 sheet or combined JPG file.</div>
       <div class="tool-footer-link">Format Aadhaar Card →</div>
     </a>
 
-    <!-- 1.3 iPhone HEIC to JPG Converter (NEW) -->
-    <a href="./heic-to-jpg.html" class="tool-card" data-category="image iphone heic heif to jpg converter convert apple">
+    <!-- Masked Aadhaar Card Generator -->
+    <a href="./masked-aadhaar.html" class="tool-card" data-category="sarkari card aadhaar masked privacy uidai 8 digits">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#EC4899;">📱</div>
-        <span class="tool-badge red">iPhone to JPG</span>
+        <div class="tool-icon-wrap">🔒</div>
+        <span class="tool-badge blue">UIDAI Compliant</span>
       </div>
-      <div class="tool-title">iPhone HEIC to JPG Converter</div>
-      <div class="tool-desc">Convert Apple iPhone .HEIC photos directly to high-res .JPG format for govt portals.</div>
-      <div class="tool-footer-link">Convert iPhone Photos →</div>
+      <div class="tool-title">Masked Aadhaar Card Generator</div>
+      <div class="tool-desc">Auto-mask first 8 digits (XXXX XXXX 1234) while keeping photo and QR code clean for safe govt uploads.</div>
+      <div class="tool-footer-link">Generate Masked Aadhaar →</div>
     </a>
 
-    <!-- 2. SSC Photo with DOP & Name -->
-    <a href="#quick-crop-ssc" class="tool-card" data-category="sarkari ssc cgl chsl mts gd dop photo signature" onclick="openQuickModal('ssc')">
+    <!-- Passport Photo Studio & Name/Date Stamp -->
+    <a href="./passport-photo.html" class="tool-card" data-category="sarkari image photo passport 3.5x4.5 name date stamp print a4 sheet">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#EC4899;">📸</div>
-        <span class="tool-badge red">SSC CGL / CHSL</span>
+        <div class="tool-icon-wrap">📸</div>
+        <span class="tool-badge purple">8/12/16 A4 Sheet</span>
       </div>
-      <div class="tool-title">SSC Photo with DOP Banner</div>
-      <div class="tool-desc">Adds Candidate Name &amp; Date of Photo (DOP) on bottom white strip. 3.5×4.5 cm (20–50 KB).</div>
-      <div class="tool-footer-link">Generate SSC Photo →</div>
+      <div class="tool-title">Passport Photo Studio & Name/Date Stamp</div>
+      <div class="tool-desc">3.5×4.5 cm standard passport crop with Candidate Name & Date of Photo (DOP) overlay, plus multi-photo A4 print grid.</div>
+      <div class="tool-footer-link">Create Passport Photo →</div>
     </a>
 
-    <!-- 3. UPSC Civil Services & NDA Studio -->
-    <a href="#quick-crop-upsc" class="tool-card" data-category="sarkari upsc cse ias ips nda cds 300dpi" onclick="openQuickModal('upsc')">
+    <!-- NEET & JEE Postcard Photo Studio -->
+    <a href="./neet-postcard-photo.html" class="tool-card" data-category="sarkari photo neet jee nta postcard 4x6 10x15 name date dop">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#F59E0B;">🏛️</div>
-        <span class="tool-badge yellow">300 DPI HD</span>
+        <div class="tool-icon-wrap">🩺</div>
+        <span class="tool-badge red">4×6 Inch (10×15 cm)</span>
       </div>
-      <div class="tool-title">UPSC CSE &amp; NDA Studio</div>
-      <div class="tool-desc">3.5×4.5 cm at crisp 300 DPI (20–300 KB) with recent date printing per UPSC 2026 rules.</div>
-      <div class="tool-footer-link">Crop for UPSC →</div>
+      <div class="tool-title">NEET & JEE Postcard Photo Studio</div>
+      <div class="tool-desc">Official 4×6 inch (10×15 cm) postcard photo maker with Candidate Name, Date of Photo stamp & 80% face guide.</div>
+      <div class="tool-footer-link">Open NEET Postcard Studio →</div>
     </a>
 
-    <!-- 3.1 Banking Handwritten Declaration Studio -->
-    <a href="./banking-declaration.html" class="tool-card" data-category="sarkari ibps sbi rbi banking declaration 800x400">
+    <!-- Govt Photo Background Color Changer -->
+    <a href="./bg-color-changer.html" class="tool-card" data-category="image photo background white sky blue ssc upsc passport">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#2563EB;">📝</div>
-        <span class="tool-badge blue">800 × 400 PX</span>
+        <div class="tool-icon-wrap">🎨</div>
+        <span class="tool-badge blue">Solid White / Blue</span>
       </div>
-      <div class="tool-title">Banking Handwritten Declaration</div>
-      <div class="tool-desc">IBPS PO/Clerk &amp; SBI PO official English text generator &amp; scanned paper cropper (50–100 KB).</div>
-      <div class="tool-footer-link">Open Declaration Studio →</div>
+      <div class="tool-title">Govt Photo Background Color Changer</div>
+      <div class="tool-desc">1-Click replace cluttered domestic backgrounds with compliant Solid White or Sky Blue for SSC & UPSC.</div>
+      <div class="tool-footer-link">Change Background Color →</div>
     </a>
 
-    <!-- 4. Watermark Studio (Interactive) -->
-    <a href="./watermark-image.html" class="tool-card" data-category="image watermark stamp text logo copyright move resize rotate">
+    <!-- Thumb Impression Inverter & Mirror -->
+    <a href="./thumb-inverter.html" class="tool-card" data-category="sarkari signature thumb lti rti mirror invert flip ridge">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#0284C7;">💧</div>
-        <span class="tool-badge blue">Move &amp; Rotate</span>
+        <div class="tool-icon-wrap">🖐️</div>
+        <span class="tool-badge yellow">LTI ⇄ RTI Mirror</span>
       </div>
-      <div class="tool-title">Interactive Watermark Studio</div>
-      <div class="tool-desc">Overlay custom logo or text watermark. Drag to move, resize, rotate, and batch export to ZIP/PDF.</div>
-      <div class="tool-footer-link">Open Watermark Studio →</div>
+      <div class="tool-title">Thumb Impression Inverter & Mirror</div>
+      <div class="tool-desc">Mirror Left Thumb to Right Thumb, flip upside down, and boost fingerprint ridge clarity for SSC/IBPS.</div>
+      <div class="tool-footer-link">Invert / Mirror Thumb →</div>
     </a>
 
-    <!-- 5. Exact Target KB Compressor -->
-    <a href="./image-compressor.html" class="tool-card" data-category="image compress reduce size exact kb 20kb 50kb 100kb parivahan">
+    <!-- SSC & Govt Live Webcam Photo Studio -->
+    <a href="./webcam-photo-capture.html" class="tool-card" data-category="sarkari photo webcam live ssc upsc face capture camera">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#10B981;">🗜️</div>
-        <span class="tool-badge green">Zero Loss</span>
+        <div class="tool-icon-wrap">📷</div>
+        <span class="tool-badge green">Live Capture</span>
       </div>
-      <div class="tool-title">Compress to Target KB (Parivahan)</div>
-      <div class="tool-desc">Compress strictly under 10–20 KB (Sarathi DL), 50 KB (Photo), 100 KB, or 200 KB with live quality slider.</div>
-      <div class="tool-footer-link">Launch Compressor →</div>
+      <div class="tool-title">SSC & Govt Live Webcam Photo Studio</div>
+      <div class="tool-desc">Capture compliant live webcam photos with face oval alignment guide, brightness meter, and 20KB-50KB compression.</div>
+      <div class="tool-footer-link">Start Live Camera →</div>
     </a>
 
-    <!-- 6. Passport & Postcard Studio (GPSP 2.0) -->
-    <a href="./passport-photo.html" class="tool-card" data-category="sarkari passport photo postcard 4x6 neet sheet printable seva 630x810">
+    <!-- Photo Border & Scissor Print Margin Studio -->
+    <a href="./photo-border-maker.html" class="tool-card" data-category="image photo border scissor print 4x6 a4 photo paper cyber cafe">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#8B5CF6;">📷</div>
-        <span class="tool-badge blue">630×810 &amp; Sheet</span>
+        <div class="tool-icon-wrap">✂️</div>
+        <span class="tool-badge purple">300 DPI Print</span>
       </div>
-      <div class="tool-title">Passport &amp; Postcard Studio</div>
-      <div class="tool-desc">Passport Seva GPSP 2.0 (630×810 px), Indian Passport (3.5×4.5 cm), NEET Postcard (4×6 in) &amp; A4 print sheets.</div>
-      <div class="tool-footer-link">Make Passport Photos →</div>
+      <div class="tool-title">Photo Border & Scissor Print Margin Studio</div>
+      <div class="tool-desc">Add thin classic borders, scissor cutting guidelines, and create 300 DPI print sheets for 4×6 and A4 photo paper.</div>
+      <div class="tool-footer-link">Add Photo Borders →</div>
     </a>
 
-    <!-- 7. Merge PDF -->
-    <a href="./merge-pdf.html" class="tool-card" data-category="pdf merge combine documents">
+    <!-- Photo & Signature Joiner -->
+    <a href="./photo-signature-joiner.html" class="tool-card" data-category="sarkari image photo signature join merge combo ssc vyapam">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#EC4899;">📄</div>
-        <span class="tool-badge red">Page Previews</span>
+        <div class="tool-icon-wrap">🔗</div>
+        <span class="tool-badge purple">Combo Studio</span>
       </div>
-      <div class="tool-title">Merge PDF Documents</div>
-      <div class="tool-desc">Combine multiple PDF files with visual cover page previews. 100% in-browser memory.</div>
-      <div class="tool-footer-link">Merge PDFs Now →</div>
+      <div class="tool-title">Photo & Signature Joiner</div>
+      <div class="tool-desc">Join candidate passport photo and signature into a single unified image file (SSC, Vyapam, Railway format).</div>
+      <div class="tool-footer-link">Join Photo & Signature →</div>
     </a>
 
-    <!-- 8. Split PDF -->
-    <a href="./split-pdf.html" class="tool-card" data-category="pdf split extract pages range">
+    <!-- Thumb Impression Enhancer -->
+    <a href="./thumb-enhancer.html" class="tool-card" data-category="sarkari image thumb impression enhance lti fingerprint ink">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#F59E0B;">✂️</div>
-        <span class="tool-badge yellow">Interactive Grid</span>
-      </div>
-      <div class="tool-title">Split &amp; Extract PDF</div>
-      <div class="tool-desc">Extract specific pages with visual interactive page grid thumbnail previews.</div>
-      <div class="tool-footer-link">Split PDF →</div>
-    </a>
-
-    <!-- 9. PDF to JPG Converter -->
-    <a href="./pdf-to-jpg.html" class="tool-card" data-category="pdf to jpg convert images">
-      <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#10B981;">🖼️</div>
-        <span class="tool-badge green">High Resolution</span>
-      </div>
-      <div class="tool-title">PDF to High-Res JPG</div>
-      <div class="tool-desc">Convert all pages of any PDF into crisp JPG images with live preview gallery.</div>
-      <div class="tool-footer-link">Convert PDF to Images →</div>
-    </a>
-
-    <!-- 9.1 Password Protect PDF (NEW) -->
-    <a href="./protect-pdf.html" class="tool-card" data-category="pdf protect password encrypt lock security">
-      <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#6366F1;">🔒</div>
-        <span class="tool-badge blue">Encryption</span>
-      </div>
-      <div class="tool-title">Password Protect PDF</div>
-      <div class="tool-desc">Secure salary slips, bank statements, and certificates with client-side password encryption.</div>
-      <div class="tool-footer-link">Protect PDF →</div>
-    </a>
-
-    <!-- 9.2 Unlock PDF Password (NEW) -->
-    <a href="./unlock-pdf.html" class="tool-card" data-category="pdf unlock password remove decrypt e-aadhaar e-pan">
-      <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#10B981;">🔓</div>
-        <span class="tool-badge green">Decrypt PDF</span>
-      </div>
-      <div class="tool-title">Unlock PDF Password</div>
-      <div class="tool-desc">Remove password restrictions from e-Aadhaar, e-PAN, and bank statements for easy printing.</div>
-      <div class="tool-footer-link">Unlock PDF →</div>
-    </a>
-
-    <!-- 10. Watermark PDF -->
-    <a href="./watermark-pdf.html" class="tool-card" data-category="pdf watermark stamp confidential draft">
-      <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#0284C7;">💧</div>
-        <span class="tool-badge blue">Page 1 Preview</span>
-      </div>
-      <div class="tool-title">Watermark PDF Files</div>
-      <div class="tool-desc">Stamp text watermarks (CONFIDENTIAL, DRAFT) with real-time visual canvas preview.</div>
-      <div class="tool-footer-link">Watermark PDF →</div>
-    </a>
-
-    <!-- 11. Thumb Impression Enhancer -->
-    <a href="./thumb-enhancer.html" class="tool-card" data-category="sarkari thumb impression scanner ibps sbi police">
-      <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#F97316;">👍</div>
-        <span class="tool-badge yellow">Live B&amp;W</span>
+        <div class="tool-icon-wrap">👆</div>
+        <span class="tool-badge yellow">High Contrast</span>
       </div>
       <div class="tool-title">Thumb Impression Enhancer</div>
-      <div class="tool-desc">Turn faint ink stamps into crisp, high-contrast black &amp; white ridge scans strictly &lt;50 KB.</div>
-      <div class="tool-footer-link">Enhance Thumb Stamp →</div>
+      <div class="tool-desc">Enhance blue/black ink thumb impressions, remove smudge, and boost ridge lines for central/state exams.</div>
+      <div class="tool-footer-link">Enhance Thumb Print →</div>
     </a>
 
-    <!-- 12. Photo + Signature Joiner -->
-    <a href="./photo-signature-joiner.html" class="tool-card" data-category="sarkari photo signature joiner upsssc mppeb vyapam">
+    <!-- Document Scanner & Enhancer -->
+    <a href="./document-scanner.html" class="tool-card" data-category="image document scan enhance filter marksheet certificate magic">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#4F46E5;">🤝</div>
-        <span class="tool-badge blue">Combined Preview</span>
+        <div class="tool-icon-wrap">📑</div>
+        <span class="tool-badge blue">Magic Color & B/W</span>
       </div>
-      <div class="tool-title">Photo + Signature Joiner</div>
-      <div class="tool-desc">Combines Photo on top (70%) and Signature on bottom (30%) into 1 single file under 50 KB.</div>
-      <div class="tool-footer-link">Join Photo &amp; Sig →</div>
+      <div class="tool-title">Document Scanner & Enhancer</div>
+      <div class="tool-desc">Turn mobile camera photos of certificates and marksheets into crisp, professional scanned documents with clean white background.</div>
+      <div class="tool-footer-link">Scan & Enhance Document →</div>
     </a>
 
-    <!-- 13. Document & Marksheet Scanner -->
-    <a href="./document-scanner.html" class="tool-card" data-category="sarkari document marksheet certificate scanner">
+    <!-- Banking Handwritten Declaration Studio -->
+    <a href="./banking-declaration.html" class="tool-card" data-category="sarkari image declaration ibps sbi banking handwritten rbi">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#10B981;">📑</div>
-        <span class="tool-badge green">Shadow Removal</span>
+        <div class="tool-icon-wrap">✍️</div>
+        <span class="tool-badge green">IBPS & SBI Standard</span>
       </div>
-      <div class="tool-title">Document &amp; Marksheet Scanner</div>
-      <div class="tool-desc">Cleans paper shadows and yellow tint with live visual before/after preview.</div>
-      <div class="tool-footer-link">Scan Documents →</div>
+      <div class="tool-title">Banking Handwritten Declaration Studio</div>
+      <div class="tool-desc">Auto-generate official IBPS/SBI text, copy with your name, and enhance scanned handwritten declaration (50-100KB).</div>
+      <div class="tool-footer-link">Create Declaration →</div>
     </a>
 
-    <!-- 14. Resize Image -->
-    <a href="./resize-image.html" class="tool-card" data-category="image resize dimensions pixels percentage">
+    <!-- Voter ID (EPIC) Card Print Formatter -->
+    <a href="./voter-id-formatter.html" class="tool-card" data-category="card voter id epic pvc print a4">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#EC4899;">📐</div>
-        <span class="tool-badge red">Pixels &amp; %</span>
+        <div class="tool-icon-wrap">🗳️</div>
+        <span class="tool-badge blue">PVC & A4 Print</span>
       </div>
-      <div class="tool-title">Resize Images (Batch)</div>
-      <div class="tool-desc">Resize single or batch photos by exact dimensions or scale percentage with live preview.</div>
+      <div class="tool-title">Voter ID (EPIC) Card Print Formatter</div>
+      <div class="tool-desc">Format Voter ID Front and Back sides into official PVC dimensions (8.6 × 5.4 cm) or a printable A4 sheet.</div>
+      <div class="tool-footer-link">Format Voter ID →</div>
+    </a>
+
+    <!-- Driving License & RC Card Formatter -->
+    <a href="./dl-rc-formatter.html" class="tool-card" data-category="card dl rc driving license vehicle pvc print">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🚗</div>
+        <span class="tool-badge blue">Parivahan Standard</span>
+      </div>
+      <div class="tool-title">Driving License & RC Card Formatter</div>
+      <div class="tool-desc">Combine Driving License (DL) or Vehicle RC Front & Back sides into official PVC card or single-sheet layouts.</div>
+      <div class="tool-footer-link">Format DL & RC →</div>
+    </a>
+
+    <!-- State e-District Certificate Optimizer -->
+    <a href="./edistrict-certificate-optimizer.html" class="tool-card" data-category="sarkari card certificate edistrict caste income domicile up bihar mp">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📜</div>
+        <span class="tool-badge green">UP/Bihar/MP e-District</span>
+      </div>
+      <div class="tool-title">State e-District Certificate Optimizer</div>
+      <div class="tool-desc">Optimize Caste, Income, Domicile, and EWS certificates to exact 50KB–100KB limits required by state portal servers.</div>
+      <div class="tool-footer-link">Optimize Certificate →</div>
+    </a>
+
+    <!-- Ration Card Member & Quota Formatter -->
+    <a href="./ration-card-formatter.html" class="tool-card" data-category="card ration card scholarship quota member proof">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🌾</div>
+        <span class="tool-badge yellow">Scholarship Proof</span>
+      </div>
+      <div class="tool-title">Ration Card Member & Quota Formatter</div>
+      <div class="tool-desc">Crop and format Ration Card Head details and family member units into clean printable documents for scholarships.</div>
+      <div class="tool-footer-link">Format Ration Card →</div>
+    </a>
+
+    <!-- Self-Attestation Digital Stamping Studio -->
+    <a href="./self-attestation-stamper.html" class="tool-card" data-category="card certificate self attestation stamp verify date signature">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🏛️</div>
+        <span class="tool-badge purple">Verified Copy Stamp</span>
+      </div>
+      <div class="tool-title">Self-Attestation Digital Stamping Studio</div>
+      <div class="tool-desc">Stamp 'Self Attested', Today's Date, and your Signature directly onto document copies before uploading.</div>
+      <div class="tool-footer-link">Stamp Self-Attestation →</div>
+    </a>
+
+    <!-- Multi-Certificate A4 Collage Maker -->
+    <a href="./certificate-collage-maker.html" class="tool-card" data-category="card certificate collage merge multiple a4 10th 12th marksheet">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📑</div>
+        <span class="tool-badge green">2-4 Docs on 1 A4</span>
+      </div>
+      <div class="tool-title">Multi-Certificate A4 Collage Maker</div>
+      <div class="tool-desc">Combine 10th marksheet, 12th marksheet, caste certificate, and domicile onto a single clean A4 sheet without distortion.</div>
+      <div class="tool-footer-link">Make Certificate Collage →</div>
+    </a>
+
+    <!-- Govt Form Scribe & Undertaking Generator -->
+    <a href="./undertaking-generator.html" class="tool-card" data-category="sarkari calc undertaking scribe pwd obc ncl gap affidavit format">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📜</div>
+        <span class="tool-badge blue">Official 2026 Formats</span>
+      </div>
+      <div class="tool-title">Govt Form Scribe & Undertaking Generator</div>
+      <div class="tool-desc">Generate official, printable declarations for PwD Scribes, OBC-NCL Undertakings, and Gap Certificates.</div>
+      <div class="tool-footer-link">Generate Undertaking →</div>
+    </a>
+
+    <!-- PDF Logo & Text Watermark Studio -->
+    <a href="./watermark-pdf.html" class="tool-card" data-category="pdf watermark stamp protect logo live preview tile">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🛡️</div>
+        <span class="tool-badge purple">Logo & Text Live</span>
+      </div>
+      <div class="tool-title">PDF Logo & Text Watermark Studio</div>
+      <div class="tool-desc">Add company logo images, official stamps, or text watermarks across all pages of your PDF with live visual preview & grid tiling.</div>
+      <div class="tool-footer-link">Watermark PDF Pages →</div>
+    </a>
+
+    <!-- Image Watermark & Logo Studio -->
+    <a href="./watermark-image.html" class="tool-card" data-category="image watermark stamp protect logo photo">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🛡️</div>
+        <span class="tool-badge purple">Logo & Text Stamp</span>
+      </div>
+      <div class="tool-title">Image Watermark & Logo Studio</div>
+      <div class="tool-desc">Stamp custom logos or text watermarks on certificates and photos with live drag-resize, opacity, and rotation.</div>
+      <div class="tool-footer-link">Watermark Images →</div>
+    </a>
+
+    <!-- PDF Merger with Thumbnails -->
+    <a href="./merge-pdf.html" class="tool-card" data-category="pdf merge combine join documents multi">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📄</div>
+        <span class="tool-badge blue">Multi-PDF</span>
+      </div>
+      <div class="tool-title">PDF Merger with Thumbnails</div>
+      <div class="tool-desc">Combine multiple PDF certificates into a single file with visual page thumbnails and drag-and-drop reordering.</div>
+      <div class="tool-footer-link">Merge PDF Files →</div>
+    </a>
+
+    <!-- PDF Splitter & Page Extractor -->
+    <a href="./split-pdf.html" class="tool-card" data-category="pdf split extract pages range separator">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">✂️</div>
+        <span class="tool-badge blue">Page Selector</span>
+      </div>
+      <div class="tool-title">PDF Splitter & Page Extractor</div>
+      <div class="tool-desc">Extract specific pages, page ranges, or split large PDF files into separate documents with live thumbnail selector.</div>
+      <div class="tool-footer-link">Split PDF Pages →</div>
+    </a>
+
+    <!-- Rotate PDF Pages -->
+    <a href="./rotate-pdf.html" class="tool-card" data-category="pdf rotate orientation 90 180 flip">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🔄</div>
+        <span class="tool-badge blue">90° / 180° / 270°</span>
+      </div>
+      <div class="tool-title">Rotate PDF Pages</div>
+      <div class="tool-desc">Rotate upside-down scanned certificates and PDF pages permanently to correct orientation.</div>
+      <div class="tool-footer-link">Rotate PDF Pages →</div>
+    </a>
+
+    <!-- PDF to High-Res JPG Extractor -->
+    <a href="./pdf-to-jpg.html" class="tool-card" data-category="pdf pdf to jpg convert extract images pages high res">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🖼️</div>
+        <span class="tool-badge green">High Definition</span>
+      </div>
+      <div class="tool-title">PDF to High-Res JPG Extractor</div>
+      <div class="tool-desc">Convert multi-page PDF documents into crystal clear, high-resolution JPG images with 1-click batch ZIP download.</div>
+      <div class="tool-footer-link">Convert PDF to JPG →</div>
+    </a>
+
+    <!-- JPG / PNG Images to PDF Converter -->
+    <a href="./jpg-to-pdf.html" class="tool-card" data-category="pdf jpg to pdf images to pdf convert document a4">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📕</div>
+        <span class="tool-badge green">A4 & Original Size</span>
+      </div>
+      <div class="tool-title">JPG / PNG Images to PDF Converter</div>
+      <div class="tool-desc">Convert single or multiple images into a clean, compact PDF document ready for government portal uploads.</div>
+      <div class="tool-footer-link">Convert Images to PDF →</div>
+    </a>
+
+    <!-- Grayscale & B&W PDF Heavy Reducer -->
+    <a href="./grayscale-pdf.html" class="tool-card" data-category="pdf grayscale black white reduce compress heavy marksheet">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">⚡</div>
+        <span class="tool-badge red">Shrink to <200KB</span>
+      </div>
+      <div class="tool-title">Grayscale & B&W PDF Heavy Reducer</div>
+      <div class="tool-desc">Convert heavy colored certificates to crisp high-contrast Black & White PDFs to drastically reduce size under 200KB.</div>
+      <div class="tool-footer-link">Convert PDF to B&W →</div>
+    </a>
+
+    <!-- PDF Page Numberer & Annexure Stamper -->
+    <a href="./pdf-page-numberer.html" class="tool-card" data-category="pdf page number annexure bate stamp court legal numbering">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🔢</div>
+        <span class="tool-badge blue">Legal & Court</span>
+      </div>
+      <div class="tool-title">PDF Page Numberer & Annexure Stamper</div>
+      <div class="tool-desc">Stamp 'Page X of Y' or official 'Annexure A-1, A-2' labels across multi-page PDFs with live visual preview.</div>
+      <div class="tool-footer-link">Number PDF Pages →</div>
+    </a>
+
+    <!-- PDF Redaction & Blackout Pen Studio -->
+    <a href="./pdf-redaction.html" class="tool-card" data-category="pdf redact blackout hide privacy sensitive roll number">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">⬛</div>
+        <span class="tool-badge purple">Privacy Blackout</span>
+      </div>
+      <div class="tool-title">PDF Redaction & Blackout Pen Studio</div>
+      <div class="tool-desc">Permanently blackout confidential roll numbers, account numbers, and personal info with zero recovery leakage.</div>
+      <div class="tool-footer-link">Redact PDF Pages →</div>
+    </a>
+
+    <!-- PDF Margin & Scanner Edge Trimmer -->
+    <a href="./pdf-margin-trimmer.html" class="tool-card" data-category="pdf margin trim scanner border crop clean white">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">✂️</div>
+        <span class="tool-badge blue">Scanner Edge Crop</span>
+      </div>
+      <div class="tool-title">PDF Margin & Scanner Edge Trimmer</div>
+      <div class="tool-desc">Remove dark scanner borders, rough page edges, and crop margins from multi-page PDF documents effortlessly.</div>
+      <div class="tool-footer-link">Trim PDF Margins →</div>
+    </a>
+
+    <!-- Password Protect PDF -->
+    <a href="./protect-pdf.html" class="tool-card" data-category="pdf protect encrypt password security lock">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🔒</div>
+        <span class="tool-badge blue">128-bit AES</span>
+      </div>
+      <div class="tool-title">Password Protect PDF</div>
+      <div class="tool-desc">Encrypt your sensitive documents and PDF files with strong password protection directly in your browser.</div>
+      <div class="tool-footer-link">Protect PDF with Password →</div>
+    </a>
+
+    <!-- Unlock Password Protected PDF -->
+    <a href="./unlock-pdf.html" class="tool-card" data-category="pdf unlock decrypt remove password security">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🔓</div>
+        <span class="tool-badge yellow">Instant Unlock</span>
+      </div>
+      <div class="tool-title">Unlock Password Protected PDF</div>
+      <div class="tool-desc">Remove password protection and encryption from your PDF files permanently for easy government portal upload.</div>
+      <div class="tool-footer-link">Unlock Protected PDF →</div>
+    </a>
+
+    <!-- iPhone HEIC to JPG Converter -->
+    <a href="./heic-to-jpg.html" class="tool-card" data-category="image heic heif iphone apple jpg convert photo">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📱</div>
+        <span class="tool-badge blue">iPhone Photos</span>
+      </div>
+      <div class="tool-title">iPhone HEIC to JPG Converter</div>
+      <div class="tool-desc">Convert iPhone HEIC/HEIF photos to universal high-quality JPG images instantly in your browser.</div>
+      <div class="tool-footer-link">Convert HEIC to JPG →</div>
+    </a>
+
+    <!-- Batch Image Resizer -->
+    <a href="./resize-image.html" class="tool-card" data-category="image resize batch dimensions width height px">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📐</div>
+        <span class="tool-badge blue">Batch Resizer</span>
+      </div>
+      <div class="tool-title">Batch Image Resizer</div>
+      <div class="tool-desc">Resize multiple images by exact width & height in pixels or percentage while maintaining crisp aspect ratio.</div>
       <div class="tool-footer-link">Resize Images →</div>
     </a>
 
-    <!-- 15. Convert Image Formats -->
-    <a href="./convert-image.html" class="tool-card" data-category="image convert format png jpg webp">
+    <!-- Universal Image Format Converter -->
+    <a href="./convert-image.html" class="tool-card" data-category="image convert format png jpg webp bmp batch">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#F59E0B;">🔄</div>
-        <span class="tool-badge yellow">PNG ↔ JPG ↔ WEBP</span>
+        <div class="tool-icon-wrap">🔄</div>
+        <span class="tool-badge blue">JPG/PNG/WEBP</span>
       </div>
-      <div class="tool-title">Image Format Converter</div>
-      <div class="tool-desc">Batch convert PNG to JPG with solid white background, WEBP to JPG, or JPG to PNG/PDF.</div>
-      <div class="tool-footer-link">Convert Formats →</div>
+      <div class="tool-title">Universal Image Format Converter</div>
+      <div class="tool-desc">Batch convert images between JPG, PNG, WEBP, and BMP formats with instant 1-click ZIP download.</div>
+      <div class="tool-footer-link">Convert Image Formats →</div>
     </a>
 
-    <!-- 16. Photo Editor Studio -->
-    <a href="./photo-editor.html" class="tool-card" data-category="image photo editor brightness contrast filters">
+    <!-- Govt Photo Editor Studio -->
+    <a href="./photo-editor.html" class="tool-card" data-category="image photo edit brightness contrast sharpen crop">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#8B5CF6;">🎨</div>
-        <span class="tool-badge blue">Studio Filters</span>
+        <div class="tool-icon-wrap">🎨</div>
+        <span class="tool-badge purple">Pro Adjustments</span>
       </div>
-      <div class="tool-title">Photo Color &amp; Filters Editor</div>
-      <div class="tool-desc">Adjust Brightness, Contrast, Saturation, Sharpen, and Grayscale filters in real-time.</div>
-      <div class="tool-footer-link">Edit Photos →</div>
+      <div class="tool-title">Govt Photo Editor Studio</div>
+      <div class="tool-desc">Adjust brightness, contrast, exposure, sharpness, and crop photos for perfect government application standards.</div>
+      <div class="tool-footer-link">Edit & Adjust Photo →</div>
     </a>
 
-    <!-- 17. Sarkari Age Calculator -->
-    <a href="./age-calculator.html" class="tool-card" data-category="sarkari age calculator eligibility cutoff">
+    <!-- Govt Exam Cut-Off Age Eligibility Checker -->
+    <a href="./exam-age-eligibility.html" class="tool-card" data-category="calc sarkari age eligibility cutoff dob calculator ssc upsc rrb ibps">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#0284C7;">🎂</div>
-        <span class="tool-badge blue">Live Breakdown</span>
+        <div class="tool-icon-wrap">🎯</div>
+        <span class="tool-badge green">Cut-Off 2026</span>
       </div>
-      <div class="tool-title">Sarkari Age Calculator</div>
-      <div class="tool-desc">Calculate exact age in Years, Months, and Days as on recruitment notification cutoff date.</div>
-      <div class="tool-footer-link">Calculate Age →</div>
+      <div class="tool-title">Govt Exam Cut-Off Age Eligibility Checker</div>
+      <div class="tool-desc">Check exact eligibility for SSC, UPSC, Banking, Railway, and Defence recruitment based on DOB & category relaxation.</div>
+      <div class="tool-footer-link">Check Exam Eligibility →</div>
     </a>
 
-    <!-- 18. Meme Generator -->
-    <a href="./meme-generator.html" class="tool-card" data-category="image meme generator funny top bottom text">
+    <!-- Category DOB Eligibility Range Matrix -->
+    <a href="./dob-eligibility-range.html" class="tool-card" data-category="calc sarkari dob range born between matrix ssc upsc age">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#EC4899;">🎭</div>
-        <span class="tool-badge red">Meme Maker</span>
+        <div class="tool-icon-wrap">📅</div>
+        <span class="tool-badge purple">Born-Between Window</span>
       </div>
-      <div class="tool-title">Meme Generator</div>
-      <div class="tool-desc">Create classic viral memes with bold top &amp; bottom text with instant live rendering.</div>
-      <div class="tool-footer-link">Create Meme →</div>
+      <div class="tool-title">Category DOB Eligibility Range Matrix</div>
+      <div class="tool-desc">Find the exact eligible birth date window (e.g. Born between 02-Aug-1996 and 01-Aug-2008) across all reservation categories.</div>
+      <div class="tool-footer-link">View DOB Range Matrix →</div>
+    </a>
+
+    <!-- Govt Fee Challan & UTR Receipt Cropper -->
+    <a href="./fee-receipt-cropper.html" class="tool-card" data-category="card fee challan utr payment receipt crop proof ssc upsc">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🧾</div>
+        <span class="tool-badge yellow">50KB - 100KB</span>
+      </div>
+      <div class="tool-title">Govt Fee Challan & UTR Receipt Cropper</div>
+      <div class="tool-desc">Crop UTR transaction number, fee amount, and date from payment slips and compress to exact 50KB–100KB for portal proof.</div>
+      <div class="tool-footer-link">Crop Fee Receipt →</div>
+    </a>
+
+    <!-- Document Resolution & DPI Inspector -->
+    <a href="./dpi-inspector.html" class="tool-card" data-category="calc inspect dpi pixel cm mm resolution checker portal verify">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🔬</div>
+        <span class="tool-badge blue">Verify Before Upload</span>
+      </div>
+      <div class="tool-title">Document Resolution & DPI Inspector</div>
+      <div class="tool-desc">Inspect exact pixel dimensions, cm/mm print size, embedded DPI, and file size to ensure zero rejection on govt servers.</div>
+      <div class="tool-footer-link">Inspect Document Specs →</div>
+    </a>
+
+    <!-- Instant QR Code Generator & Scanner -->
+    <a href="./qr-code-tools.html" class="tool-card" data-category="calc cyber cafe qr code link share admit card upi fee scanner">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📲</div>
+        <span class="tool-badge blue">Cyber Cafe Fast Link</span>
+      </div>
+      <div class="tool-title">Instant QR Code Generator & Scanner</div>
+      <div class="tool-desc">Generate instant QR codes to transfer admit card links, exam results, or UPI fee payments directly to customer mobile phones.</div>
+      <div class="tool-footer-link">Generate QR Codes →</div>
+    </a>
+
+    <!-- OMR Practice Sheet Generator & Score Calculator -->
+    <a href="./omr-sheet-generator.html" class="tool-card" data-category="calc omr sheet answer test practice mock score negative marking pdf">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🎯</div>
+        <span class="tool-badge green">Printable A4 PDF</span>
+      </div>
+      <div class="tool-title">OMR Practice Sheet Generator & Score Calculator</div>
+      <div class="tool-desc">Generate official 100 / 150 / 200 questions printable A4 OMR sheets and calculate test scores with negative marking.</div>
+      <div class="tool-footer-link">Generate OMR Sheet →</div>
+    </a>
+
+    <!-- Govt Exam Age Calculator -->
+    <a href="./age-calculator.html" class="tool-card" data-category="calc age calculator dob cutoff date eligibility ssc upsc">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🎂</div>
+        <span class="tool-badge green">Exact Age Counter</span>
+      </div>
+      <div class="tool-title">Govt Exam Age Calculator</div>
+      <div class="tool-desc">Calculate your exact age in years, months, and days as of any notification cut-off date to check eligibility.</div>
+      <div class="tool-footer-link">Calculate Exact Age →</div>
+    </a>
+
+    <!-- Sarkari Babu Stamp & Meme Maker -->
+    <a href="./meme-generator.html" class="tool-card" data-category="image stamp meme seal funny sarkari babu badge">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">🎭</div>
+        <span class="tool-badge yellow">Fun & Stamps</span>
+      </div>
+      <div class="tool-title">Sarkari Babu Stamp & Meme Maker</div>
+      <div class="tool-desc">Create custom Sarkari Babu seal stamps, watermarks, approved badges, and student exam memes.</div>
+      <div class="tool-footer-link">Create Stamps & Memes →</div>
+    </a>
+
+    <!-- Govt Exam Rules & Guidelines 2026 -->
+    <a href="./exam-guidelines.html" class="tool-card" data-category="sarkari rules guidelines ssc upsc nta rrb ibps dimensions specs">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap">📋</div>
+        <span class="tool-badge blue">2026 Handbook</span>
+      </div>
+      <div class="tool-title">Govt Exam Rules & Guidelines 2026</div>
+      <div class="tool-desc">Complete photo, signature, and document specifications for SSC, UPSC, NTA, RRB, IBPS, and State PSC exams.</div>
+      <div class="tool-footer-link">Read 2026 Guidelines →</div>
     </a>
 
   </main>

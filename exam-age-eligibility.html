@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Govt Exam Cut-Off Date Age Eligibility Checker – Sarkari Babu Tools</title>
+  <meta name="description" content="Calculate your exact age as on official cut-off date and check eligibility for SSC, UPSC, Railway RRB, Banking IBPS, Police, and Defence exams with category relaxation.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Age Eligibility Checker</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🎯 Official 2026 Age Matrix</span>
+      <h1 class="hero-heading">Govt Exam Cut-Off <span class="gradient-text">Age Eligibility Checker</span></h1>
+      <p class="hero-desc">Check your exact eligibility status for SSC, UPSC, Banking, Railway, and Defence recruitment based on your Date of Birth &amp; Category.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+        <!-- Input Form -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">1. Select Exam &amp; Enter Details</h3>
+
+          <!-- Exam Preset -->
+          <div class="form-group">
+            <label class="form-label">Target Government Exam</label>
+            <select class="form-select" id="examSel" onchange="onExamChange()">
+              <option value="ssc_cgl" selected>SSC CGL 2026 (Min: 18 / 20 / 27 / 30 / 32 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="ssc_chsl">SSC CHSL (18 to 27 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="upsc_cse">UPSC Civil Services CSE (21 to 32 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="rrb_ntpc">Railway RRB NTPC (18 to 33 yrs · Cut-off: 01-July-2026)</option>
+              <option value="ibps_po">IBPS PO / Bank PO (20 to 30 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="ibps_clerk">IBPS Clerk / SBI Clerk (20 to 28 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="nda">UPSC NDA / NA (16.5 to 19.5 yrs · Cut-off: 01-Jan-2027)</option>
+              <option value="police_constable">State Police Constable (18 to 25 yrs · Cut-off: 01-July-2026)</option>
+              <option value="custom">Custom Exam Cut-off &amp; Limits...</option>
+            </select>
+          </div>
+
+          <!-- Date of Birth -->
+          <div class="form-group">
+            <label class="form-label">Your Date of Birth (as per 10th Certificate)</label>
+            <input type="date" class="form-input" id="dobInp" oninput="checkEligibility()">
+          </div>
+
+          <!-- Category (Reservation Relaxation) -->
+          <div class="form-group">
+            <label class="form-label">Reservation Category (Age Relaxation)</label>
+            <select class="form-select" id="categorySel" onchange="checkEligibility()">
+              <option value="0" selected>General / UR / EWS (No Relaxation - 0 Yrs)</option>
+              <option value="3">OBC Non-Creamy Layer (+3 Years Relaxation)</option>
+              <option value="5">SC / ST (+5 Years Relaxation)</option>
+              <option value="10">PwD General (+10 Years Relaxation)</option>
+              <option value="13">PwD OBC (+13 Years Relaxation)</option>
+              <option value="15">PwD SC / ST (+15 Years Relaxation)</option>
+              <option value="3_ex">Ex-Servicemen (+3 Yrs post service)</option>
+            </select>
+          </div>
+
+          <!-- Cut-Off Date -->
+          <div class="form-group">
+            <label class="form-label">Official Exam Cut-Off Date</label>
+            <input type="date" class="form-input" id="cutoffDateInp" oninput="checkEligibility()">
+          </div>
+
+          <button class="btn-primary" onclick="checkEligibility()" style="width:100%;padding:12px;font-size:15px;margin-top:10px;">🔍 Check Eligibility Now</button>
+        </div>
+
+        <!-- Result Card -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">2. Eligibility Status Verdict</h3>
+
+          <div id="verdictCard" style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:20px;text-align:center;">
+            
+            <div id="verdictIcon" style="font-size:48px;margin-bottom:10px;">⚖️</div>
+            <div id="verdictTitle" style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:6px;color:var(--text-primary);">Enter DOB to Calculate</div>
+            <div id="verdictDesc" style="font-size:13.5px;color:var(--text-muted);margin-bottom:16px;">Detailed age breakdown will appear here.</div>
+
+            <div style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px;text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
+              <div>
+                <span style="color:var(--text-muted);">Exact Age:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;" id="exactAgeVal">-</div>
+              </div>
+              <div>
+                <span style="color:var(--text-muted);">Upper Age Limit:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;" id="maxAgeVal">-</div>
+              </div>
+              <div>
+                <span style="color:var(--text-muted);">Total Relaxation:</span>
+                <div style="font-weight:700;color:var(--primary);" id="relaxVal">0 Years</div>
+              </div>
+              <div>
+                <span style="color:var(--text-muted);">Days Remaining / Over:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);" id="daysMarginVal">-</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    const examPresets = {
+      ssc_cgl: { min: 18, max: 32, cutoff: '2026-08-01' },
+      ssc_chsl: { min: 18, max: 27, cutoff: '2026-08-01' },
+      upsc_cse: { min: 21, max: 32, cutoff: '2026-08-01' },
+      rrb_ntpc: { min: 18, max: 33, cutoff: '2026-07-01' },
+      ibps_po: { min: 20, max: 30, cutoff: '2026-08-01' },
+      ibps_clerk: { min: 20, max: 28, cutoff: '2026-08-01' },
+      nda: { min: 16.5, max: 19.5, cutoff: '2027-01-01' },
+      police_constable: { min: 18, max: 25, cutoff: '2026-07-01' }
+    };
+
+    function onExamChange() {
+      const e = document.getElementById('examSel').value;
+      if (examPresets[e]) {
+        document.getElementById('cutoffDateInp').value = examPresets[e].cutoff;
+      }
+      checkEligibility();
+    }
+
+    // Set default initial cutoff
+    document.getElementById('cutoffDateInp').value = '2026-08-01';
+
+    function checkEligibility() {
+      const dobVal = document.getElementById('dobInp').value;
+      const cutoffVal = document.getElementById('cutoffDateInp').value;
+      if (!dobVal || !cutoffVal) return;
+
+      const dob = new Date(dobVal);
+      const cutoff = new Date(cutoffVal);
+
+      let years = cutoff.getFullYear() - dob.getFullYear();
+      let months = cutoff.getMonth() - dob.getMonth();
+      let days = cutoff.getDate() - dob.getDate();
+
+      if (days < 0) {
+        months--;
+        const prevMonth = new Date(cutoff.getFullYear(), cutoff.getMonth(), 0);
+        days += prevMonth.getDate();
+      }
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      const totalAgeInYears = years + (months / 12) + (days / 365.25);
+      document.getElementById('exactAgeVal').textContent = `${years} Y, ${months} M, ${days} D`;
+
+      const examKey = document.getElementById('examSel').value;
+      let minLimit = 18;
+      let maxLimit = 30;
+
+      if (examPresets[examKey]) {
+        minLimit = examPresets[examKey].min;
+        maxLimit = examPresets[examKey].max;
+      }
+
+      const relaxYears = parseInt(document.getElementById('categorySel').value, 10) || 0;
+      const effectiveMax = maxLimit + relaxYears;
+      document.getElementById('maxAgeVal').textContent = `${effectiveMax} Years`;
+      document.getElementById('relaxVal').textContent = `+${relaxYears} Years`;
+
+      const verdictCard = document.getElementById('verdictCard');
+      const vIcon = document.getElementById('verdictIcon');
+      const vTitle = document.getElementById('verdictTitle');
+      const vDesc = document.getElementById('verdictDesc');
+      const dMargin = document.getElementById('daysMarginVal');
+
+      if (totalAgeInYears >= minLimit && totalAgeInYears <= effectiveMax) {
+        vIcon.textContent = '🎉';
+        vTitle.textContent = 'ELIGIBLE FOR EXAM';
+        vTitle.style.color = 'var(--success-text)';
+        vDesc.textContent = `You fulfill the age criteria for this recruitment.`;
+        dMargin.textContent = `Within age limit`;
+        dMargin.style.color = 'var(--success-text)';
+      } else if (totalAgeInYears < minLimit) {
+        vIcon.textContent = '⏳';
+        vTitle.textContent = 'UNDERAGE';
+        vTitle.style.color = 'var(--warning-text)';
+        vDesc.textContent = `You have not reached the minimum age of ${minLimit} years as on cut-off date.`;
+        dMargin.textContent = `Underage`;
+        dMargin.style.color = 'var(--warning-text)';
+      } else {
+        vIcon.textContent = '❌';
+        vTitle.textContent = 'OVERAGE';
+        vTitle.style.color = 'var(--danger-text)';
+        vDesc.textContent = `You exceed the maximum age limit of ${effectiveMax} years (including category relaxation).`;
+        dMargin.textContent = `Overage`;
+        dMargin.style.color = 'var(--danger-text)';
+      }
+    }
+  </script>
+</body>
+</html>

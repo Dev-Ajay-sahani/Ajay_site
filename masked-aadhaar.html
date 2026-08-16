@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masked Aadhaar Card Generator (Auto-Mask 8 Digits) – Sarkari Babu Tools</title>
+  <meta name="description" content="Generate UIDAI compliant Masked Aadhaar Card by hiding the first 8 digits (XXXX XXXX 1234). Safe for government application and exam uploads. 100% private.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Masked Aadhaar Generator</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🔒 UIDAI Compliant Privacy Masking</span>
+      <h1 class="hero-heading">Masked Aadhaar <span class="gradient-text">Card Generator</span></h1>
+      <p class="hero-desc">Mask the first 8 digits of your Aadhaar card (e.g. <code>XXXX XXXX 1234</code>) to safely upload on government exam and scholarship portals.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('aadhaarInp').click()">
+        <div class="dropzone-icon">🆔</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Aadhaar Card Image Here</div>
+        <div class="dropzone-desc">Supports Front / Full Aadhaar Card Photo · 100% In-Browser Privacy</div>
+      </div>
+      <input type="file" id="aadhaarInp" class="hidden-input" accept="image/*">
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+          <!-- Controls -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">Masking Controls</h3>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
+              Click &amp; drag on the canvas to place a solid black privacy mask over the first 8 digits of your Aadhaar number.
+            </p>
+
+            <div class="form-group">
+              <label class="form-label">Mask Style</label>
+              <select class="form-select" id="maskStyleSel" onchange="redrawCanvas()">
+                <option value="black-bar" selected>⬛ Solid Black Bar (Official Masked Aadhaar)</option>
+                <option value="white-xxxx">🔲 White Bar with "XXXX XXXX" Overlay</option>
+                <option value="blur">🌫️ Privacy Blur / Pixelate</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Target File Size</label>
+              <select class="form-select" id="targetKBSel" onchange="exportResult()">
+                <option value="100" selected>Max 100 KB (Govt Standard)</option>
+                <option value="50">Max 50 KB</option>
+                <option value="200">Max 200 KB</option>
+                <option value="300">Max 300 KB</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:12px;" onclick="undoLastMask()">↺ Undo Mask</button>
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:12px;" onclick="clearAllMasks()">🗑 Clear All</button>
+            </div>
+
+            <div style="display:flex;gap:8px;">
+              <button class="btn-success" onclick="downloadMaskedAadhaar()" style="flex:1;padding:12px;font-size:14px;">⬇ Download Masked Aadhaar</button>
+              <button class="btn-secondary" onclick="passToNext()" style="padding:12px 14px;font-size:13px;">⚡ Next Tool</button>
+            </div>
+
+          </div>
+
+          <!-- Interactive Canvas -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Interactive Masking Stage</h3>
+              <span id="metaBadge" style="font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:700;">Drag to Mask</span>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;overflow:hidden;user-select:none;">
+              <canvas id="aadhaarCanvas" style="max-height:360px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);background:#fff;cursor:crosshair;"></canvas>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+                💡 <em>Click and drag across the numbers you want to mask.</em>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let baseImg = null;
+    let masks = []; // array of { x, y, w, h }
+    let isDrawing = false;
+    let startX = 0, startY = 0;
+    let currentResultBlob = null;
+    let currentResultDataUrl = null;
+
+    const inp = document.getElementById('aadhaarInp');
+    const dropZone = document.getElementById('dropZone');
+    const studioArea = document.getElementById('studioArea');
+    const canvas = document.getElementById('aadhaarCanvas');
+    const ctx = canvas.getContext('2d');
+    const metaBadge = document.getElementById('metaBadge');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type.startsWith('image/')) loadFile(file);
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+    });
+
+    async function loadFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        baseImg = res.img;
+        masks = [];
+        dropZone.style.display = 'none';
+        studioArea.style.display = 'block';
+
+        canvas.width = baseImg.naturalWidth;
+        canvas.height = baseImg.naturalHeight;
+        redrawCanvas();
+      } catch (err) {
+        alert('Error loading image: ' + err.message);
+      }
+    }
+
+    // Canvas Mouse / Touch Events for Drawing Masks
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (!baseImg) return;
+      isDrawing = true;
+      const pos = getCanvasCoords(e);
+      startX = pos.x;
+      startY = pos.y;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing || !baseImg) return;
+      const pos = getCanvasCoords(e);
+      redrawCanvas();
+
+      // Draw current selection rectangle
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = Math.max(2, Math.round(canvas.width * 0.003));
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+      const curW = pos.x - startX;
+      const curH = pos.y - startY;
+      ctx.fillRect(startX, startY, curW, curH);
+      ctx.strokeRect(startX, startY, curW, curH);
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+      if (!isDrawing || !baseImg) return;
+      isDrawing = false;
+      const pos = getCanvasCoords(e);
+      const w = pos.x - startX;
+      const h = pos.y - startY;
+
+      if (Math.abs(w) > 5 && Math.abs(h) > 5) {
+        masks.push({
+          x: w < 0 ? startX + w : startX,
+          y: h < 0 ? startY + h : startY,
+          w: Math.abs(w),
+          h: Math.abs(h)
+        });
+      }
+      redrawCanvas();
+      exportResult();
+    });
+
+    function redrawCanvas() {
+      if (!baseImg) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(baseImg, 0, 0);
+
+      const style = document.getElementById('maskStyleSel').value;
+
+      masks.forEach(m => {
+        if (style === 'black-bar') {
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(m.x, m.y, m.w, m.h);
+        } else if (style === 'white-xxxx') {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(m.x, m.y, m.w, m.h);
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(m.x, m.y, m.w, m.h);
+
+          ctx.fillStyle = '#0f172a';
+          const fontSize = Math.max(12, Math.round(m.h * 0.7));
+          ctx.font = `bold ${fontSize}px monospace`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('XXXX XXXX', m.x + m.w / 2, m.y + m.h / 2);
+        } else {
+          // Pixelate / Blur
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(m.x, m.y, m.w, m.h);
+        }
+      });
+    }
+
+    function undoLastMask() {
+      masks.pop();
+      redrawCanvas();
+      exportResult();
+    }
+
+    function clearAllMasks() {
+      masks = [];
+      redrawCanvas();
+      exportResult();
+    }
+
+    async function exportResult() {
+      if (!baseImg) return;
+      const targetKB = parseInt(document.getElementById('targetKBSel').value, 10);
+      const res = await SarkariEngine.compressToTargetKB(canvas, targetKB, 'image/jpeg');
+      currentResultBlob = res.blob;
+      currentResultDataUrl = res.url;
+      metaBadge.textContent = `${res.sizeKB} KB · ${masks.length} Mask(s) Applied`;
+    }
+
+    function downloadMaskedAadhaar() {
+      if (!currentResultBlob) return;
+      SarkariEngine.triggerDownload(currentResultBlob, 'masked_aadhaar_card.jpg');
+    }
+
+    function passToNext() {
+      if (!currentResultDataUrl) return;
+      SarkariPipeline.passTo('aadhaar-formatter.html', currentResultDataUrl, {
+        sourceTool: 'masked-aadhaar',
+        width: canvas.width,
+        height: canvas.height
+      });
+    }
+  </script>
+</body>
+</html>

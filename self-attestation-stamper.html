@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Self-Attestation &amp; Digital Stamping Studio – Sarkari Babu Tools</title>
+  <meta name="description" content="Stamp 'Self Attested', 'Verified Copy', Date, and Signature on marksheet and certificate copies for government application form uploads. 100% private.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Self-Attestation Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">✍️ Official Self-Attested Verification</span>
+      <h1 class="hero-heading">Self-Attestation &amp; <span class="gradient-text">Digital Stamping Studio</span></h1>
+      <p class="hero-desc">Stamp "Self Attested", Today's Date, and your Signature directly onto document copies before uploading to online exam portals.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('docInp').click()">
+        <div class="dropzone-icon">📑</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Document Image Here</div>
+        <div class="dropzone-desc">Marksheet, Degree, Caste Certificate, or ID Proof · 100% In-Browser Privacy</div>
+      </div>
+      <input type="file" id="docInp" class="hidden-input" accept="image/*">
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+          <!-- Controls -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">Stamp &amp; Signature Settings</h3>
+
+            <!-- Attestation Text Preset -->
+            <div class="form-group">
+              <label class="form-label">Attestation Text</label>
+              <select class="form-select" id="stampTextSel" onchange="renderLiveStamp()">
+                <option value="Self Attested" selected>✍️ Self Attested</option>
+                <option value="Verified True Copy">⭐ Verified True Copy</option>
+                <option value="Attested &amp; Verified">🏛️ Attested &amp; Verified</option>
+              </select>
+            </div>
+
+            <!-- Date Stamp -->
+            <div class="form-group">
+              <label class="form-label">Attestation Date</label>
+              <input type="date" class="form-input" id="stampDate" oninput="renderLiveStamp()">
+            </div>
+
+            <!-- Optional Signature Image Upload -->
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Attach Signature Image (Optional)</label>
+                <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="document.getElementById('sigInp').click()">+ Upload Sig</button>
+              </div>
+              <input type="file" id="sigInp" class="hidden-input" accept="image/*">
+              <div id="sigStatus" style="font-size:12px;color:var(--text-muted);">No signature attached (Will stamp text signature line)</div>
+            </div>
+
+            <!-- Stamp Placement -->
+            <div class="form-group">
+              <label class="form-label">Stamp Position</label>
+              <select class="form-select" id="posSel" onchange="renderLiveStamp()">
+                <option value="bottom-right" selected>↘ Bottom Right Corner (Standard)</option>
+                <option value="bottom-left">↙ Bottom Left Corner</option>
+                <option value="bottom-center">⬇ Bottom Center</option>
+              </select>
+            </div>
+
+            <!-- Target KB -->
+            <div class="form-group">
+              <label class="form-label">Target File Size</label>
+              <select class="form-select" id="targetKBSel" onchange="renderLiveStamp()">
+                <option value="200" selected>Max 200 KB (Standard)</option>
+                <option value="100">Max 100 KB</option>
+                <option value="300">Max 300 KB</option>
+                <option value="500">Max 500 KB</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="btn-success" onclick="downloadJpg()" style="flex:1;padding:12px;font-size:14px;">⬇ Download Attested Document</button>
+              <button class="btn-primary" onclick="downloadPdf()" style="padding:12px 16px;font-size:14px;">📄 Save PDF</button>
+            </div>
+
+          </div>
+
+          <!-- Live Output Preview -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Live Stamped Preview</h3>
+              <span id="metaBadge" style="font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:700;">Processing...</span>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <canvas id="stampCanvas" style="max-height:380px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);background:#fff;"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let baseImg = null;
+    let sigImg = null;
+    let currentResultBlob = null;
+
+    const docInp = document.getElementById('docInp');
+    const sigInp = document.getElementById('sigInp');
+    const dropZone = document.getElementById('dropZone');
+    const studioArea = document.getElementById('studioArea');
+    const canvas = document.getElementById('stampCanvas');
+    const ctx = canvas.getContext('2d');
+    const metaBadge = document.getElementById('metaBadge');
+
+    document.getElementById('stampDate').valueAsDate = new Date();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (!baseImg) loadDoc(file);
+        else loadSig(file);
+      });
+    });
+
+    docInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadDoc(e.target.files[0]);
+    });
+
+    sigInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadSig(e.target.files[0]);
+    });
+
+    async function loadDoc(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        baseImg = res.img;
+        dropZone.style.display = 'none';
+        studioArea.style.display = 'block';
+        renderLiveStamp();
+      } catch (err) {
+        alert('Error loading document: ' + err.message);
+      }
+    }
+
+    async function loadSig(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        sigImg = res.img;
+        document.getElementById('sigStatus').textContent = '✅ Signature attached!';
+        renderLiveStamp();
+      } catch (err) {
+        alert('Error loading signature: ' + err.message);
+      }
+    }
+
+    async function renderLiveStamp() {
+      if (!baseImg) return;
+
+      canvas.width = baseImg.naturalWidth;
+      canvas.height = baseImg.naturalHeight;
+
+      ctx.drawImage(baseImg, 0, 0);
+
+      const stampText = document.getElementById('stampTextSel').value;
+      const dateVal = document.getElementById('stampDate').value;
+      let dateStr = '';
+      if (dateVal) {
+        const d = new Date(dateVal);
+        dateStr = `Date: ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+      }
+
+      const pos = document.getElementById('posSel').value;
+
+      // Stamp dimensions
+      const stampW = Math.round(canvas.width * 0.32);
+      const stampH = Math.round(stampW * 0.45);
+      const margin = Math.round(canvas.width * 0.04);
+
+      let x = canvas.width - stampW - margin;
+      let y = canvas.height - stampH - margin;
+
+      if (pos === 'bottom-left') {
+        x = margin;
+      } else if (pos === 'bottom-center') {
+        x = (canvas.width - stampW) / 2;
+      }
+
+      // Draw Semi-transparent Box
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+      ctx.strokeStyle = '#1e3a8a';
+      ctx.lineWidth = Math.max(2, Math.round(canvas.width * 0.002));
+      ctx.fillRect(x, y, stampW, stampH);
+      ctx.strokeRect(x, y, stampW, stampH);
+
+      // Draw Attestation Text
+      const fontSize = Math.max(12, Math.round(stampW * 0.09));
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.fillStyle = '#1e3a8a';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(stampText, x + stampW / 2, y + 8);
+
+      // Draw Signature if available
+      if (sigImg) {
+        const sigW = stampW * 0.65;
+        const sigH = stampH * 0.45;
+        ctx.drawImage(sigImg, x + (stampW - sigW) / 2, y + fontSize + 12, sigW, sigH);
+      } else {
+        // Draw Signature placeholder line
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x + 20, y + stampH * 0.65);
+        ctx.lineTo(x + stampW - 20, y + stampH * 0.65);
+        ctx.stroke();
+      }
+
+      // Draw Date
+      if (dateStr) {
+        ctx.font = `${Math.round(fontSize * 0.8)}px monospace`;
+        ctx.fillStyle = '#334155';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(dateStr, x + stampW / 2, y + stampH - 6);
+      }
+
+      const targetKB = parseInt(document.getElementById('targetKBSel').value, 10);
+      const res = await SarkariEngine.compressToTargetKB(canvas, targetKB, 'image/jpeg');
+      currentResultBlob = res.blob;
+      metaBadge.textContent = `${res.sizeKB} KB · Stamped`;
+    }
+
+    function downloadJpg() {
+      if (!currentResultBlob) return;
+      SarkariEngine.triggerDownload(currentResultBlob, 'self_attested_document.jpg');
+    }
+
+    function downloadPdf() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+      const aspect = canvas.width / canvas.height;
+      const targetW = pageW - 20;
+      const targetH = targetW / aspect;
+
+      pdf.addImage(dataUrl, 'JPEG', 10, 15, targetW, Math.min(pageH - 30, targetH));
+      pdf.save('self_attested_document.pdf');
+    }
+  </script>
+</body>
+</html>

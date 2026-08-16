@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Category DOB Eligibility Range Matrix Visualizer – Sarkari Babu Tools</title>
+  <meta name="description" content="Calculate and visualize the exact Born-Between Date of Birth range for SSC, UPSC, Railway, and State Govt recruitment based on reservation category.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">DOB Range Matrix</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">📅 Official Born-Between Date Window</span>
+      <h1 class="hero-heading">Category DOB <span class="gradient-text">Eligibility Range Matrix</span></h1>
+      <p class="hero-desc">Find the exact eligible birth date window (e.g. <em>"Born between 02-Aug-1996 and 01-Aug-2008"</em>) across General, OBC, SC/ST, and PwD categories.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+        <!-- Inputs -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">1. Select Recruitment Criteria</h3>
+
+          <div class="form-group">
+            <label class="form-label">Target Exam</label>
+            <select class="form-select" id="examSel" onchange="calculateRanges()">
+              <option value="ssc_cgl_30" selected>SSC CGL 2026 (Age 18 to 30 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="ssc_cgl_32">SSC CGL JSO (Age 18 to 32 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="ssc_chsl">SSC CHSL (Age 18 to 27 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="upsc_cse">UPSC CSE (Age 21 to 32 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="rrb_ntpc">Railway RRB NTPC (Age 18 to 33 yrs · Cut-off: 01-July-2026)</option>
+              <option value="ibps_po">IBPS PO / SBI PO (Age 20 to 30 yrs · Cut-off: 01-Aug-2026)</option>
+              <option value="ibps_clerk">IBPS Clerk / SBI Clerk (Age 20 to 28 yrs · Cut-off: 01-Aug-2026)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cut-Off Reference Date</label>
+            <input type="date" class="form-input" id="cutoffDateInp" value="2026-08-01" oninput="calculateRanges()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Your Date of Birth (Optional - Check Your Window)</label>
+            <input type="date" class="form-input" id="candDobInp" oninput="calculateRanges()">
+          </div>
+
+          <button class="btn-primary" onclick="calculateRanges()" style="width:100%;padding:12px;font-size:15px;margin-top:10px;">📊 Generate DOB Matrix</button>
+        </div>
+
+        <!-- Range Matrix Display -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">2. Official Born-Between Matrix</h3>
+
+          <div id="matrixWrap" style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;text-align:left;">
+              <thead>
+                <tr style="border-bottom:2px solid var(--border-subtle);color:var(--text-muted);">
+                  <th style="padding:8px;">Category</th>
+                  <th style="padding:8px;">Age Limit</th>
+                  <th style="padding:8px;">Born Between Window</th>
+                </tr>
+              </thead>
+              <tbody id="matrixTbody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+
+            <div id="candStatusBox" style="margin-top:14px;padding:10px;background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--border-subtle);font-size:13px;display:none;"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    const examData = {
+      ssc_cgl_30: { min: 18, max: 30, cutoff: '2026-08-01' },
+      ssc_cgl_32: { min: 18, max: 32, cutoff: '2026-08-01' },
+      ssc_chsl: { min: 18, max: 27, cutoff: '2026-08-01' },
+      upsc_cse: { min: 21, max: 32, cutoff: '2026-08-01' },
+      rrb_ntpc: { min: 18, max: 33, cutoff: '2026-07-01' },
+      ibps_po: { min: 20, max: 30, cutoff: '2026-08-01' },
+      ibps_clerk: { min: 20, max: 28, cutoff: '2026-08-01' }
+    };
+
+    function formatDate(d) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${String(d.getDate()).padStart(2,'0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
+    }
+
+    function calculateRanges() {
+      const examKey = document.getElementById('examSel').value;
+      const cutoffStr = document.getElementById('cutoffDateInp').value;
+      if (!cutoffStr) return;
+
+      const cutoff = new Date(cutoffStr);
+      let minAge = 18;
+      let maxAge = 30;
+
+      if (examData[examKey]) {
+        minAge = examData[examKey].min;
+        maxAge = examData[examKey].max;
+      }
+
+      // Latest eligible birth date = cutoff - minAge
+      const latestDob = new Date(cutoff.getFullYear() - minAge, cutoff.getMonth(), cutoff.getDate());
+
+      const categories = [
+        { name: 'General / UR / EWS', relax: 0, color: 'var(--text-primary)' },
+        { name: 'OBC (Non-Creamy)', relax: 3, color: '#3b82f6' },
+        { name: 'SC / ST', relax: 5, color: '#059669' },
+        { name: 'PwD General', relax: 10, color: '#8b5cf6' },
+        { name: 'PwD OBC', relax: 13, color: '#d97706' },
+        { name: 'PwD SC / ST', relax: 15, color: '#dc2626' }
+      ];
+
+      const tbody = document.getElementById('matrixTbody');
+      tbody.innerHTML = '';
+
+      const candDobStr = document.getElementById('candDobInp').value;
+      let candDob = candDobStr ? new Date(candDobStr) : null;
+      let eligibleCategories = [];
+
+      categories.forEach(cat => {
+        const effectiveMax = maxAge + cat.relax;
+        // Earliest eligible birth date = cutoff - effectiveMax + 1 day
+        const earliestDob = new Date(cutoff.getFullYear() - effectiveMax, cutoff.getMonth(), cutoff.getDate() + 1);
+
+        const rangeStr = `${formatDate(earliestDob)} to ${formatDate(latestDob)}`;
+
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--border-subtle)';
+
+        let statusBadge = '';
+        if (candDob) {
+          if (candDob >= earliestDob && candDob <= latestDob) {
+            statusBadge = ' <span style="color:var(--success-text);font-weight:700;">(Eligible)</span>';
+            eligibleCategories.push(cat.name);
+          }
+        }
+
+        tr.innerHTML = `
+          <td style="padding:8px;font-weight:700;color:${cat.color};">${cat.name}</td>
+          <td style="padding:8px;font-family:var(--font-mono);">${minAge} to ${effectiveMax} Yrs</td>
+          <td style="padding:8px;font-family:var(--font-mono);font-size:12px;">${rangeStr}${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const candBox = document.getElementById('candStatusBox');
+      if (candDob) {
+        candBox.style.display = 'block';
+        if (eligibleCategories.length > 0) {
+          candBox.innerHTML = `✅ <strong>Eligible under:</strong> ${eligibleCategories.join(', ')}`;
+          candBox.style.borderColor = 'var(--success-border)';
+        } else {
+          candBox.innerHTML = `❌ <strong>Not eligible</strong> under current age limits for this exam.`;
+          candBox.style.borderColor = 'var(--danger-border)';
+        }
+      } else {
+        candBox.style.display = 'none';
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', calculateRanges);
+  </script>
+</body>
+</html>

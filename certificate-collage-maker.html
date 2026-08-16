@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-Certificate A4 Collage &amp; Merger – Sarkari Babu Tools</title>
+  <meta name="description" content="Combine 2 to 4 educational certificates, marksheets, and caste certificates onto a single A4 printable page with zero distortion. 100% private in browser.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Certificate Collage Maker</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">📑 2 to 4 Documents on Single Page</span>
+      <h1 class="hero-heading">Multi-Certificate <span class="gradient-text">A4 Collage Maker</span></h1>
+      <p class="hero-desc">Combine 10th marksheet, 12th marksheet, caste certificate, and domicile onto a single clean A4 sheet without text distortion.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Slots (Up to 4 Certificates) -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:20px;">
+        
+        <!-- Slot 1 -->
+        <div style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;background:var(--bg-subtle);cursor:pointer;" onclick="document.getElementById('slot1Inp').click()">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px;">1. 10th / 1st Marksheet</div>
+          <div style="font-size:11px;color:var(--text-muted);" id="s1Status">Click or Paste Image</div>
+          <input type="file" id="slot1Inp" class="hidden-input" accept="image/*">
+          <img id="s1Thumb" style="max-height:70px;max-width:100%;margin-top:6px;display:none;border-radius:3px;">
+        </div>
+
+        <!-- Slot 2 -->
+        <div style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;background:var(--bg-subtle);cursor:pointer;" onclick="document.getElementById('slot2Inp').click()">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px;">2. 12th / Degree / Domicile</div>
+          <div style="font-size:11px;color:var(--text-muted);" id="s2Status">Click or Paste Image</div>
+          <input type="file" id="slot2Inp" class="hidden-input" accept="image/*">
+          <img id="s2Thumb" style="max-height:70px;max-width:100%;margin-top:6px;display:none;border-radius:3px;">
+        </div>
+
+        <!-- Slot 3 -->
+        <div style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;background:var(--bg-subtle);cursor:pointer;" onclick="document.getElementById('slot3Inp').click()">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px;">3. Caste / EWS / ID (Opt)</div>
+          <div style="font-size:11px;color:var(--text-muted);" id="s3Status">Click or Paste Image</div>
+          <input type="file" id="slot3Inp" class="hidden-input" accept="image/*">
+          <img id="s3Thumb" style="max-height:70px;max-width:100%;margin-top:6px;display:none;border-radius:3px;">
+        </div>
+
+        <!-- Slot 4 -->
+        <div style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;background:var(--bg-subtle);cursor:pointer;" onclick="document.getElementById('slot4Inp').click()">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px;">4. Other Certificate (Opt)</div>
+          <div style="font-size:11px;color:var(--text-muted);" id="s4Status">Click or Paste Image</div>
+          <input type="file" id="slot4Inp" class="hidden-input" accept="image/*">
+          <img id="s4Thumb" style="max-height:70px;max-width:100%;margin-top:6px;display:none;border-radius:3px;">
+        </div>
+
+      </div>
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+          <!-- Controls -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">Collage Layout Options</h3>
+
+            <div class="form-group">
+              <label class="form-label">Layout Arrangement</label>
+              <select class="form-select" id="layoutSel" onchange="renderCollage()">
+                <option value="vertical-stack" selected>↕ Vertical Stack (Top &amp; Bottom)</option>
+                <option value="side-by-side">↔ Side by Side (Landscape Split)</option>
+                <option value="2x2-grid">⊞ 2×2 Quadrant Grid (4 Documents)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Page Border Margin</label>
+              <select class="form-select" id="borderSel" onchange="renderCollage()">
+                <option value="clean-box" selected>Clean Outline Separation</option>
+                <option value="none">Seamless White Gap</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="btn-success" onclick="downloadJpg()" style="flex:1;padding:12px;font-size:14px;">⬇ Download A4 JPG</button>
+              <button class="btn-primary" onclick="downloadPdf()" style="padding:12px 18px;font-size:14px;">📄 Save A4 PDF</button>
+            </div>
+
+          </div>
+
+          <!-- Preview -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Live A4 Sheet Preview</h3>
+              <span id="metaBadge" style="font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:700;">A4 Ready</span>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <canvas id="collageCanvas" style="max-height:380px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);background:#fff;"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let images = [null, null, null, null];
+
+    ['slot1Inp', 'slot2Inp', 'slot3Inp', 'slot4Inp'].forEach((id, idx) => {
+      document.getElementById(id).addEventListener('change', async (e) => {
+        if (e.target.files && e.target.files[0]) {
+          await loadSlot(e.target.files[0], idx);
+        }
+      });
+    });
+
+    async function loadSlot(file, idx) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        images[idx] = res.img;
+        document.getElementById(`s${idx+1}Thumb`).src = res.dataUrl;
+        document.getElementById(`s${idx+1}Thumb`).style.display = 'inline-block';
+        document.getElementById(`s${idx+1}Status`).textContent = '✅ Loaded';
+
+        document.getElementById('studioArea').style.display = 'block';
+        renderCollage();
+      } catch (err) {
+        alert('Error loading image: ' + err.message);
+      }
+    }
+
+    function renderCollage() {
+      const activeImgs = images.filter(Boolean);
+      if (activeImgs.length === 0) return;
+
+      const canvas = document.getElementById('collageCanvas');
+      const ctx = canvas.getContext('2d');
+      const layout = document.getElementById('layoutSel').value;
+      const border = document.getElementById('borderSel').value;
+
+      // Standard A4 @ 300 DPI
+      canvas.width = 2480;
+      canvas.height = 3508;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const pad = 60;
+
+      if (layout === '2x2-grid' || activeImgs.length >= 3) {
+        const cellW = (canvas.width - (pad * 3)) / 2;
+        const cellH = (canvas.height - (pad * 3)) / 2;
+
+        const positions = [
+          { x: pad, y: pad },
+          { x: pad * 2 + cellW, y: pad },
+          { x: pad, y: pad * 2 + cellH },
+          { x: pad * 2 + cellW, y: pad * 2 + cellH }
+        ];
+
+        activeImgs.forEach((img, i) => {
+          if (positions[i]) {
+            const p = positions[i];
+            ctx.drawImage(img, p.x, p.y, cellW, cellH);
+            if (border === 'clean-box') {
+              ctx.strokeStyle = '#cbd5e1';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(p.x, p.y, cellW, cellH);
+            }
+          }
+        });
+      } else if (layout === 'side-by-side') {
+        const cellW = (canvas.width - (pad * 3)) / 2;
+        const cellH = canvas.height - (pad * 2);
+
+        activeImgs.forEach((img, i) => {
+          const x = pad + i * (cellW + pad);
+          ctx.drawImage(img, x, pad, cellW, cellH);
+          if (border === 'clean-box') {
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, pad, cellW, cellH);
+          }
+        });
+      } else {
+        // Vertical Stack
+        const cellW = canvas.width - (pad * 2);
+        const cellH = (canvas.height - (pad * 3)) / 2;
+
+        activeImgs.forEach((img, i) => {
+          const y = pad + i * (cellH + pad);
+          ctx.drawImage(img, pad, y, cellW, cellH);
+          if (border === 'clean-box') {
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(pad, y, cellW, cellH);
+          }
+        });
+      }
+    }
+
+    function downloadJpg() {
+      const canvas = document.getElementById('collageCanvas');
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.94);
+      const byteString = atob(dataUrl.split(',')[1]);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+
+      const dpiInjected = SarkariEngine.insertDpiIntoJpeg(ab, 300);
+      const blob = new Blob([dpiInjected], { type: 'image/jpeg' });
+      SarkariEngine.triggerDownload(blob, 'combined_certificates_a4.jpg');
+    }
+
+    function downloadPdf() {
+      const canvas = document.getElementById('collageCanvas');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.94);
+
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, pageW, pageH);
+      pdf.save('combined_certificates_a4.pdf');
+    }
+  </script>
+</body>
+</html>

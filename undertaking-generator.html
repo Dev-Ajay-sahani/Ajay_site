@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Govt Form Scribe, NCL &amp; Gap Undertaking Generator – Sarkari Babu Tools</title>
+  <meta name="description" content="Generate standardized printable PwD Scribe Undertaking, OBC Non-Creamy Layer (NCL) Self-Declaration, and Educational Gap Certificate for government applications.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Undertaking Generator</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">📜 Standard Official Formats 2026</span>
+      <h1 class="hero-heading">Govt Form Scribe &amp; <span class="gradient-text">Undertaking Generator</span></h1>
+      <p class="hero-desc">Generate official, printable declarations for PwD Scribes, OBC-NCL Undertakings, and Gap Certificates with your details pre-filled.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+        <!-- Form Inputs -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">1. Select Undertaking Type &amp; Details</h3>
+
+          <div class="form-group">
+            <label class="form-label">Template Format</label>
+            <select class="form-select" id="templateSel" onchange="renderUndertaking()">
+              <option value="scribe" selected>♿ PwD Scribe Undertaking (Annexure for Scribe / Extra Time)</option>
+              <option value="obc_ncl">📜 OBC Non-Creamy Layer (NCL) Self-Declaration</option>
+              <option value="gap_year">🎓 Educational / Employment Gap Certificate Declaration</option>
+              <option value="noc">💼 Government Employee NOC / Intimation Undertaking</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Candidate Name</label>
+            <input type="text" class="form-input" id="candName" value="AJAY SAHANI" oninput="renderUndertaking()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Father's Name</label>
+            <input type="text" class="form-input" id="fatherName" value="SHRI RAM SAHANI" oninput="renderUndertaking()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Exam &amp; Roll Number</label>
+            <input type="text" class="form-input" id="examRoll" value="SSC CGL 2026 · Roll No: 2201004589" oninput="renderUndertaking()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date &amp; Place</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <input type="date" class="form-input" id="docDate" oninput="renderUndertaking()">
+              <input type="text" class="form-input" id="docPlace" value="New Delhi" oninput="renderUndertaking()">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:20px;">
+            <button class="btn-success" onclick="downloadPdf()" style="flex:1;padding:12px;font-size:14px;">📄 Download Printable A4 PDF</button>
+          </div>
+
+        </div>
+
+        <!-- Document Preview Paper -->
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">2. Printable Document Preview</h3>
+
+          <div id="paperDoc" style="background:#ffffff;color:#0f172a;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-md);min-height:380px;font-family:serif;font-size:13.5px;line-height:1.6;">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    document.getElementById('docDate').valueAsDate = new Date();
+
+    function renderUndertaking() {
+      const type = document.getElementById('templateSel').value;
+      const name = document.getElementById('candName').value.trim() || '____________________';
+      const father = document.getElementById('fatherName').value.trim() || '____________________';
+      const exam = document.getElementById('examRoll').value.trim() || '____________________';
+      const dateVal = document.getElementById('docDate').value;
+      const place = document.getElementById('docPlace').value.trim() || '____________________';
+
+      let dStr = dateVal ? new Date(dateVal).toLocaleDateString('en-GB') : '____________________';
+      const paper = document.getElementById('paperDoc');
+
+      if (type === 'scribe') {
+        paper.innerHTML = `
+          <div style="text-align:center;font-weight:bold;font-size:16px;text-transform:uppercase;margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:6px;">
+            DECLARATION / UNDERTAKING FOR USING SCRIBE
+          </div>
+          <p>I, <strong>${name}</strong>, Son/Daughter of <strong>${father}</strong>, bearing Examination / Roll No. <strong>${exam}</strong>, do hereby declare that:</p>
+          <ol style="padding-left:20px;margin-bottom:14px;">
+            <li>I am a Person with Benchmark Disability (PwBD) and eligible to use a scribe per recruitment guidelines.</li>
+            <li>The scribe arranged by me fulfills all educational qualifications and criteria mandated by the Commission.</li>
+            <li>In case any declaration or document is found to be false, my candidature may be cancelled immediately.</li>
+          </ol>
+          <div style="margin-top:30px;display:flex;justify-content:space-between;">
+            <div>
+              <p>Place: <strong>${place}</strong></p>
+              <p>Date: <strong>${dStr}</strong></p>
+            </div>
+            <div style="text-align:right;">
+              <div style="margin-top:25px;border-top:1px dashed #000;padding-top:4px;">Signature of Candidate</div>
+            </div>
+          </div>
+        `;
+      } else if (type === 'obc_ncl') {
+        paper.innerHTML = `
+          <div style="text-align:center;font-weight:bold;font-size:16px;text-transform:uppercase;margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:6px;">
+            FORM OF DECLARATION TO BE SUBMITTED BY OBC CANDIDATES (NON-CREAMY LAYER)
+          </div>
+          <p>I, <strong>${name}</strong>, Son/Daughter of <strong>${father}</strong>, resident of village/town/city <strong>${place}</strong>, hereby declare that I belong to the Other Backward Class (OBC) community recognized as a backward class by the Government of India.</p>
+          <p style="margin-top:10px;">It is also declared that I do not belong to persons/sections (Creamy Layer) mentioned in Column 3 of the Schedule to the Government of India, Department of Personnel and Training O.M. No. 36012/22/93-Estt.(SCT) dated 08.09.1993.</p>
+          <div style="margin-top:30px;display:flex;justify-content:space-between;">
+            <div>
+              <p>Place: <strong>${place}</strong></p>
+              <p>Date: <strong>${dStr}</strong></p>
+            </div>
+            <div style="text-align:right;">
+              <div style="margin-top:25px;border-top:1px dashed #000;padding-top:4px;">Signature of Candidate</div>
+            </div>
+          </div>
+        `;
+      } else if (type === 'gap_year') {
+        paper.innerHTML = `
+          <div style="text-align:center;font-weight:bold;font-size:16px;text-transform:uppercase;margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:6px;">
+            SELF-DECLARATION / AFFIDAVIT FOR GAP PERIOD
+          </div>
+          <p>I, <strong>${name}</strong>, Son/Daughter of <strong>${father}</strong>, resident of <strong>${place}</strong>, do hereby solemnly state and affirm as under:</p>
+          <p style="margin-top:8px;">1. That I have passed my qualifying examination in the preceding academic session.</p>
+          <p style="margin-top:8px;">2. That during the gap period, I was preparing for competitive government examinations (${exam}) and was not involved in any unlawful or criminal activity.</p>
+          <div style="margin-top:30px;display:flex;justify-content:space-between;">
+            <div>
+              <p>Place: <strong>${place}</strong></p>
+              <p>Date: <strong>${dStr}</strong></p>
+            </div>
+            <div style="text-align:right;">
+              <div style="margin-top:25px;border-top:1px dashed #000;padding-top:4px;">Signature of Candidate</div>
+            </div>
+          </div>
+        `;
+      } else {
+        paper.innerHTML = `
+          <div style="text-align:center;font-weight:bold;font-size:16px;text-transform:uppercase;margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:6px;">
+            NO OBJECTION / INTIMATION TO EMPLOYER UNDERTAKING
+          </div>
+          <p>I, <strong>${name}</strong>, Son/Daughter of <strong>${father}</strong>, currently employed, hereby give intimation to my office regarding appearing in the recruitment examination for <strong>${exam}</strong>.</p>
+          <p style="margin-top:10px;">I undertake to produce the official No Objection Certificate (NOC) / Relieving Order from my parent department at the time of Document Verification.</p>
+          <div style="margin-top:30px;display:flex;justify-content:space-between;">
+            <div>
+              <p>Place: <strong>${place}</strong></p>
+              <p>Date: <strong>${dStr}</strong></p>
+            </div>
+            <div style="text-align:right;">
+              <div style="margin-top:25px;border-top:1px dashed #000;padding-top:4px;">Signature of Candidate</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function downloadPdf() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const paper = document.getElementById('paperDoc');
+
+      doc.html(paper, {
+        callback: function(pdf) {
+          pdf.save('official_undertaking_document.pdf');
+        },
+        x: 15,
+        y: 15,
+        width: 180,
+        windowWidth: 650
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', renderUndertaking);
+  </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Document Resolution &amp; DPI Inspector – Sarkari Babu Tools</title>
+  <meta name="description" content="Inspect image dimensions in pixels, cm, mm, and exact DPI (200/300 DPI) before uploading to government exam portals. Check file size and portal compliance.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">DPI &amp; Specs Inspector</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🔍 Pre-Upload Compliance Verifier</span>
+      <h1 class="hero-heading">Document Resolution &amp; <span class="gradient-text">DPI Inspector</span></h1>
+      <p class="hero-desc">Inspect exact pixel dimensions, cm/mm print size, embedded DPI, and file size to ensure zero rejection on fussy government servers.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('fileInp').click()">
+        <div class="dropzone-icon">🔬</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Image / Document Here</div>
+        <div class="dropzone-desc">Inspect photo, signature, or certificate specifications instantly</div>
+      </div>
+      <input type="file" id="fileInp" class="hidden-input" accept="image/*">
+
+      <!-- Specs Dashboard (Visible on upload) -->
+      <div id="specsDashboard" style="display:none;margin-top:24px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:24px;">
+
+          <!-- Image Preview -->
+          <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;text-align:center;">
+            <img id="previewImg" style="max-height:260px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);background:#fff;margin-bottom:12px;">
+            <div id="fileNameLabel" style="font-weight:700;font-size:13px;word-break:break-all;">document.jpg</div>
+          </div>
+
+          <!-- Specs Table -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">Detected File Specifications</h3>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+              <div>
+                <span style="color:var(--text-muted);">Pixel Dimensions:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;color:var(--primary);" id="pixelDimVal">-</div>
+              </div>
+
+              <div>
+                <span style="color:var(--text-muted);">Physical Size (at 200 DPI):</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;" id="cmDimVal">-</div>
+              </div>
+
+              <div>
+                <span style="color:var(--text-muted);">File Size:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;" id="fileSizeVal">-</div>
+              </div>
+
+              <div>
+                <span style="color:var(--text-muted);">Aspect Ratio:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;" id="aspectVal">-</div>
+              </div>
+
+              <div>
+                <span style="color:var(--text-muted);">Embedded DPI Header:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;" id="dpiVal">-</div>
+              </div>
+
+              <div>
+                <span style="color:var(--text-muted);">MIME Format:</span>
+                <div style="font-weight:700;font-family:var(--font-mono);font-size:15px;" id="mimeVal">-</div>
+              </div>
+            </div>
+
+            <!-- Portal Compliance Checks -->
+            <div style="margin-top:16px;">
+              <h4 style="font-size:14px;margin-bottom:8px;">Government Portal Compliance:</h4>
+              <div id="complianceBadges" style="display:flex;gap:6px;flex-wrap:wrap;">
+                <!-- Filled via JS -->
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="btn-primary" onclick="fixInStudio()" style="flex:1;padding:12px;font-size:14px;">⚡ Fix Dimensions in Studio</button>
+              <button class="btn-secondary" onclick="document.getElementById('fileInp').click()" style="padding:12px 14px;font-size:13px;">📁 Inspect Another</button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let currentDataUrl = null;
+    let currentWidth = 0;
+    let currentHeight = 0;
+
+    const inp = document.getElementById('fileInp');
+    const dropZone = document.getElementById('dropZone');
+    const dash = document.getElementById('specsDashboard');
+    const previewImg = document.getElementById('previewImg');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type.startsWith('image/')) inspectFile(file);
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) inspectFile(e.target.files[0]);
+    });
+
+    async function inspectFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        currentDataUrl = res.dataUrl;
+        currentWidth = res.originalWidth;
+        currentHeight = res.originalHeight;
+
+        previewImg.src = res.dataUrl;
+        document.getElementById('fileNameLabel').textContent = file.name;
+        dropZone.style.display = 'none';
+        dash.style.display = 'block';
+
+        // 1. Pixel Dimensions
+        document.getElementById('pixelDimVal').textContent = `${currentWidth} × ${currentHeight} px`;
+
+        // 2. Physical Dimensions at 200 DPI
+        const cmW = ((currentWidth / 200) * 2.54).toFixed(2);
+        const cmH = ((currentHeight / 200) * 2.54).toFixed(2);
+        document.getElementById('cmDimVal').textContent = `${cmW} × ${cmH} cm`;
+
+        // 3. File Size
+        const kb = (file.size / 1024).toFixed(1);
+        document.getElementById('fileSizeVal').textContent = kb > 1024 ? `${(kb/1024).toFixed(2)} MB` : `${kb} KB`;
+
+        // 4. Aspect Ratio
+        const gcd = (a, b) => b ? gcd(b, a % b) : a;
+        const divisor = gcd(currentWidth, currentHeight);
+        document.getElementById('aspectVal').textContent = `${(currentWidth/divisor).toFixed(0)}:${(currentHeight/divisor).toFixed(0)}`;
+
+        // 5. DPI Header Detection (from binary)
+        const buf = await file.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let detectedDpi = '72 DPI (Standard Web)';
+        for (let i = 2; i < bytes.length - 10; i++) {
+          if (bytes[i] === 0xFF && bytes[i+1] === 0xE0) {
+            const units = bytes[i+7];
+            const dX = (bytes[i+8] << 8) + bytes[i+9];
+            if (units === 1 && dX > 0) detectedDpi = `${dX} DPI (JFIF Verified)`;
+            break;
+          }
+        }
+        document.getElementById('dpiVal').textContent = detectedDpi;
+        document.getElementById('mimeVal').textContent = file.type || 'image/jpeg';
+
+        // 6. Portal Compliance Badges
+        const comp = document.getElementById('complianceBadges');
+        comp.innerHTML = '';
+
+        const isSSCPhoto = (currentWidth >= 200 && currentWidth <= 400 && currentHeight >= 300 && currentHeight <= 500 && kb <= 50);
+        const isSSCSig = (currentWidth >= 200 && currentHeight <= 200 && kb <= 20);
+        const isPANPhoto = (currentWidth === 213 && currentHeight === 213 && kb <= 30);
+        const isUPSC = (currentWidth === 350 && currentHeight === 350 && kb <= 100);
+
+        comp.innerHTML += `<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--radius-sm);background:${isSSCPhoto ? 'var(--success-surface);color:var(--success-text);' : 'var(--bg-subtle);color:var(--text-muted);'}">SSC Photo: ${isSSCPhoto ? '✔ Match' : 'Mismatch'}</span>`;
+        comp.innerHTML += `<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--radius-sm);background:${isSSCSig ? 'var(--success-surface);color:var(--success-text);' : 'var(--bg-subtle);color:var(--text-muted);'}">SSC Signature: ${isSSCSig ? '✔ Match' : 'Mismatch'}</span>`;
+        comp.innerHTML += `<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--radius-sm);background:${isPANPhoto ? 'var(--success-surface);color:var(--success-text);' : 'var(--bg-subtle);color:var(--text-muted);'}">UTI PAN Photo: ${isPANPhoto ? '✔ Match' : 'Mismatch'}</span>`;
+        comp.innerHTML += `<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--radius-sm);background:${isUPSC ? 'var(--success-surface);color:var(--success-text);' : 'var(--bg-subtle);color:var(--text-muted);'}">UPSC 350px: ${isUPSC ? '✔ Match' : 'Mismatch'}</span>`;
+      } catch (err) {
+        alert('Error inspecting file: ' + err.message);
+      }
+    }
+
+    function fixInStudio() {
+      if (!currentDataUrl) return;
+      SarkariPipeline.passTo('custom-tool.html', currentDataUrl, {
+        sourceTool: 'dpi-inspector',
+        width: currentWidth,
+        height: currentHeight
+      });
+    }
+  </script>
+</body>
+</html>

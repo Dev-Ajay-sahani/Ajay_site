@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Driving License (DL) &amp; RC Card Print Formatter – Sarkari Babu Tools</title>
+  <meta name="description" content="Format Parivahan Driving License (DL) and Vehicle Registration Certificate (RC) cards Front & Back into PVC standard card and A4 print formats. 100% private.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">DL &amp; RC Formatter</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🚗 Parivahan Standard PVC &amp; Print</span>
+      <h1 class="hero-heading">Driving License &amp; RC <span class="gradient-text">Card Print Formatter</span></h1>
+      <p class="hero-desc">Combine Driving License (DL) or Vehicle RC Front &amp; Back sides into official PVC card or clean A4 printable layouts.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Dual Dropzone -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        
+        <!-- Front -->
+        <div style="border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:20px 14px;text-align:center;background:var(--bg-subtle);cursor:pointer;" onclick="document.getElementById('frontInp').click()">
+          <div style="font-size:32px;margin-bottom:8px;">🚗</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">1. Front Side (Photo &amp; DL No)</div>
+          <div style="font-size:12px;color:var(--text-muted);" id="frontStatus">Click or Paste Front Image</div>
+          <input type="file" id="frontInp" class="hidden-input" accept="image/*">
+          <img id="frontThumb" style="max-height:100px;max-width:100%;margin-top:10px;display:none;border-radius:4px;box-shadow:var(--shadow-sm);">
+        </div>
+
+        <!-- Back -->
+        <div style="border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:20px 14px;text-align:center;background:var(--bg-subtle);cursor:pointer;" onclick="document.getElementById('backInp').click()">
+          <div style="font-size:32px;margin-bottom:8px;">📄</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">2. Back Side (Address &amp; QR)</div>
+          <div style="font-size:12px;color:var(--text-muted);" id="backStatus">Click or Paste Back Image</div>
+          <input type="file" id="backInp" class="hidden-input" accept="image/*">
+          <img id="backThumb" style="max-height:100px;max-width:100%;margin-top:10px;display:none;border-radius:4px;box-shadow:var(--shadow-sm);">
+        </div>
+
+      </div>
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+          <!-- Controls -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">Print Settings</h3>
+
+            <div class="form-group">
+              <label class="form-label">Layout Arrangement</label>
+              <select class="form-select" id="layoutSel" onchange="renderMerged()">
+                <option value="side-by-side" selected>↔ Side by Side (Horizontal Grid)</option>
+                <option value="stacked">↕ Stacked Vertically</option>
+                <option value="a4-sheet">📄 Standard A4 Sheet Ready for Print</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Card Border Outline</label>
+              <select class="form-select" id="borderSel" onchange="renderMerged()">
+                <option value="rounded-black" selected>Rounded PVC Outline with Scissor Mark</option>
+                <option value="thin-line">Thin Clean Box</option>
+                <option value="none">No Border</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:20px;">
+              <button class="btn-success" onclick="downloadJpg()" style="flex:1;padding:12px;font-size:14px;">⬇ Download HD JPG (300 DPI)</button>
+              <button class="btn-primary" onclick="downloadPdf()" style="padding:12px 18px;font-size:14px;">📄 Print PDF</button>
+            </div>
+
+          </div>
+
+          <!-- Output Preview -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Combined Output Preview</h3>
+              <span id="metaBadge" style="font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:700;">Ready</span>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <canvas id="mergedCanvas" style="max-height:360px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);background:#fff;"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let frontImg = null;
+    let backImg = null;
+
+    const frontInp = document.getElementById('frontInp');
+    const backInp = document.getElementById('backInp');
+    const frontThumb = document.getElementById('frontThumb');
+    const backThumb = document.getElementById('backThumb');
+    const studioArea = document.getElementById('studioArea');
+    const canvas = document.getElementById('mergedCanvas');
+    const ctx = canvas.getContext('2d');
+    const metaBadge = document.getElementById('metaBadge');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (!frontImg) {
+          loadSide(file, 'front');
+        } else {
+          loadSide(file, 'back');
+        }
+      });
+    });
+
+    frontInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadSide(e.target.files[0], 'front');
+    });
+
+    backInp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadSide(e.target.files[0], 'back');
+    });
+
+    async function loadSide(file, side) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        if (side === 'front') {
+          frontImg = res.img;
+          frontThumb.src = res.dataUrl;
+          frontThumb.style.display = 'inline-block';
+          document.getElementById('frontStatus').textContent = '✅ Front Loaded';
+        } else {
+          backImg = res.img;
+          backThumb.src = res.dataUrl;
+          backThumb.style.display = 'inline-block';
+          document.getElementById('backStatus').textContent = '✅ Back Loaded';
+        }
+
+        if (frontImg || backImg) {
+          studioArea.style.display = 'block';
+          renderMerged();
+        }
+      } catch (err) {
+        alert('Error loading image: ' + err.message);
+      }
+    }
+
+    function renderMerged() {
+      const cardW = 1016; // 8.6cm @ 300 DPI
+      const cardH = 638;  // 5.4cm @ 300 DPI
+      const layout = document.getElementById('layoutSel').value;
+      const border = document.getElementById('borderSel').value;
+
+      if (layout === 'a4-sheet') {
+        canvas.width = 2480;
+        canvas.height = 3508; // A4 @ 300 DPI
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const x1 = (canvas.width - cardW) / 2;
+        const y1 = 400;
+        const y2 = y1 + cardH + 120;
+
+        if (frontImg) drawCard(frontImg, x1, y1, cardW, cardH, border);
+        if (backImg) drawCard(backImg, x1, y2, cardW, cardH, border);
+
+        metaBadge.textContent = 'A4 Sheet · 300 DPI Print Ready';
+      } else if (layout === 'stacked') {
+        canvas.width = cardW + 80;
+        canvas.height = (cardH * 2) + 120;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (frontImg) drawCard(frontImg, 40, 40, cardW, cardH, border);
+        if (backImg) drawCard(backImg, 40, cardH + 80, cardW, cardH, border);
+
+        metaBadge.textContent = `${canvas.width}×${canvas.height}px · Stacked`;
+      } else {
+        // Side by Side
+        canvas.width = (cardW * 2) + 120;
+        canvas.height = cardH + 80;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (frontImg) drawCard(frontImg, 40, 40, cardW, cardH, border);
+        if (backImg) drawCard(backImg, cardW + 80, 40, cardW, cardH, border);
+
+        metaBadge.textContent = `${canvas.width}×${canvas.height}px · Side by Side`;
+      }
+    }
+
+    function drawCard(img, x, y, w, h, borderStyle) {
+      ctx.drawImage(img, x, y, w, h);
+
+      if (borderStyle === 'rounded-black') {
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, w, h);
+      } else if (borderStyle === 'thin-line') {
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, y, w, h);
+      }
+    }
+
+    function downloadJpg() {
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.96);
+      const byteString = atob(dataUrl.split(',')[1]);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+
+      const dpiInjected = SarkariEngine.insertDpiIntoJpeg(ab, 300);
+      const blob = new Blob([dpiInjected], { type: 'image/jpeg' });
+      SarkariEngine.triggerDownload(blob, 'driving_license_rc_card_print.jpg');
+    }
+
+    function downloadPdf() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, pageW, pageH);
+      pdf.save('driving_license_rc_print_ready.pdf');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grayscale &amp; B&amp;W PDF Heavy Reducer – Sarkari Babu Tools</title>
+  <meta name="description" content="Convert colored PDF certificates and marksheets to Black & White / Grayscale. Shrink heavy 10MB PDFs down to under 200KB for UPSC, SSC, and State PSC portals.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Grayscale PDF Reducer</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">⚡ Shrink 10MB PDFs to &lt;200KB</span>
+      <h1 class="hero-heading">Grayscale &amp; B&amp;W <span class="gradient-text">PDF Heavy Reducer</span></h1>
+      <p class="hero-desc">Convert heavy colored certificates, degree marksheets, and legal forms into crisp high-contrast Black &amp; White PDFs for strict size limit portals.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('pdfInp').click()">
+        <div class="dropzone-icon">📄</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Heavy PDF Document Here</div>
+        <div class="dropzone-desc">Upload color PDFs up to 50MB+ · 100% In-Browser Privacy</div>
+      </div>
+      <input type="file" id="pdfInp" class="hidden-input" accept="application/pdf">
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+          <!-- Controls -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">B&amp;W &amp; Compression Settings</h3>
+
+            <!-- Conversion Mode -->
+            <div class="form-group">
+              <label class="form-label">Color Mode Filter</label>
+              <select class="form-select" id="modeSel" onchange="renderPreview()">
+                <option value="grayscale" selected>🔘 Smooth Grayscale (Retains photo clarity)</option>
+                <option value="high-bw">⚫ High-Contrast Pure Black &amp; White (Maximum Size Reduction)</option>
+                <option value="magic">✨ Magic Document Scan (Crisp Text + Clean Background)</option>
+              </select>
+            </div>
+
+            <!-- Quality / Resolution -->
+            <div class="form-group">
+              <label class="form-label">Output DPI / Compression Level</label>
+              <select class="form-select" id="qualitySel" onchange="renderPreview()">
+                <option value="150" selected>Standard Web (150 DPI - Super Compact &lt;200KB)</option>
+                <option value="200">High Print Quality (200 DPI - &lt;500KB)</option>
+                <option value="100">Extreme Compact (100 DPI - &lt;100KB)</option>
+              </select>
+            </div>
+
+            <!-- Page Count Info -->
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:16px;font-size:13px;">
+              <span id="docMeta">Loading document details...</span>
+            </div>
+
+            <button class="btn-success" onclick="executeGrayscalePdf()" style="width:100%;padding:14px;font-size:15px;">⬇ Convert to B&amp;W &amp; Download PDF</button>
+          </div>
+
+          <!-- Preview -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Live Page 1 Output Preview</h3>
+              <span id="metaBadge" style="font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:700;">Page 1</span>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <canvas id="prevCanvas" style="max-height:360px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);background:#fff;"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let activePdfFile = null;
+    let originalPage1Canvas = null;
+    let totalPdfPages = 1;
+
+    const inp = document.getElementById('pdfInp');
+    const dropZone = document.getElementById('dropZone');
+    const studioArea = document.getElementById('studioArea');
+    const canvas = document.getElementById('prevCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const docMeta = document.getElementById('docMeta');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) loadPdf(file);
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadPdf(e.target.files[0]);
+    });
+
+    async function loadPdf(file) {
+      activePdfFile = file;
+      try {
+        const buf = await file.arrayBuffer();
+        const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.2);
+        if (pages.length > 0) {
+          totalPdfPages = pages.length;
+          originalPage1Canvas = pages[0].canvas;
+          dropZone.style.display = 'none';
+          studioArea.style.display = 'block';
+          docMeta.textContent = `📄 ${file.name} · ${pages.length} Pages · ${(file.size / (1024*1024)).toFixed(2)} MB Original`;
+          renderPreview();
+        }
+      } catch (err) {
+        alert('Error loading PDF: ' + err.message);
+      }
+    }
+
+    function applyFilterToCanvas(srcCanvas, mode) {
+      const c = document.createElement('canvas');
+      c.width = srcCanvas.width;
+      c.height = srcCanvas.height;
+      const cx = c.getContext('2d', { willReadFrequently: true });
+      cx.drawImage(srcCanvas, 0, 0);
+
+      const imgData = cx.getImageData(0, 0, c.width, c.height);
+      const d = imgData.data;
+
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i+1], b = d[i+2];
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+        if (mode === 'high-bw') {
+          const val = gray > 150 ? 255 : 0;
+          d[i] = val; d[i+1] = val; d[i+2] = val;
+        } else if (mode === 'magic') {
+          // Magic Text enhancement
+          const val = gray > 185 ? 255 : Math.max(0, gray * 0.7);
+          d[i] = val; d[i+1] = val; d[i+2] = val;
+        } else {
+          // Grayscale
+          d[i] = gray; d[i+1] = gray; d[i+2] = gray;
+        }
+      }
+
+      cx.putImageData(imgData, 0, 0);
+      return c;
+    }
+
+    function renderPreview() {
+      if (!originalPage1Canvas) return;
+      const mode = document.getElementById('modeSel').value;
+      const processed = applyFilterToCanvas(originalPage1Canvas, mode);
+
+      canvas.width = processed.width;
+      canvas.height = processed.height;
+      ctx.drawImage(processed, 0, 0);
+    }
+
+    async function executeGrayscalePdf() {
+      if (!activePdfFile) return;
+
+      const { jsPDF } = window.jspdf;
+      const mode = document.getElementById('modeSel').value;
+      const qualityDpi = parseInt(document.getElementById('qualitySel').value, 10);
+      const scale = qualityDpi === 100 ? 1.0 : (qualityDpi === 150 ? 1.4 : 1.8);
+
+      SarkariEngine.showProgress('Converting PDF to B&W', 15, 'Extracting document pages...');
+
+      try {
+        const freshBuf = await activePdfFile.arrayBuffer();
+        const pages = await SarkariPdfEngine.convertPdfToImages(freshBuf, scale);
+        
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+
+        for (let i = 0; i < pages.length; i++) {
+          const pct = 20 + Math.round(((i + 1) / pages.length) * 70);
+          SarkariEngine.updateProgress(pct, `Optimizing Page ${i + 1} of ${pages.length}...`);
+
+          const filtered = applyFilterToCanvas(pages[i].canvas, mode);
+          const dataUrl = filtered.toDataURL('image/jpeg', 0.85);
+
+          if (i > 0) doc.addPage();
+          doc.addImage(dataUrl, 'JPEG', 0, 0, pageW, pageH);
+        }
+
+        SarkariEngine.updateProgress(100, 'Saving compact B&W PDF...');
+        setTimeout(SarkariEngine.hideProgress, 200);
+
+        const base = activePdfFile.name.replace(/\.[^/.]+$/, '');
+        doc.save(`${base}_black_and_white.pdf`);
+      } catch (err) {
+        SarkariEngine.hideProgress();
+        alert('Error converting PDF: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

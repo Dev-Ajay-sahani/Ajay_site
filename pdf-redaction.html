@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF Redaction &amp; Blackout Pen Studio – Sarkari Babu Tools</title>
+  <meta name="description" content="Permanently blackout and redact sensitive personal information, bank account numbers, and roll numbers from PDF documents before uploading. 100% private.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">PDF Redaction Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">⬛ Permanent Privacy Blackout</span>
+      <h1 class="hero-heading">PDF Redaction &amp; <span class="gradient-text">Blackout Pen Studio</span></h1>
+      <p class="hero-desc">Permanently blackout confidential data (account numbers, mobile numbers, Aadhaar digits) from PDF pages with zero recovery leakage.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Dropzone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('pdfInp').click()">
+        <div class="dropzone-icon">🖋️</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) PDF Document Here</div>
+        <div class="dropzone-desc">Redact sensitive info from any PDF · 100% In-Browser Privacy</div>
+      </div>
+      <input type="file" id="pdfInp" class="hidden-input" accept="application/pdf">
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <!-- Page Navigation & Action Bar -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="btn-secondary" style="padding:6px 12px;font-size:13px;" onclick="prevPage()">◀ Previous Page</button>
+            <span id="pageBadge" style="font-family:var(--font-mono);font-size:13px;font-weight:700;">Page 1 of 1</span>
+            <button class="btn-secondary" style="padding:6px 12px;font-size:13px;" onclick="nextPage()">Next Page ▶</button>
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="undoRedaction()">↺ Undo</button>
+            <button class="btn-secondary" style="padding:6px 12px;font-size:12px;" onclick="clearPageRedactions()">🗑 Clear Page</button>
+            <button class="btn-success" style="padding:6px 16px;font-size:13px;" onclick="downloadRedactedPdf()">⬇ Save &amp; Download Redacted PDF</button>
+          </div>
+        </div>
+
+        <!-- Interactive Canvas Stage -->
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;overflow:auto;">
+          <canvas id="redactCanvas" style="max-height:600px;max-width:100%;object-fit:contain;background:#fff;border-radius:4px;box-shadow:var(--shadow-md);cursor:crosshair;"></canvas>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+            💡 <em>Click and drag solid blackout boxes over any sensitive numbers or text on the page.</em>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let activePdfFile = null;
+    let pageCanvases = []; // array of original canvas elements
+    let pageRedactions = {}; // { pageIdx: [ {x, y, w, h} ] }
+    let currentPageIdx = 0;
+    let isDrawing = false;
+    let startX = 0, startY = 0;
+
+    const inp = document.getElementById('pdfInp');
+    const dropZone = document.getElementById('dropZone');
+    const studioArea = document.getElementById('studioArea');
+    const canvas = document.getElementById('redactCanvas');
+    const ctx = canvas.getContext('2d');
+    const pageBadge = document.getElementById('pageBadge');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) loadPdf(file);
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadPdf(e.target.files[0]);
+    });
+
+    async function loadPdf(file) {
+      activePdfFile = file;
+      pageCanvases = [];
+      pageRedactions = {};
+      currentPageIdx = 0;
+
+      SarkariEngine.showProgress('Reading PDF Document', 15, 'Rendering pages for redaction...');
+
+      try {
+        const buf = await file.arrayBuffer();
+        const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.4);
+        pages.forEach((p, idx) => {
+          pageCanvases.push(p.canvas);
+          pageRedactions[idx] = [];
+        });
+
+        dropZone.style.display = 'none';
+        studioArea.style.display = 'block';
+        renderCurrentPage();
+      } catch (err) {
+        alert('Error loading PDF: ' + err.message);
+      }
+    }
+
+    function renderCurrentPage() {
+      if (pageCanvases.length === 0) return;
+
+      pageBadge.textContent = `Page ${currentPageIdx + 1} of ${pageCanvases.length}`;
+      const srcCanvas = pageCanvases[currentPageIdx];
+
+      canvas.width = srcCanvas.width;
+      canvas.height = srcCanvas.height;
+
+      redrawPage();
+    }
+
+    function redrawPage() {
+      const srcCanvas = pageCanvases[currentPageIdx];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(srcCanvas, 0, 0);
+
+      // Draw all solid blackout rectangles on this page
+      const rects = pageRedactions[currentPageIdx] || [];
+      ctx.fillStyle = '#000000';
+      rects.forEach(r => {
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+      });
+    }
+
+    function getCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      const p = getCoords(e);
+      startX = p.x; startY = p.y;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      const p = getCoords(e);
+      redrawPage();
+
+      // Current drag outline
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      const w = p.x - startX;
+      const h = p.y - startY;
+      ctx.fillRect(startX, startY, w, h);
+      ctx.strokeRect(startX, startY, w, h);
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+      if (!isDrawing) return;
+      isDrawing = false;
+      const p = getCoords(e);
+      const w = p.x - startX;
+      const h = p.y - startY;
+
+      if (Math.abs(w) > 4 && Math.abs(h) > 4) {
+        if (!pageRedactions[currentPageIdx]) pageRedactions[currentPageIdx] = [];
+        pageRedactions[currentPageIdx].push({
+          x: w < 0 ? startX + w : startX,
+          y: h < 0 ? startY + h : startY,
+          w: Math.abs(w),
+          h: Math.abs(h)
+        });
+      }
+      redrawPage();
+    });
+
+    function undoRedaction() {
+      if (pageRedactions[currentPageIdx] && pageRedactions[currentPageIdx].length > 0) {
+        pageRedactions[currentPageIdx].pop();
+        redrawPage();
+      }
+    }
+
+    function clearPageRedactions() {
+      pageRedactions[currentPageIdx] = [];
+      redrawPage();
+    }
+
+    function prevPage() {
+      if (currentPageIdx > 0) {
+        currentPageIdx--;
+        renderCurrentPage();
+      }
+    }
+
+    function nextPage() {
+      if (currentPageIdx < pageCanvases.length - 1) {
+        currentPageIdx++;
+        renderCurrentPage();
+      }
+    }
+
+    async function downloadRedactedPdf() {
+      if (pageCanvases.length === 0) return;
+
+      const { jsPDF } = window.jspdf;
+      SarkariEngine.showProgress('Compiling Redacted PDF', 20, 'Burning privacy blackouts permanently...');
+
+      try {
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+
+        for (let i = 0; i < pageCanvases.length; i++) {
+          const pct = 20 + Math.round(((i + 1) / pageCanvases.length) * 75);
+          SarkariEngine.updateProgress(pct, `Flattering Page ${i + 1}...`);
+
+          const c = document.createElement('canvas');
+          c.width = pageCanvases[i].width;
+          c.height = pageCanvases[i].height;
+          const cx = c.getContext('2d');
+          cx.drawImage(pageCanvases[i], 0, 0);
+
+          // Permanently stamp black boxes
+          const rects = pageRedactions[i] || [];
+          cx.fillStyle = '#000000';
+          rects.forEach(r => {
+            cx.fillRect(r.x, r.y, r.w, r.h);
+          });
+
+          const dataUrl = c.toDataURL('image/jpeg', 0.90);
+          if (i > 0) doc.addPage();
+          doc.addImage(dataUrl, 'JPEG', 0, 0, pageW, pageH);
+        }
+
+        SarkariEngine.updateProgress(100, 'Done!');
+        setTimeout(SarkariEngine.hideProgress, 200);
+
+        const base = activePdfFile ? activePdfFile.name.replace(/\.[^/.]+$/, '') : 'document';
+        doc.save(`${base}_redacted.pdf`);
+      } catch (err) {
+        SarkariEngine.hideProgress();
+        alert('Error exporting PDF: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF Page Numberer &amp; Annexure Bate Stamper – Sarkari Babu Tools</title>
+  <meta name="description" content="Add Page numbers (Page X of Y) or official Annexure stamps to PDF documents for court, government, and legal submissions. 100% private in-browser.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pdf-tools-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">PDF Page Numberer</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🔢 Legal &amp; Govt Document Numbering</span>
+      <h1 class="hero-heading">PDF Page Numberer &amp; <span class="gradient-text">Annexure Stamper</span></h1>
+      <p class="hero-desc">Stamp page numbers (Page X of Y) or official Annexure labels (Annexure A-1, A-2) across multi-page PDFs with live visual preview.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('pdfInp').click()">
+        <div class="dropzone-icon">📑</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) PDF Document Here</div>
+        <div class="dropzone-desc">Add page numbers across all pages · 100% In-Browser Privacy</div>
+      </div>
+      <input type="file" id="pdfInp" class="hidden-input" accept="application/pdf">
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+          <!-- Controls -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:14px;">Numbering &amp; Stamp Options</h3>
+
+            <!-- Format Preset -->
+            <div class="form-group">
+              <label class="form-label">Numbering Format Style</label>
+              <select class="form-select" id="formatSel" onchange="renderLivePreview()">
+                <option value="Page {page} of {total}" selected>Page {page} of {total} (e.g. Page 1 of 5)</option>
+                <option value="Page {page}">Page {page} (e.g. Page 1)</option>
+                <option value="{page} / {total}">{page} / {total} (e.g. 1 / 5)</option>
+                <option value="- {page} -">- {page} - (e.g. - 1 -)</option>
+                <option value="Annexure A-{page}">Annexure A-{page} (Official / Court)</option>
+                <option value="custom">Custom Format...</option>
+              </select>
+            </div>
+
+            <!-- Custom Format Input -->
+            <div class="form-group" id="customFormatWrap" style="display:none;">
+              <label class="form-label">Custom Format (Use {page} and {total})</label>
+              <input type="text" class="form-input" id="customFormatInp" value="Document Page {page} of {total}" oninput="renderLivePreview()">
+            </div>
+
+            <!-- Position Placement -->
+            <div class="form-group">
+              <label class="form-label">Position Placement</label>
+              <select class="form-select" id="posSel" onchange="renderLivePreview()">
+                <option value="bottom-center" selected>⬇ Bottom Center</option>
+                <option value="bottom-right">↘ Bottom Right</option>
+                <option value="bottom-left">↙ Bottom Left</option>
+                <option value="top-right">↗ Top Right (Header)</option>
+                <option value="top-center">⬆ Top Center (Header)</option>
+              </select>
+            </div>
+
+            <!-- Font Size & Margin -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Font Size</label>
+                <select class="form-select" id="fontSizeSel" onchange="renderLivePreview()">
+                  <option value="10" selected>10 pt (Standard)</option>
+                  <option value="12">12 pt (Medium)</option>
+                  <option value="14">14 pt (Large)</option>
+                  <option value="8">8 pt (Compact)</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Margin from Edge</label>
+                <select class="form-select" id="marginSel" onchange="renderLivePreview()">
+                  <option value="20" selected>20 px (Standard)</option>
+                  <option value="30">30 px (Deep)</option>
+                  <option value="12">12 px (Tight)</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn-success" onclick="executePageNumbering()" style="width:100%;padding:14px;font-size:15px;margin-top:10px;">⬇ Number Pages &amp; Download PDF</button>
+          </div>
+
+          <!-- Preview -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Live Page 1 Preview</h3>
+              <span id="metaBadge" style="font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:700;">Page 1</span>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <canvas id="numCanvas" style="max-height:360px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);background:#fff;"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let activePdfFile = null;
+    let page1Img = null;
+    let totalPdfPages = 1;
+
+    const inp = document.getElementById('pdfInp');
+    const dropZone = document.getElementById('dropZone');
+    const studioArea = document.getElementById('studioArea');
+    const canvas = document.getElementById('numCanvas');
+    const ctx = canvas.getContext('2d');
+    const formatSel = document.getElementById('formatSel');
+    const customWrap = document.getElementById('customFormatWrap');
+
+    formatSel.addEventListener('change', () => {
+      customWrap.style.display = formatSel.value === 'custom' ? 'block' : 'none';
+      renderLivePreview();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) loadPdf(file);
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadPdf(e.target.files[0]);
+    });
+
+    async function loadPdf(file) {
+      activePdfFile = file;
+      try {
+        const buf = await file.arrayBuffer();
+        const pages = await SarkariPdfEngine.convertPdfToImages(buf, 1.2);
+        if (pages.length > 0) {
+          totalPdfPages = pages.length;
+          const img = new Image();
+          img.onload = () => {
+            page1Img = img;
+            dropZone.style.display = 'none';
+            studioArea.style.display = 'block';
+            renderLivePreview();
+          };
+          img.src = pages[0].dataUrl;
+        }
+      } catch (err) {
+        alert('Error loading PDF: ' + err.message);
+      }
+    }
+
+    function getFormatString() {
+      const val = formatSel.value;
+      if (val === 'custom') {
+        return document.getElementById('customFormatInp').value.trim() || 'Page {page} of {total}';
+      }
+      return val;
+    }
+
+    function renderLivePreview() {
+      if (!page1Img) return;
+
+      canvas.width = page1Img.naturalWidth;
+      canvas.height = page1Img.naturalHeight;
+
+      ctx.drawImage(page1Img, 0, 0);
+
+      const fmt = getFormatString();
+      const text = fmt.replace('{page}', '1').replace('{total}', totalPdfPages);
+      const pos = document.getElementById('posSel').value;
+      const fontSize = parseInt(document.getElementById('fontSizeSel').value, 10) * 1.5;
+      const margin = parseInt(document.getElementById('marginSel').value, 10) * 1.5;
+
+      ctx.font = `${fontSize}px sans-serif`;
+      ctx.fillStyle = '#1e293b';
+
+      let x = canvas.width / 2;
+      let y = canvas.height - margin;
+      ctx.textAlign = 'center';
+
+      if (pos === 'bottom-right') {
+        x = canvas.width - margin;
+        ctx.textAlign = 'right';
+      } else if (pos === 'bottom-left') {
+        x = margin;
+        ctx.textAlign = 'left';
+      } else if (pos === 'top-right') {
+        x = canvas.width - margin;
+        y = margin + fontSize;
+        ctx.textAlign = 'right';
+      } else if (pos === 'top-center') {
+        x = canvas.width / 2;
+        y = margin + fontSize;
+        ctx.textAlign = 'center';
+      }
+
+      ctx.fillText(text, x, y);
+    }
+
+    async function executePageNumbering() {
+      if (!activePdfFile) return;
+
+      const format = getFormatString();
+      const position = document.getElementById('posSel').value;
+      const fontSize = parseInt(document.getElementById('fontSizeSel').value, 10);
+      const margin = parseInt(document.getElementById('marginSel').value, 10);
+
+      SarkariEngine.showProgress('Adding Page Numbers', 25, 'Stamping page numbers...');
+
+      try {
+        const freshBuf = await activePdfFile.arrayBuffer();
+        const bytes = await SarkariPdfEngine.addPageNumbers(freshBuf, {
+          format,
+          position,
+          fontSize,
+          margin
+        });
+
+        SarkariEngine.updateProgress(100, 'Complete!');
+        setTimeout(SarkariEngine.hideProgress, 200);
+
+        const base = activePdfFile.name.replace(/\.[^/.]+$/, '');
+        SarkariPdfEngine.downloadFile(bytes, `${base}_numbered.pdf`);
+      } catch (err) {
+        SarkariEngine.hideProgress();
+        alert('Error numbering PDF: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

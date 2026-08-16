@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSC &amp; Govt Live Webcam Photo Capture Studio – Sarkari Babu Tools</title>
+  <meta name="description" content="Capture live webcam photo for SSC CGL, CHSL, UPSC, and govt portals. Face alignment guide, lighting check, instant crop, and 20KB-50KB compression.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Live Webcam Capture</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">📷 Official SSC / UPSC Live Photo Ready</span>
+      <h1 class="hero-heading">SSC &amp; Govt Exam <span class="gradient-text">Live Webcam Capture</span></h1>
+      <p class="hero-desc">Capture live photos with official face framing guidelines, lighting check, instant 3.5×4.5 cm crop, and 20KB–50KB auto-compression.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Camera Feed / Work Area -->
+      <div id="camWrap" style="text-align:center;">
+        
+        <div style="position:relative;max-width:480px;height:360px;margin:0 auto 16px;background:#0f172a;border-radius:var(--radius-xl);overflow:hidden;border:2px solid var(--border-strong);">
+          <video id="webcamVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);"></video>
+          
+          <!-- Live Face Alignment Oval Guide -->
+          <div style="position:absolute;inset:20px 80px;border:2px dashed rgba(255,255,255,0.7);border-radius:50%;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:11px;color:#fff;background:rgba(0,0,0,0.6);padding:2px 8px;border-radius:9999px;">Align Face Inside Oval</span>
+          </div>
+
+          <!-- Camera Switch & Light status -->
+          <div style="position:absolute;top:10px;left:10px;background:rgba(15,23,42,0.75);padding:4px 10px;border-radius:9999px;font-size:11px;color:#38bdf8;">
+            🟢 Camera Live
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="startCamera()" id="btnStartCam">📷 Start Live Camera</button>
+          <button class="btn-success" onclick="captureLivePhoto()" id="btnCapture" style="display:none;font-size:15px;padding:10px 24px;">📸 Snap / Capture Photo</button>
+          <button class="btn-secondary" onclick="switchCamera()" id="btnSwitchCam" style="display:none;">🔄 Switch Camera</button>
+        </div>
+
+      </div>
+
+      <!-- Crop & Result Area (Visible After Capture) -->
+      <div id="resultArea" style="display:none;border-top:1px solid var(--border-subtle);padding-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          
+          <!-- Cropper Stage -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">Fine-Tune Passport Crop</h3>
+              <button class="btn-secondary" style="padding:4px 10px;font-size:12px;" onclick="retakePhoto()">📷 Retake Photo</button>
+            </div>
+
+            <div style="height:320px;background:#111;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border-subtle);">
+              <img id="cropImg" style="max-height:100%;max-width:100%;display:block;">
+            </div>
+          </div>
+
+          <!-- Controls & Output -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">Specifications &amp; Export</h3>
+
+            <div class="form-group">
+              <label class="form-label">Target File Size</label>
+              <select class="form-select" id="targetKBSel" onchange="renderCapturedResult()">
+                <option value="50" selected>Max 50 KB (SSC / UPSC Standard)</option>
+                <option value="20">Max 20 KB (Strict)</option>
+                <option value="100">Max 100 KB</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Dimensions Preset</label>
+              <select class="form-select" id="presetSel" onchange="renderCapturedResult()">
+                <option value="ssc" selected>SSC / Passport (3.5 × 4.5 cm @ 200 DPI)</option>
+                <option value="upsc">UPSC (350 × 350 px Square)</option>
+                <option value="gate">GATE / IIT (480 × 640 px)</option>
+              </select>
+            </div>
+
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:12px;font-weight:700;">Final Captured Photo</span>
+                <span id="metaBadge" style="font-family:var(--font-mono);font-size:11px;color:var(--primary);font-weight:700;">Calculating...</span>
+              </div>
+
+              <img id="outputImg" style="max-height:140px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm);margin-bottom:12px;background:#fff;">
+
+              <div style="display:flex;gap:8px;">
+                <button class="btn-success" onclick="downloadPhoto()" style="flex:1;padding:10px;font-size:14px;">⬇ Download Live Photo</button>
+                <button class="btn-secondary" onclick="passToNext()" style="padding:10px 14px;font-size:13px;">⚡ Next Tool</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let videoStream = null;
+    let currentFacingMode = 'user';
+    let cropper = null;
+    let currentBlob = null;
+    let currentDataUrl = null;
+
+    const video = document.getElementById('webcamVideo');
+    const btnStart = document.getElementById('btnStartCam');
+    const btnCapture = document.getElementById('btnCapture');
+    const btnSwitch = document.getElementById('btnSwitchCam');
+    const resultArea = document.getElementById('resultArea');
+    const cropImg = document.getElementById('cropImg');
+    const outputImg = document.getElementById('outputImg');
+    const metaBadge = document.getElementById('metaBadge');
+
+    async function startCamera() {
+      try {
+        if (videoStream) {
+          videoStream.getTracks().forEach(t => t.stop());
+        }
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        });
+        video.srcObject = videoStream;
+        btnStart.style.display = 'none';
+        btnCapture.style.display = 'inline-block';
+        btnSwitch.style.display = 'inline-block';
+      } catch (err) {
+        alert('Could not access camera. Please allow camera permissions in your browser: ' + err.message);
+      }
+    }
+
+    function switchCamera() {
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'none';
+      startCamera();
+    }
+
+    function captureLivePhoto() {
+      const snapCanvas = document.createElement('canvas');
+      snapCanvas.width = video.videoWidth || 1280;
+      snapCanvas.height = video.videoHeight || 720;
+      const ctx = snapCanvas.getContext('2d');
+
+      if (currentFacingMode === 'user') {
+        ctx.translate(snapCanvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+
+      cropImg.src = snapCanvas.toDataURL('image/jpeg', 0.95);
+      resultArea.style.display = 'block';
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropImg, {
+        aspectRatio: 3.5 / 4.5,
+        viewMode: 1,
+        autoCropArea: 0.85,
+        responsive: true,
+        ready: () => renderCapturedResult(),
+        cropend: () => renderCapturedResult()
+      });
+    }
+
+    function retakePhoto() {
+      resultArea.style.display = 'none';
+      if (cropper) cropper.destroy();
+    }
+
+    async function renderCapturedResult() {
+      if (!cropper) return;
+
+      const preset = document.getElementById('presetSel').value;
+      let targetW = 276, targetH = 354; // 3.5x4.5cm @ 200 DPI
+
+      if (preset === 'upsc') {
+        targetW = 350;
+        targetH = 350;
+      } else if (preset === 'gate') {
+        targetW = 480;
+        targetH = 640;
+      }
+
+      const croppedCanvas = cropper.getCroppedCanvas({
+        width: targetW,
+        height: targetH,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+      });
+
+      if (!croppedCanvas) return;
+
+      const targetKB = parseInt(document.getElementById('targetKBSel').value, 10);
+      const res = await SarkariEngine.compressToTargetKB(croppedCanvas, targetKB, 'image/jpeg');
+      currentBlob = res.blob;
+      currentDataUrl = res.url;
+      outputImg.src = res.url;
+      metaBadge.textContent = `${res.sizeKB} KB · ${targetW}×${targetH}px`;
+    }
+
+    function downloadPhoto() {
+      if (!currentBlob) return;
+      SarkariEngine.triggerDownload(currentBlob, 'ssc_live_webcam_photo.jpg');
+    }
+
+    function passToNext() {
+      if (!currentDataUrl) return;
+      SarkariPipeline.passTo('pan-photo.html', currentDataUrl, {
+        sourceTool: 'webcam-photo-capture',
+        width: 276,
+        height: 354
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>State e-District Certificate Optimizer (Caste / Income / Domicile) – Sarkari Babu Tools</title>
+  <meta name="description" content="Optimize Caste, Income, Domicile, and EWS certificates for UP eSathi, Bihar RTPS, MP eDistrict, MahaOnline, and state portals. Exact 50KB-100KB compression.">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">e-District Optimizer</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">📜 Official State Portal Presets</span>
+      <h1 class="hero-heading">State e-District <span class="gradient-text">Certificate Optimizer</span></h1>
+      <p class="hero-desc">Optimize Caste, Income, Domicile (Niwas), and EWS certificates to exact 50KB–100KB limits required by state portal servers.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="dropZone" onclick="document.getElementById('docInp').click()">
+        <div class="dropzone-icon">📜</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Certificate Image Here</div>
+        <div class="dropzone-desc">Caste, Income, Domicile, EWS Certificate Photo/Scan · 100% Private</div>
+      </div>
+      <input type="file" id="docInp" class="hidden-input" accept="image/*">
+
+      <!-- Work Area -->
+      <div id="studioArea" style="display:none;margin-top:20px;">
+        
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;">
+
+          <!-- Cropper Stage -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <h3 style="font-family:var(--font-display);font-size:16px;">1. Crop Certificate Boundary</h3>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="if(cropper){cropper.rotate(90);renderResult();}">🔄 Rotate</button>
+                <button class="btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="if(cropper){cropper.reset();renderResult();}">⟲ Reset</button>
+              </div>
+            </div>
+
+            <div style="height:380px;background:#111;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border-subtle);">
+              <img id="stageImg" style="max-height:100%;max-width:100%;display:block;">
+            </div>
+          </div>
+
+          <!-- Controls & Output -->
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:12px;">2. State Portal Preset</h3>
+
+            <!-- State Portal Preset -->
+            <div class="form-group">
+              <label class="form-label">Select State Portal Standard</label>
+              <select class="form-select" id="portalPresetSel" onchange="applyPortalPreset()">
+                <option value="up" selected>UP eSathi / e-District (Max 100 KB JPG)</option>
+                <option value="bihar">Bihar RTPS / Service Online (Max 100 KB)</option>
+                <option value="mp">MP e-District / Samagra (Max 100 KB)</option>
+                <option value="maha">MahaOnline / Aaple Sarkar (Max 75 KB)</option>
+                <option value="raj">Rajasthan e-Mitra / SSO (Max 50 KB - 100 KB)</option>
+                <option value="custom">Custom Size Target...</option>
+              </select>
+            </div>
+
+            <!-- Target KB Slider -->
+            <div class="form-group">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <label class="form-label" style="margin-bottom:0;">Target File Size</label>
+                <strong id="kbBadge" style="font-size:13px;color:var(--primary);">95 KB</strong>
+              </div>
+              <input type="range" class="modern-slider" id="kbRange" min="20" max="250" value="95" oninput="document.getElementById('kbBadge').textContent=this.value+' KB';renderResult()">
+            </div>
+
+            <!-- Clean Text Filter -->
+            <div class="form-group">
+              <label class="form-label">Clarity &amp; Clean-up Filter</label>
+              <select class="form-select" id="filterSel" onchange="renderResult()">
+                <option value="magic" selected>✨ Magic Document Scanner (Crisp Black Text on White)</option>
+                <option value="original">Original Scanned Colors</option>
+                <option value="grayscale">Grayscale B&amp;W</option>
+              </select>
+            </div>
+
+            <!-- Output Preview Card -->
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:12px;font-weight:700;">Optimized Certificate</span>
+                <span id="metaBadge" style="font-family:var(--font-mono);font-size:11px;color:var(--primary);font-weight:700;">Calculating...</span>
+              </div>
+
+              <img id="resultImg" style="max-height:140px;max-width:100%;object-fit:contain;border-radius:4px;border:1px solid var(--border-subtle);box-shadow:var(--shadow-sm);margin-bottom:12px;background:#fff;">
+
+              <div style="display:flex;gap:8px;">
+                <button class="btn-success" onclick="downloadDoc()" style="flex:1;padding:10px;font-size:14px;">⬇ Download Portal Ready Certificate</button>
+                <button class="btn-secondary" onclick="passToNext()" style="padding:10px 14px;font-size:13px;">⚡ Next Tool</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let cropper = null;
+    let currentResultBlob = null;
+    let currentResultDataUrl = null;
+
+    const inp = document.getElementById('docInp');
+    const dropZone = document.getElementById('dropZone');
+    const studioArea = document.getElementById('studioArea');
+    const stageImg = document.getElementById('stageImg');
+    const resultImg = document.getElementById('resultImg');
+    const metaBadge = document.getElementById('metaBadge');
+    const kbRange = document.getElementById('kbRange');
+    const kbBadge = document.getElementById('kbBadge');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        if (file.type.startsWith('image/')) loadFile(file);
+      });
+    });
+
+    inp.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+    });
+
+    async function loadFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        stageImg.src = res.dataUrl;
+        dropZone.style.display = 'none';
+        studioArea.style.display = 'block';
+
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(stageImg, {
+          viewMode: 1,
+          autoCropArea: 0.95,
+          responsive: true,
+          ready: () => renderResult(),
+          cropend: () => renderResult()
+        });
+      } catch (err) {
+        alert('Error loading certificate: ' + err.message);
+      }
+    }
+
+    function applyPortalPreset() {
+      const p = document.getElementById('portalPresetSel').value;
+      if (p === 'up' || p === 'bihar' || p === 'mp') {
+        kbRange.value = 95;
+      } else if (p === 'maha') {
+        kbRange.value = 70;
+      } else if (p === 'raj') {
+        kbRange.value = 85;
+      }
+      kbBadge.textContent = kbRange.value + ' KB';
+      renderResult();
+    }
+
+    async function renderResult() {
+      if (!cropper) return;
+
+      const croppedCanvas = cropper.getCroppedCanvas({
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+      });
+
+      if (!croppedCanvas) return;
+
+      const filter = document.getElementById('filterSel').value;
+      let finalCanvas = croppedCanvas;
+
+      if (filter === 'magic' || filter === 'grayscale') {
+        finalCanvas = SarkariEngine.scanAndEnhanceDocument(croppedCanvas, filter === 'magic' ? 'magic' : 'bw');
+      }
+
+      const targetKB = parseInt(kbRange.value, 10);
+      const res = await SarkariEngine.compressToTargetKB(finalCanvas, targetKB, 'image/jpeg');
+      currentResultBlob = res.blob;
+      currentResultDataUrl = res.url;
+      resultImg.src = res.url;
+      metaBadge.textContent = `${res.sizeKB} KB · ${finalCanvas.width}×${finalCanvas.height}px`;
+    }
+
+    function downloadDoc() {
+      if (!currentResultBlob) return;
+      SarkariEngine.triggerDownload(currentResultBlob, 'edistrict_certificate_optimized.jpg');
+    }
+
+    function passToNext() {
+      if (!currentResultDataUrl) return;
+      SarkariPipeline.passTo('jpg-to-pdf.html', currentResultDataUrl, {
+        sourceTool: 'edistrict-certificate-optimizer',
+        width: 800,
+        height: 1100
+      });
+    }
+  </script>
+</body>
+</html>
