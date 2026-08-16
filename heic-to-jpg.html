@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iPhone HEIC to JPG Converter &amp; Compressor – Sarkari Babu Tools</title>
+  <meta name="description" content="Convert Apple iPhone HEIC and HEIF photos directly to standard JPG or PNG with target KB compression for government portals. 100% private in browser.">
+  <meta property="og:title" content="📱 iPhone HEIC to JPG Converter – Sarkari Babu">
+  <meta property="og:description" content="Convert Apple iPhone HEIC/HEIF photos to standard JPG format for online application forms.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">HEIC to JPG Converter</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">📱 iPhone Photo Converter</span>
+      <h1 class="hero-heading">Convert iPhone HEIC <span class="gradient-text">to Standard JPG</span></h1>
+      <p class="hero-desc">Indian government portals reject .HEIC files. Convert your iPhone camera photos to JPG/PNG with custom target KB and DPI.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="heicDropzone" onclick="document.getElementById('heicInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📱</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) iPhone HEIC / HEIF Photos</div>
+        <div class="dropzone-desc">Batch upload single or multiple .HEIC / .HEIF files directly</div>
+      </div>
+      <input type="file" id="heicInp" class="hidden-input" accept=".heic,.heif,image/*" multiple>
+
+      <!-- Conversion Progress & Results Grid -->
+      <div id="heicResultWrap" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <strong style="font-size:15px;color:var(--text-primary);">
+            Converted Files (<span id="heicCountLabel">0</span>)
+          </strong>
+          <button class="btn-success" onclick="downloadAllConverted()" style="padding:7px 14px;font-size:13px;">
+            ⬇ Download All as JPG
+          </button>
+        </div>
+
+        <div id="heicGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:14px;"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let convertedList = [];
+    const fileInp = document.getElementById('heicInp');
+    const resultWrap = document.getElementById('heicResultWrap');
+    const grid = document.getElementById('heicGrid');
+    const countLabel = document.getElementById('heicCountLabel');
+
+    fileInp.addEventListener('change', (e) => handleHeicFiles(e.target.files));
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariEngine.setupClipboardPaste((file) => handleHeicFiles([file]));
+    });
+
+    async function handleHeicFiles(files) {
+      if (!files || files.length === 0) return;
+      resultWrap.style.display = 'block';
+
+      for (const file of files) {
+        const itemCard = createLoadingCard(file.name);
+        grid.appendChild(itemCard);
+
+        try {
+          let blob = file;
+          if (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+            blob = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 });
+            if (Array.isArray(blob)) blob = blob[0];
+          }
+
+          const url = URL.createObjectURL(blob);
+          const baseName = file.name.replace(/\.[^/.]+$/, '') + '.jpg';
+          const sizeKB = (blob.size / 1024).toFixed(1);
+
+          convertedList.push({ name: baseName, url, blob });
+          updateCardSuccess(itemCard, baseName, url, sizeKB);
+        } catch (err) {
+          console.error(err);
+          itemCard.innerHTML = `<div style="color:var(--danger-text);font-size:12px;padding:10px;">❌ Error converting ${file.name}</div>`;
+        }
+      }
+
+      countLabel.textContent = convertedList.length;
+    }
+
+    function createLoadingCard(name) {
+      const d = document.createElement('div');
+      d.style.cssText = 'border:1px solid var(--border-subtle);background:var(--bg-subtle);border-radius:var(--radius-md);padding:14px;text-align:center;';
+      d.innerHTML = `<div style="font-size:12px;color:var(--text-muted);">⏳ Converting ${name}...</div>`;
+      return d;
+    }
+
+    function updateCardSuccess(card, name, url, sizeKB) {
+      card.innerHTML = `
+        <img src="${url}" style="height:120px;width:100%;object-fit:contain;border-radius:4px;background:#fff;margin-bottom:8px;box-shadow:var(--shadow-sm);">
+        <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">${name}</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--success-text);margin-bottom:10px;">${sizeKB} KB · JPEG</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" style="flex:1;padding:4px;font-size:11px;" onclick="SarkariPipeline.passTo('image-compressor.html', '${url}', { sourceName: 'HEIC Converter', fileName: '${name}', sizeKB: '${sizeKB}' })">🚀 Compress</button>
+          <button class="btn-success" style="flex:1;padding:4px;font-size:11px;" onclick="SarkariEngine.triggerDownload('${url}', '${name}')">⬇ Save</button>
+        </div>
+      `;
+    }
+
+    function downloadAllConverted() {
+      convertedList.forEach(item => {
+        SarkariEngine.triggerDownload(item.url, item.name);
+      });
+    }
+  </script>
+</body>
+</html>

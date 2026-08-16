@@ -196,10 +196,10 @@
       });
     });
 
-    function loadDeclImageFile(file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        document.getElementById('modalCropImg').src = evt.target.result;
+    async function loadDeclImageFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        document.getElementById('modalCropImg').src = res.img.src;
         document.getElementById('cropModal').classList.add('active');
         if (cropper) cropper.destroy();
         cropper = new Cropper(document.getElementById('modalCropImg'), {
@@ -207,8 +207,10 @@
           viewMode: 1,
           autoCropArea: 0.95
         });
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error loading declaration file:', err);
+        alert('Could not load image: ' + err.message);
+      }
     }
 
     function closeCrop() {

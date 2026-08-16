@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PAN Card &amp; Govt Signature Resizer &amp; Ink Booster – Sarkari Babu Tools</title>
+  <meta name="description" content="Dedicated PAN Card and Govt Exam Signature Resizer. Exact presets for NSDL (2x4.5 cm <50KB), UTIITSL (400x200 px <60KB), SSC (4x2 cm), IBPS (140x60 px). Auto-clean shadow & ink booster.">
+  <meta property="og:title" content="✍️ PAN Card &amp; Govt Signature Resizer &amp; Ink Booster – Sarkari Babu">
+  <meta property="og:description" content="Resize and crop signatures for PAN Card (NSDL 2x4.5 cm, UTIITSL 400x200 px) & Exams with live ink enhancement.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Govt Signature Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">✍️ Official PAN &amp; Exam Signature Studio</span>
+      <h1 class="hero-heading">PAN Card &amp; Exam <span class="gradient-text">Signature Resizer</span></h1>
+      <p class="hero-desc">Exact dimensions for PAN Card (NSDL 2×4.5 cm &amp; UTIITSL 400×200 px), SSC (4×2 cm), UPSC, IBPS (140×60 px) with auto-clean shadow removal.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Zone -->
+      <div class="modern-dropzone" id="sigDropzone" onclick="document.getElementById('sigInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">✍️</div>
+        <div class="dropzone-title">Click, Drag, or Paste (Ctrl+V) Signature Image</div>
+        <div class="dropzone-desc">Accepts phone photos, scans, and high-res files (JPG, PNG, WEBP up to 100MB+)</div>
+      </div>
+      <input type="file" id="sigInp" class="hidden-input" accept="image/*,.heic,.heif">
+
+      <!-- Settings & Work Area -->
+      <div id="sigWorkArea" style="display:none;">
+
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;" class="grid-collapse-mobile">
+          
+          <!-- Left: Cropper Stage -->
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--text-primary);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+              <span>1. Crop Signature Area</span>
+              <span style="font-size:12px;color:var(--text-muted);" id="aspectDesc">Landscape Box</span>
+            </div>
+            <div style="height:280px;background:#0F172A;border-radius:var(--radius-md);overflow:hidden;" class="cropper-stage-mobile">
+              <img id="cropperTargetImg" style="max-height:100%;max-width:100%;display:block;">
+            </div>
+
+            <!-- Rotation & Re-Crop Buttons -->
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) cropper.rotate(-90)">↺ Rotate Left</button>
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) cropper.rotate(90)">↻ Rotate Right</button>
+              <button class="btn-secondary" style="flex:1;padding:8px;font-size:13px;" onclick="if(cropper) cropper.reset()">⟲ Reset</button>
+            </div>
+          </div>
+
+          <!-- Right: Presets, Ink Booster & Live Result -->
+          <div>
+            
+            <div class="form-group">
+              <label class="form-label">Choose Signature Portal Preset</label>
+              <select class="form-select" id="sigPresetSelect" onchange="onSigPresetChange()">
+                <option value="pan-uti" selected>PAN Card (UTIITSL) – 400 × 200 px · &lt;60 KB</option>
+                <option value="pan-nsdl">PAN Card (NSDL/Protean) – 2.0 × 4.5 cm (354×157 px) · &lt;50 KB</option>
+                <option value="ssc">SSC Exams – 4.0 × 2.0 cm (315×157 px) · 10–20 KB</option>
+                <option value="upsc">UPSC CSE / NDA – 350 × 150 px (3.5×1.5 cm) · 20–100 KB</option>
+                <option value="ibps">IBPS / SBI Bank – 140 × 60 px · 10–20 KB</option>
+                <option value="parivahan">Sarathi Parivahan DL – 256 × 64 px · 10–20 KB</option>
+                <option value="passport">Passport Seva – 600 × 200 px · 10–100 KB</option>
+              </select>
+            </div>
+
+            <!-- Auto-Clean Ink Booster Toggle -->
+            <div style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <strong style="font-size:13px;color:var(--text-primary);display:block;">✨ Auto-Clean Ink Booster</strong>
+                <span style="font-size:11px;color:var(--text-muted);">Whitens paper shadows &amp; darkens ink lines</span>
+              </div>
+              <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+                <input type="checkbox" id="inkBoosterCheck" checked onchange="renderResult()" style="opacity:0;width:0;height:0;">
+                <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#3B82F6;border-radius:24px;transition:0.3s;"></span>
+              </label>
+            </div>
+
+            <!-- Result Card -->
+            <div style="background:var(--bg-subtle);border:1.5px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;text-align:center;margin-bottom:14px;">
+              <img id="sigResultImg" alt="Result" style="max-height:120px;max-width:100%;object-fit:contain;border-radius:var(--radius-md);margin:0 auto;display:block;box-shadow:var(--shadow-sm);background:#fff;border:1px solid #CBD5E1;">
+              <div id="sigResultMeta" style="font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--success-text);margin-top:8px;">
+                0 × 0 px · 0 KB · 200 DPI
+              </div>
+            </div>
+
+            <!-- Direct Download Button -->
+            <button class="btn-success" id="sigDownloadBtn" onclick="downloadSigResult()" style="width:100%;padding:12px;font-size:15px;">
+              ⬇ Download Ready Signature
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 3. PIPELINE PASS TO NEXT TOOL -->
+        <div style="border-top:1.5px solid var(--border-subtle);padding-top:18px;margin-top:24px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:18px;">🚀</span>
+            <strong style="font-family:var(--font-display);font-size:15px;color:var(--text-primary);">
+              Pass This Signature to Next Tool:
+            </strong>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <button class="btn-secondary" onclick="passSigTo('pan-photo.html')" style="padding:7px 12px;font-size:13px;">💳 Crop PAN Photo</button>
+            <button class="btn-secondary" onclick="passSigTo('photo-signature-joiner.html')" style="padding:7px 12px;font-size:13px;">🪪 Join with Candidate Photo</button>
+            <button class="btn-secondary" onclick="passSigTo('image-compressor.html')" style="padding:7px 12px;font-size:13px;">🗜️ Further Compress KB</button>
+            <button class="btn-secondary" onclick="passSigTo('jpg-to-pdf.html')" style="padding:7px 12px;font-size:13px;">📄 Compile to PDF</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let cropper = null;
+    let finalCanvas = null;
+    let finalDataUrl = null;
+
+    const fileInp = document.getElementById('sigInp');
+    const workArea = document.getElementById('sigWorkArea');
+    const dropzone = document.getElementById('sigDropzone');
+    const cropImg = document.getElementById('cropperTargetImg');
+    const resImg = document.getElementById('sigResultImg');
+    const resMeta = document.getElementById('sigResultMeta');
+    const presetSel = document.getElementById('sigPresetSelect');
+    const inkCheck = document.getElementById('inkBoosterCheck');
+    const aspectDesc = document.getElementById('aspectDesc');
+
+    const PRESETS = {
+      'pan-uti': { name: 'PAN UTIITSL', w: 400, h: 200, ar: 400/200, maxKB: 50, dpi: 200, label: '400×200 px (2:1)' },
+      'pan-nsdl': { name: 'PAN NSDL', w: 354, h: 157, ar: 4.5/2.0, maxKB: 45, dpi: 200, label: '2.0×4.5 cm (4.5:2)' },
+      'ssc': { name: 'SSC Exam', w: 315, h: 157, ar: 4.0/2.0, maxKB: 18, dpi: 200, label: '4.0×2.0 cm (2:1)' },
+      'upsc': { name: 'UPSC CSE', w: 350, h: 150, ar: 3.5/1.5, maxKB: 80, dpi: 300, label: '350×150 px' },
+      'ibps': { name: 'IBPS Bank', w: 140, h: 60, ar: 140/60, maxKB: 18, dpi: 200, label: '140×60 px' },
+      'parivahan': { name: 'Sarathi DL', w: 256, h: 64, ar: 256/64, maxKB: 18, dpi: 200, label: '256×64 px (4:1)' },
+      'passport': { name: 'Passport Seva', w: 600, h: 200, ar: 600/200, maxKB: 80, dpi: 300, label: '600×200 px (3:1)' }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      SarkariPipeline.initReceiver('.studio-container', (img, meta) => {
+        setupCropper(img);
+      });
+
+      // Universal Clipboard Paste (Ctrl+V)
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        const res = await SarkariEngine.loadLargeImage(file);
+        setupCropper(res.img);
+      });
+    });
+
+    fileInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const res = await SarkariEngine.loadLargeImage(e.target.files[0]);
+        setupCropper(res.img);
+      }
+    });
+
+    function setupCropper(img) {
+      cropImg.src = img.src;
+      dropzone.style.display = 'none';
+      workArea.style.display = 'block';
+
+      initCropper();
+    }
+
+    function initCropper() {
+      if (cropper) cropper.destroy();
+      const p = PRESETS[presetSel.value] || PRESETS['pan-uti'];
+      aspectDesc.textContent = p.label;
+
+      cropper = new Cropper(cropImg, {
+        aspectRatio: p.ar,
+        viewMode: 1,
+        autoCropArea: 0.95,
+        cropend: () => renderResult(),
+        ready: () => renderResult()
+      });
+    }
+
+    function onSigPresetChange() {
+      const p = PRESETS[presetSel.value] || PRESETS['pan-uti'];
+      aspectDesc.textContent = p.label;
+      if (cropper) {
+        cropper.setAspectRatio(p.ar);
+        renderResult();
+      }
+    }
+
+    async function renderResult() {
+      if (!cropper) return;
+      const p = PRESETS[presetSel.value] || PRESETS['pan-uti'];
+
+      const raw = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      let processed = raw;
+
+      // Apply Auto-Clean Ink Booster if checked
+      if (inkCheck.checked) {
+        processed = SarkariEngine.scanAndEnhanceDocument(raw, 'magic-color', 1.35);
+      }
+
+      const down = SarkariEngine.highQualityDownsample(processed, p.w, p.h);
+      const sharp = SarkariEngine.applyMicroSharpen(down, 0.2);
+
+      finalCanvas = sharp;
+      const blob = await SarkariEngine.compressToTargetKB(sharp, p.maxKB, 'image/jpeg', p.dpi);
+      finalDataUrl = URL.createObjectURL(blob);
+
+      resImg.src = finalDataUrl;
+      const sizeKB = (blob.size / 1024).toFixed(1);
+      resMeta.textContent = `${p.w} × ${p.h} px · ${sizeKB} KB · ${p.dpi} DPI (${p.name})`;
+    }
+
+    function downloadSigResult() {
+      if (!finalDataUrl) return;
+      const p = PRESETS[presetSel.value] || PRESETS['pan-uti'];
+      SarkariEngine.triggerDownload(finalDataUrl, `signature_${presetSel.value}_${p.w}x${p.h}.jpg`);
+    }
+
+    function passSigTo(targetUrl) {
+      if (!finalDataUrl) return;
+      const p = PRESETS[presetSel.value] || PRESETS['pan-uti'];
+      SarkariPipeline.passTo(targetUrl, finalDataUrl, {
+        sourceName: `Signature (${p.name})`,
+        fileName: `signature_${presetSel.value}.jpg`,
+        sizeKB: (resMeta.textContent.match(/([0-9\.]+)\s*KB/) || [null, '18'])[1]
+      });
+    }
+  </script>
+</body>
+</html>

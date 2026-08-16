@@ -703,14 +703,11 @@
       activeIndex = 0;
 
       for (const file of fileList) {
-        if (file.type.startsWith('image/')) {
-          const img = await loadImage(file);
-          const c = document.createElement('canvas');
-          c.width = img.naturalWidth;
-          c.height = img.naturalHeight;
-          c.getContext('2d').drawImage(img, 0, 0);
-
-          uploadedFiles.push({ name: file.name, rawImg: img, workingCanvas: c });
+        try {
+          const res = await SarkariEngine.loadLargeImage(file);
+          uploadedFiles.push({ name: file.name, rawImg: res.img, workingCanvas: res.canvas });
+        } catch (err) {
+          console.error('Error loading file in watermark studio:', file.name, err);
         }
       }
 
@@ -724,16 +721,9 @@
       }
     }
 
-    function loadImage(file) {
-      return new Promise(res => {
-        const r = new FileReader();
-        r.onload = evt => {
-          const img = new Image();
-          img.onload = () => res(img);
-          img.src = evt.target.result;
-        };
-        r.readAsDataURL(file);
-      });
+    async function loadImage(file) {
+      const res = await SarkariEngine.loadLargeImage(file);
+      return res.img;
     }
 
     function setQuickText(t) {

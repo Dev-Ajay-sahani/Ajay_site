@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aadhaar Card Front &amp; Back Formatter &amp; Merger – Sarkari Babu Tools</title>
+  <meta name="description" content="Crop and merge Aadhaar Card Front and Back into a single clean printable A4 sheet or combined JPG file for government application uploads. 100% private in browser.">
+  <meta property="og:title" content="🆔 Aadhaar Card Formatter &amp; Merger – Sarkari Babu">
+  <meta property="og:description" content="Crop Aadhaar Card Front & Back sides and combine into single page PDF or JPG.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <script src="./js/pipeline.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Aadhaar Card Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🆔 Official Identity Card Merger</span>
+      <h1 class="hero-heading">Aadhaar Card <span class="gradient-text">Front &amp; Back Formatter</span></h1>
+      <p class="hero-desc">Crop Front &amp; Back sides and merge into a single printable A4 sheet or combined JPG file for government portals.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Slots: Front & Back -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="grid-collapse-mobile">
+        
+        <!-- Slot 1: Front Side -->
+        <div style="text-align:center;">
+          <div class="modern-dropzone" onclick="triggerSlot('front')" style="padding:24px 16px;">
+            <div id="frontDropPh">
+              <div class="dropzone-icon">🪪</div>
+              <div class="dropzone-title">1. Upload Front Side</div>
+              <div class="dropzone-desc">Photo &amp; Name side (JPG, PNG, HEIC)</div>
+            </div>
+            <img id="frontPrevImg" alt="Front Preview" style="display:none;max-height:160px;max-width:100%;object-fit:contain;margin:0 auto;border-radius:var(--radius-md);box-shadow:var(--shadow-sm);border:1px solid #CBD5E1;">
+          </div>
+          <input type="file" id="frontInp" class="hidden-input" accept="image/*,.heic,.heif">
+        </div>
+
+        <!-- Slot 2: Back Side -->
+        <div style="text-align:center;">
+          <div class="modern-dropzone" onclick="triggerSlot('back')" style="padding:24px 16px;">
+            <div id="backDropPh">
+              <div class="dropzone-icon">🏠</div>
+              <div class="dropzone-title">2. Upload Back Side</div>
+              <div class="dropzone-desc">Address &amp; QR Code side (JPG, PNG, HEIC)</div>
+            </div>
+            <img id="backPrevImg" alt="Back Preview" style="display:none;max-height:160px;max-width:100%;object-fit:contain;margin:0 auto;border-radius:var(--radius-md);box-shadow:var(--shadow-sm);border:1px solid #CBD5E1;">
+          </div>
+          <input type="file" id="backInp" class="hidden-input" accept="image/*,.heic,.heif">
+        </div>
+
+      </div>
+
+      <!-- Format Layout & Result Options -->
+      <div id="mergeControlsWrap" style="margin-top:24px;border-top:1.5px solid var(--border-subtle);padding-top:20px;display:none;">
+        
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;" class="grid-collapse-mobile">
+          
+          <!-- Left: Combined Canvas Preview -->
+          <div style="text-align:center;">
+            <div style="font-weight:700;font-size:14px;color:var(--text-primary);margin-bottom:8px;">
+              👁️ Formatted Card Preview
+            </div>
+            <div style="background:#0F172A;border-radius:var(--radius-md);padding:12px;display:flex;justify-content:center;align-items:center;min-height:280px;">
+              <canvas id="aadhaarResultCanvas" style="max-height:300px;max-width:100%;box-shadow:var(--shadow-md);background:#fff;border-radius:4px;"></canvas>
+            </div>
+            <div id="aadhaarMeta" style="font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--success-text);margin-top:10px;">
+              Ready for Download
+            </div>
+          </div>
+
+          <!-- Right: Layout Mode & Downloads -->
+          <div>
+            <div class="form-group">
+              <label class="form-label">Merged Layout Style</label>
+              <select class="form-select" id="aadhaarLayoutSel" onchange="renderCombinedAadhaar()">
+                <option value="side-by-side" selected>Side-by-Side (Standard Wallet Card Size)</option>
+                <option value="stacked">Top &amp; Bottom Stacked (Official Portal Upload)</option>
+                <option value="a4-sheet">Full Printable A4 Sheet (Center Placed)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Card Border &amp; Cut Marks</label>
+              <select class="form-select" id="borderSel" onchange="renderCombinedAadhaar()">
+                <option value="cut-marks" selected>Clean Scissors Cut Marks</option>
+                <option value="solid">Solid Card Border</option>
+                <option value="none">No Border</option>
+              </select>
+            </div>
+
+            <!-- Download Buttons -->
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+              <button class="btn-success" onclick="downloadAadhaarJpg()" style="padding:12px;font-size:15px;">
+                ⬇ Download Combined JPG Image
+              </button>
+              <button class="btn-primary" onclick="downloadAadhaarPdf()" style="padding:12px;font-size:15px;">
+                📄 Download Printable A4 PDF
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Interactive Crop Modal -->
+  <div class="modal-overlay" id="cropModal">
+    <div class="modal-card">
+      <div class="modal-header-bar">
+        <h3 class="modal-title" id="cropTitle">Crop Card Area</h3>
+        <button class="btn-secondary" style="padding:4px 10px;" onclick="closeCrop()">✕</button>
+      </div>
+      <div class="modal-crop-stage">
+        <img id="cropTargetImg" style="max-height:100%;max-width:100%;display:block;">
+      </div>
+      <div class="modal-footer-bar">
+        <div style="display:flex;gap:6px;">
+          <button class="btn-secondary" onclick="if(cropper) cropper.rotate(-90)">↺ Rotate</button>
+          <button class="btn-secondary" onclick="if(cropper) cropper.reset()">⟲ Reset</button>
+        </div>
+        <button class="btn-primary" onclick="applyAadhaarCrop()">✔ Done Cropping</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let cropper = null;
+    let activeSlot = null; // 'front' | 'back'
+    let frontCanvas = null;
+    let backCanvas = null;
+
+    const frontInp = document.getElementById('frontInp');
+    const backInp = document.getElementById('backInp');
+    const frontPrev = document.getElementById('frontPrevImg');
+    const backPrev = document.getElementById('backPrevImg');
+    const frontPh = document.getElementById('frontDropPh');
+    const backPh = document.getElementById('backDropPh');
+    const resultCanvas = document.getElementById('aadhaarResultCanvas');
+    const mergeWrap = document.getElementById('mergeControlsWrap');
+    const layoutSel = document.getElementById('aadhaarLayoutSel');
+    const borderSel = document.getElementById('borderSel');
+    const metaLabel = document.getElementById('aadhaarMeta');
+    const cropModal = document.getElementById('cropModal');
+    const cropImg = document.getElementById('cropTargetImg');
+    const cropTitle = document.getElementById('cropTitle');
+
+    function triggerSlot(slot) {
+      activeSlot = slot;
+      document.getElementById(slot === 'front' ? 'frontInp' : 'backInp').click();
+    }
+
+    frontInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        activeSlot = 'front';
+        const res = await SarkariEngine.loadLargeImage(e.target.files[0]);
+        openCrop(res.img.src, 'Crop Front Side (Photo)');
+      }
+    });
+
+    backInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        activeSlot = 'back';
+        const res = await SarkariEngine.loadLargeImage(e.target.files[0]);
+        openCrop(res.img.src, 'Crop Back Side (Address & QR)');
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Universal Clipboard Paste (Ctrl+V)
+      SarkariEngine.setupClipboardPaste(async (file) => {
+        const res = await SarkariEngine.loadLargeImage(file);
+        if (!frontCanvas) {
+          activeSlot = 'front';
+          openCrop(res.img.src, 'Crop Front Side (Photo)');
+        } else {
+          activeSlot = 'back';
+          openCrop(res.img.src, 'Crop Back Side (Address & QR)');
+        }
+      });
+    });
+
+    function openCrop(src, title) {
+      cropTitle.textContent = title;
+      cropImg.src = src;
+      cropModal.classList.add('active');
+
+      if (cropper) cropper.destroy();
+      // Standard Aadhaar Card Aspect Ratio 8.6 / 5.4 = 1.59
+      cropper = new Cropper(cropImg, {
+        aspectRatio: 8.6 / 5.4,
+        viewMode: 1,
+        autoCropArea: 0.95
+      });
+    }
+
+    function closeCrop() {
+      cropModal.classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    function applyAadhaarCrop() {
+      if (!cropper) return;
+      const raw = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+      // Standardize to 1016 × 638 px (300 DPI 8.6×5.4 cm)
+      const standard = SarkariEngine.highQualityDownsample(raw, 1016, 638);
+      const enhanced = SarkariEngine.scanAndEnhanceDocument(standard, 'magic-color', 1.15);
+
+      if (activeSlot === 'front') {
+        frontCanvas = enhanced;
+        frontPrev.src = enhanced.toDataURL();
+        frontPrev.style.display = 'block';
+        frontPh.style.display = 'none';
+      } else {
+        backCanvas = enhanced;
+        backPrev.src = enhanced.toDataURL();
+        backPrev.style.display = 'block';
+        backPh.style.display = 'none';
+      }
+
+      closeCrop();
+      checkAndRender();
+    }
+
+    function checkAndRender() {
+      if (frontCanvas || backCanvas) {
+        mergeWrap.style.display = 'block';
+        renderCombinedAadhaar();
+      }
+    }
+
+    function renderCombinedAadhaar() {
+      const mode = layoutSel.value;
+      const border = borderSel.value;
+
+      const f = frontCanvas || createDummyCard('FRONT SIDE NOT UPLOADED');
+      const b = backCanvas || createDummyCard('BACK SIDE NOT UPLOADED');
+
+      const cardW = 1016;
+      const cardH = 638;
+      const ctx = resultCanvas.getContext('2d');
+
+      if (mode === 'side-by-side') {
+        resultCanvas.width = cardW * 2 + 80;
+        resultCanvas.height = cardH + 80;
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
+
+        // Draw Front & Back
+        ctx.drawImage(f, 30, 40, cardW, cardH);
+        ctx.drawImage(b, cardW + 50, 40, cardW, cardH);
+
+        if (border !== 'none') {
+          drawCardBorders(ctx, 30, 40, cardW, cardH, border);
+          drawCardBorders(ctx, cardW + 50, 40, cardW, cardH, border);
+        }
+
+      } else if (mode === 'stacked') {
+        resultCanvas.width = cardW + 80;
+        resultCanvas.height = cardH * 2 + 80;
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
+
+        ctx.drawImage(f, 40, 30, cardW, cardH);
+        ctx.drawImage(b, 40, cardH + 50, cardW, cardH);
+
+        if (border !== 'none') {
+          drawCardBorders(ctx, 40, 30, cardW, cardH, border);
+          drawCardBorders(ctx, 40, cardH + 50, cardW, cardH, border);
+        }
+
+      } else if (mode === 'a4-sheet') {
+        // A4 sheet at 200 DPI = 1654 × 2338 px
+        resultCanvas.width = 1654;
+        resultCanvas.height = 2338;
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 1654, 2338);
+
+        const printW = 860;
+        const printH = 540;
+        const startX = (1654 - printW) / 2;
+
+        ctx.drawImage(f, startX, 350, printW, printH);
+        ctx.drawImage(b, startX, 350 + printH + 60, printW, printH);
+
+        if (border !== 'none') {
+          drawCardBorders(ctx, startX, 350, printW, printH, border);
+          drawCardBorders(ctx, startX, 350 + printH + 60, printW, printH, border);
+        }
+      }
+
+      metaLabel.textContent = `${resultCanvas.width} × ${resultCanvas.height} px · 300 DPI · Ready`;
+    }
+
+    function drawCardBorders(ctx, x, y, w, h, style) {
+      if (style === 'solid') {
+        ctx.strokeStyle = '#0F172A';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, w, h);
+      } else if (style === 'cut-marks') {
+        ctx.strokeStyle = '#94A3B8';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 6]);
+        ctx.strokeRect(x, y, w, h);
+        ctx.setLineDash([]);
+      }
+    }
+
+    function createDummyCard(text) {
+      const c = document.createElement('canvas');
+      c.width = 1016;
+      c.height = 638;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#F8FAFC';
+      ctx.fillRect(0, 0, 1016, 638);
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(4, 4, 1008, 630);
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = 'bold 32px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 508, 319);
+      return c;
+    }
+
+    function downloadAadhaarJpg() {
+      const dataUrl = resultCanvas.toDataURL('image/jpeg', 0.95);
+      SarkariEngine.triggerDownload(dataUrl, 'aadhaar_front_and_back_combined.jpg');
+    }
+
+    function downloadAadhaarPdf() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const imgData = resultCanvas.toDataURL('image/jpeg', 0.95);
+
+      doc.addImage(imgData, 'JPEG', 10, 10, 190, (190 * resultCanvas.height) / resultCanvas.width, undefined, 'FAST');
+      doc.save('aadhaar_card_printable_a4.pdf');
+    }
+  </script>
+</body>
+</html>

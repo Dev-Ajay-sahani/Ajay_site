@@ -152,14 +152,13 @@
             if (items[i].type.indexOf('image') !== -1) {
               const file = items[i].getAsFile();
               if (file) {
-                const img = await loadImage(file);
-                const c = document.createElement('canvas');
-                c.width = img.naturalWidth;
-                c.height = img.naturalHeight;
-                c.getContext('2d').drawImage(img, 0, 0);
-
-                uploadedList = [{ rawImg: img, workingCanvas: c, baseName: 'pasted_image' }];
-                await reprocessAll();
+                try {
+                  const res = await SarkariEngine.loadLargeImage(file);
+                  uploadedList = [{ rawImg: res.img, workingCanvas: res.canvas, baseName: 'pasted_image' }];
+                  await reprocessAll();
+                } catch (err) {
+                  console.error('Error pasting image:', err);
+                }
                 break;
               }
             }
@@ -173,30 +172,22 @@
         uploadedList = [];
 
         for (const file of e.target.files) {
-          const img = await loadImage(file);
-          const c = document.createElement('canvas');
-          c.width = img.naturalWidth;
-          c.height = img.naturalHeight;
-          c.getContext('2d').drawImage(img, 0, 0);
-
-          const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-          uploadedList.push({ rawImg: img, workingCanvas: c, baseName });
+          try {
+            const res = await SarkariEngine.loadLargeImage(file);
+            const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+            uploadedList.push({ rawImg: res.img, workingCanvas: res.canvas, baseName });
+          } catch (err) {
+            console.error('Error loading image for conversion:', file.name, err);
+          }
         }
 
         await reprocessAll();
       }
     });
 
-    function loadImage(file) {
-      return new Promise(res => {
-        const r = new FileReader();
-        r.onload = e => {
-          const img = new Image();
-          img.onload = () => res(img);
-          img.src = e.target.result;
-        };
-        r.readAsDataURL(file);
-      });
+    async function loadImage(file) {
+      const res = await SarkariEngine.loadLargeImage(file);
+      return res.img;
     }
 
     function openConvCropper(idx) {

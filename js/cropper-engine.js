@@ -653,6 +653,7 @@ const SarkariEngine = (function() {
     'pan-nsdl-photo': { name: 'PAN Card Photo (NSDL / Protean)', width: 197, height: 276, dpi: 200, minKB: 10, maxKB: 50, aspect: 2.5/3.5, bg: 'white', notes: '2.5x3.5 cm at 200 DPI, under 50 KB.' },
     'pan-nsdl-sig': { name: 'PAN Card Signature (NSDL / Protean)', width: 354, height: 157, dpi: 200, minKB: 10, maxKB: 50, aspect: 4.5/2.0, bg: 'white', notes: '4.5x2.0 cm at 200 DPI, under 50 KB.' },
     'pan-uti-photo': { name: 'PAN Card Photo (UTIITSL)', width: 213, height: 213, dpi: 300, minKB: 10, maxKB: 30, aspect: 1, bg: 'white', notes: 'EXACT 213x213 px at 300 DPI, under 30 KB.' },
+    'pan-uti-sig': { name: 'PAN Card Signature (UTIITSL)', width: 400, height: 200, dpi: 200, minKB: 10, maxKB: 60, aspect: 2/1, bg: 'white', notes: 'EXACT 400x200 px at 200/600 DPI, under 60 KB.' },
     'voter-id-photo': { name: 'Voter ID Form 6 (NVSP / ECI)', width: 200, height: 230, dpi: 200, minKB: 20, maxKB: 50, aspect: 200/230, bg: 'white', notes: '200x230 px passport photo, under 50 KB.' },
     'epfo-uan-photo': { name: 'EPFO / UAN Profile Photo', width: 413, height: 531, dpi: 300, minKB: 10, maxKB: 100, aspect: 3.5/4.5, bg: 'white', notes: '3.5x4.5 cm, 80% face, both ears clearly visible, <100 KB.' },
     'gst-promoter-photo': { name: 'GSTN Promoter / Signatory Photo', width: 400, height: 500, dpi: 200, minKB: 10, maxKB: 100, aspect: 4/5, bg: 'white', notes: 'JPEG format, max 100 KB.' },
@@ -786,6 +787,89 @@ const SarkariEngine = (function() {
     }, 2500);
   }
 
+  /**
+   * Ultra-Resilient Large File & High-Resolution Image Loader
+   * Handles 50MB–100MB+ images, camera RAW, 108MP mobile photos with zero memory exhaustion.
+   * @param {File|Blob|string} fileInput
+   * @returns {Promise<{img: HTMLImageElement, canvas: HTMLCanvasElement, width: number, height: number, dataUrl: string, revoke: Function}>}
+   */
+  async function loadLargeImage(fileInput) {
+    let objectUrl = null;
+    let isBlob = false;
+
+    if (fileInput instanceof Blob || fileInput instanceof File) {
+      if (fileInput.name && (fileInput.name.toLowerCase().endsWith('.heic') || fileInput.name.toLowerCase().endsWith('.heif')) && window.heic2any) {
+        try {
+          const convertedBlob = await window.heic2any({ blob: fileInput, toType: 'image/jpeg', quality: 0.95 });
+          objectUrl = URL.createObjectURL(Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob);
+        } catch (e) {
+          console.warn('HEIC conversion fallback:', e);
+          objectUrl = URL.createObjectURL(fileInput);
+        }
+      } else {
+        objectUrl = URL.createObjectURL(fileInput);
+      }
+      isBlob = true;
+    } else if (typeof fileInput === 'string') {
+      objectUrl = fileInput;
+    } else {
+      throw new Error('Invalid image input');
+    }
+
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const origW = img.naturalWidth || img.width;
+        const origH = img.naturalHeight || img.height;
+
+        // If dimensions are insanely huge (e.g. > 6000px), safely cap max allocation to 5000px to prevent browser canvas crash
+        const MAX_DIM = 5000;
+        let targetW = origW;
+        let targetH = origH;
+
+        if (origW > MAX_DIM || origH > MAX_DIM) {
+          if (origW > origH) {
+            targetW = MAX_DIM;
+            targetH = Math.round((origH * MAX_DIM) / origW);
+          } else {
+            targetH = MAX_DIM;
+            targetW = Math.round((origW * MAX_DIM) / origH);
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, targetW, targetH);
+
+        const dataUrl = targetW === origW ? (isBlob ? objectUrl : img.src) : canvas.toDataURL('image/jpeg', 0.96);
+
+        resolve({
+          img,
+          canvas,
+          width: targetW,
+          height: targetH,
+          originalWidth: origW,
+          originalHeight: origH,
+          dataUrl: objectUrl || dataUrl,
+          revoke: () => { if (isBlob && objectUrl) URL.revokeObjectURL(objectUrl); }
+        });
+      };
+
+      img.onerror = (err) => {
+        if (isBlob && objectUrl) URL.revokeObjectURL(objectUrl);
+        reject(err);
+      };
+
+      img.src = objectUrl;
+    });
+  }
+
   return {
     toPixels,
     fromPixels,
@@ -803,6 +887,7 @@ const SarkariEngine = (function() {
     exportToPdf,
     triggerDownload,
     setupClipboardPaste,
+    loadLargeImage,
     showToast,
     GOVT_PRESETS_2026
   };

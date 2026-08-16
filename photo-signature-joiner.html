@@ -136,12 +136,12 @@
       });
     });
 
-    function readForCrop(file, slot, ar) {
+    async function readForCrop(file, slot, ar) {
       currentSlot = slot;
-      const reader = new FileReader();
-      reader.onload = (evt) => {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
         document.getElementById('joinModalTitle').textContent = `Crop ${slot === 'photo' ? 'Photograph' : 'Signature'}`;
-        document.getElementById('modalCropImg').src = evt.target.result;
+        document.getElementById('modalCropImg').src = res.img.src;
         document.getElementById('cropModal').classList.add('active');
         if (cropper) cropper.destroy();
         cropper = new Cropper(document.getElementById('modalCropImg'), {
@@ -149,8 +149,10 @@
           viewMode: 1,
           autoCropArea: 0.95
         });
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error loading image in joiner:', err);
+        alert('Could not load image: ' + err.message);
+      }
     }
 
     function closeCrop() {

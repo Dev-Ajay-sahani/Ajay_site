@@ -95,15 +95,48 @@
       <div class="tool-footer-link" style="color:var(--primary);font-weight:800;">Open Custom Studio →</div>
     </a>
 
-    <!-- 1. PAN Card Photo & Signature -->
-    <a href="#quick-crop-pan" class="tool-card" data-category="sarkari pan nsdl uti photo signature" onclick="openQuickModal('pan')">
+    <!-- 1. Dedicated PAN Card Photo Studio (NEW) -->
+    <a href="./pan-photo.html" class="tool-card" data-category="sarkari pan nsdl uti photo 213x213 2.5x3.5cm 300dpi">
       <div class="tool-card-header">
         <div class="tool-icon-wrap" style="color:#4F46E5;">💳</div>
-        <span class="tool-badge blue">NSDL / UTI</span>
+        <span class="tool-badge blue">NSDL &amp; UTIITSL</span>
       </div>
-      <div class="tool-title">PAN Card Photo &amp; Signature</div>
-      <div class="tool-desc">Photo 2.5×3.5 cm (200 DPI, &lt;50KB) and Signature 4.5×2.0 cm (&lt;20KB) strictly per NSDL guidelines.</div>
-      <div class="tool-footer-link">Crop for PAN Card →</div>
+      <div class="tool-title">PAN Card Photo Resizer</div>
+      <div class="tool-desc">Exact presets for NSDL (2.5×3.5 cm &lt;50KB) and UTIITSL (213×213 px, 300 DPI &lt;30KB).</div>
+      <div class="tool-footer-link">Open PAN Photo Studio →</div>
+    </a>
+
+    <!-- 1.1 Dedicated PAN & Govt Signature Studio (NEW) -->
+    <a href="./pan-signature.html" class="tool-card" data-category="sarkari signature pan nsdl uti ssc upsc ibps parivahan ink booster">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#0284C7;">✍️</div>
+        <span class="tool-badge yellow">✨ Ink Booster</span>
+      </div>
+      <div class="tool-title">PAN &amp; Exam Signature Resizer</div>
+      <div class="tool-desc">UTIITSL (400×200 px), NSDL (2×4.5 cm), SSC (4×2 cm) &amp; IBPS (140×60 px) with auto shadow cleanup.</div>
+      <div class="tool-footer-link">Crop &amp; Boost Signature →</div>
+    </a>
+
+    <!-- 1.2 Aadhaar Card Front & Back Formatter (NEW) -->
+    <a href="./aadhaar-formatter.html" class="tool-card" data-category="sarkari aadhaar card formatter merger front back a4 sheet print">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#10B981;">🆔</div>
+        <span class="tool-badge green">A4 &amp; Combined JPG</span>
+      </div>
+      <div class="tool-title">Aadhaar Front &amp; Back Formatter</div>
+      <div class="tool-desc">Crop Front &amp; Back sides and merge into single printable A4 sheet or combined JPG file.</div>
+      <div class="tool-footer-link">Format Aadhaar Card →</div>
+    </a>
+
+    <!-- 1.3 iPhone HEIC to JPG Converter (NEW) -->
+    <a href="./heic-to-jpg.html" class="tool-card" data-category="image iphone heic heif to jpg converter convert apple">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#EC4899;">📱</div>
+        <span class="tool-badge red">iPhone to JPG</span>
+      </div>
+      <div class="tool-title">iPhone HEIC to JPG Converter</div>
+      <div class="tool-desc">Convert Apple iPhone .HEIC photos directly to high-res .JPG format for govt portals.</div>
+      <div class="tool-footer-link">Convert iPhone Photos →</div>
     </a>
 
     <!-- 2. SSC Photo with DOP & Name -->
@@ -128,10 +161,10 @@
       <div class="tool-footer-link">Crop for UPSC →</div>
     </a>
 
-    <!-- 3.1 Banking Handwritten Declaration Studio (NEW) -->
+    <!-- 3.1 Banking Handwritten Declaration Studio -->
     <a href="./banking-declaration.html" class="tool-card" data-category="sarkari ibps sbi rbi banking declaration 800x400">
       <div class="tool-card-header">
-        <div class="tool-icon-wrap" style="color:#2563EB;">✍️</div>
+        <div class="tool-icon-wrap" style="color:#2563EB;">📝</div>
         <span class="tool-badge blue">800 × 400 PX</span>
       </div>
       <div class="tool-title">Banking Handwritten Declaration</div>
@@ -203,6 +236,28 @@
       <div class="tool-title">PDF to High-Res JPG</div>
       <div class="tool-desc">Convert all pages of any PDF into crisp JPG images with live preview gallery.</div>
       <div class="tool-footer-link">Convert PDF to Images →</div>
+    </a>
+
+    <!-- 9.1 Password Protect PDF (NEW) -->
+    <a href="./protect-pdf.html" class="tool-card" data-category="pdf protect password encrypt lock security">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#6366F1;">🔒</div>
+        <span class="tool-badge blue">Encryption</span>
+      </div>
+      <div class="tool-title">Password Protect PDF</div>
+      <div class="tool-desc">Secure salary slips, bank statements, and certificates with client-side password encryption.</div>
+      <div class="tool-footer-link">Protect PDF →</div>
+    </a>
+
+    <!-- 9.2 Unlock PDF Password (NEW) -->
+    <a href="./unlock-pdf.html" class="tool-card" data-category="pdf unlock password remove decrypt e-aadhaar e-pan">
+      <div class="tool-card-header">
+        <div class="tool-icon-wrap" style="color:#10B981;">🔓</div>
+        <span class="tool-badge green">Decrypt PDF</span>
+      </div>
+      <div class="tool-title">Unlock PDF Password</div>
+      <div class="tool-desc">Remove password restrictions from e-Aadhaar, e-PAN, and bank statements for easy printing.</div>
+      <div class="tool-footer-link">Unlock PDF →</div>
     </a>
 
     <!-- 10. Watermark PDF -->
@@ -537,10 +592,10 @@
       });
     });
 
-    function loadModalImageFile(file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        modalImg.src = evt.target.result;
+    async function loadModalImageFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        modalImg.src = res.img.src;
         
         cropView.style.display = 'block';
         resultView.style.display = 'none';
@@ -556,8 +611,10 @@
           viewMode: 1,
           autoCropArea: 0.95
         });
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error loading image in modal:', err);
+        alert('Could not load image file: ' + err.message);
+      }
     }
 
     function closeQuickModal() {

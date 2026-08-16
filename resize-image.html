@@ -239,14 +239,11 @@
       activeResIdx = 0;
 
       for (const file of fileList) {
-        if (file.type.startsWith('image/')) {
-          const img = await readImage(file);
-          const c = document.createElement('canvas');
-          c.width = img.naturalWidth;
-          c.height = img.naturalHeight;
-          c.getContext('2d').drawImage(img, 0, 0);
-
-          loadedResFiles.push({ name: file.name, workingCanvas: c });
+        try {
+          const res = await SarkariEngine.loadLargeImage(file);
+          loadedResFiles.push({ name: file.name, workingCanvas: res.canvas });
+        } catch (err) {
+          console.error('Error loading file for resize:', file.name, err);
         }
       }
 
@@ -261,16 +258,9 @@
       }
     }
 
-    function readImage(file) {
-      return new Promise(res => {
-        const r = new FileReader();
-        r.onload = e => {
-          const img = new Image();
-          img.onload = () => res(img);
-          img.src = e.target.result;
-        };
-        r.readAsDataURL(file);
-      });
+    async function readImage(file) {
+      const res = await SarkariEngine.loadLargeImage(file);
+      return res.img;
     }
 
     function openResCropper(idx = -1) {

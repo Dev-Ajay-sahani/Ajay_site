@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Password Protect PDF (Client-Side Encryption) – Sarkari Babu Tools</title>
+  <meta name="description" content="Add strong password protection and encryption to your confidential PDF documents, salary slips, and certificates. 100% private in browser.">
+  <meta property="og:title" content="🔒 Password Protect PDF – Sarkari Babu">
+  <meta property="og:description" content="Lock and encrypt PDF documents with a secure password client-side.">
+  <meta property="og:image" content="./assets/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="./js/cropper-engine.js"></script>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="site-navbar">
+    <a href="./index.html" class="brand-wrap">
+      <img src="./assets/logo.png" alt="Sarkari Babu Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <span class="brand-title">Sarkari Babu</span>
+        <span class="brand-subtitle">Protect PDF Studio</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <a href="./index.html" class="btn-secondary" style="padding:7px 14px;font-size:13px;">← All Tools</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+  </header>
+
+  <main class="studio-container">
+    
+    <div class="hero-section" style="padding-top:20px;padding-bottom:20px;">
+      <span class="hero-pill">🔒 Document Privacy &amp; Security</span>
+      <h1 class="hero-heading">Protect PDF with <span class="gradient-text">Password Encryption</span></h1>
+      <p class="hero-desc">Secure salary slips, bank statements, marksheets, and confidential PDFs with a personal password.</p>
+    </div>
+
+    <div class="studio-card">
+
+      <!-- Upload Dropzone -->
+      <div class="modern-dropzone" id="pdfDropzone" onclick="document.getElementById('pdfInp').click()" style="margin-bottom:20px;">
+        <div class="dropzone-icon">📄</div>
+        <div class="dropzone-title">Click or Drag PDF Document Here</div>
+        <div class="dropzone-desc">100% Private · Zero server upload</div>
+      </div>
+      <input type="file" id="pdfInp" class="hidden-input" accept=".pdf,application/pdf">
+
+      <!-- Work Area -->
+      <div id="protectWorkArea" style="display:none;max-width:480px;margin:0 auto;">
+        
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:28px;">📄</span>
+          <div style="overflow:hidden;">
+            <strong id="pdfFileName" style="display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">document.pdf</strong>
+            <span id="pdfFileSize" style="font-size:12px;color:var(--text-muted);">0 KB</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Set Document Password</label>
+          <input type="password" class="form-input" id="userPassInp" placeholder="Enter password to open PDF" style="padding:12px 14px;font-size:14px;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" class="form-input" id="confirmPassInp" placeholder="Confirm password" style="padding:12px 14px;font-size:14px;">
+        </div>
+
+        <button class="btn-success" onclick="encryptAndDownloadPdf()" style="width:100%;padding:13px;font-size:15px;margin-top:10px;">
+          🔒 Encrypt &amp; Download Protected PDF
+        </button>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sarkari Babu Tools · 100% Client-Side Privacy Guaranteed</span>
+  </footer>
+
+  <script>
+    let rawPdfBytes = null;
+    let originalName = 'document.pdf';
+
+    const pdfInp = document.getElementById('pdfInp');
+    const workArea = document.getElementById('protectWorkArea');
+    const dropzone = document.getElementById('pdfDropzone');
+    const nameLabel = document.getElementById('pdfFileName');
+    const sizeLabel = document.getElementById('pdfFileSize');
+
+    pdfInp.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        originalName = file.name;
+        nameLabel.textContent = file.name;
+        sizeLabel.textContent = (file.size / 1024).toFixed(1) + ' KB';
+        rawPdfBytes = await file.arrayBuffer();
+
+        dropzone.style.display = 'none';
+        workArea.style.display = 'block';
+      }
+    });
+
+    async function encryptAndDownloadPdf() {
+      const p1 = document.getElementById('userPassInp').value;
+      const p2 = document.getElementById('confirmPassInp').value;
+
+      if (!p1) {
+        alert('Please enter a password!');
+        return;
+      }
+      if (p1 !== p2) {
+        alert('Passwords do not match! Please re-check.');
+        return;
+      }
+
+      try {
+        const { PDFDocument } = window.PDFLib;
+        const pdfDoc = await PDFDocument.load(rawPdfBytes);
+        
+        const pdfBytes = await pdfDoc.save({
+          userPassword: p1,
+          ownerPassword: p1 + '_owner_secret'
+        });
+
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const base = originalName.replace(/\.[^/.]+$/, '');
+        SarkariEngine.triggerDownload(url, `${base}_protected.pdf`);
+      } catch (err) {
+        alert('Error encrypting PDF: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

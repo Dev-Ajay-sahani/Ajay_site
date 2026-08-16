@@ -180,29 +180,35 @@
       if (singleCanvas) updateSheet();
     }
 
-    passInp.addEventListener('change', (e) => {
+    passInp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          document.getElementById('modalCropImg').src = evt.target.result;
-          document.getElementById('cropModal').classList.add('active');
-          if (cropper) cropper.destroy();
-          const std = stdSel.value;
-          let ar = 3.5 / 4.5;
-          if (std === 'postcard') ar = 4 / 6;
-          else if (std === 'visa') ar = 1;
-          else if (std === 'passport-seva') ar = 630 / 810;
-          else if (std === 'parivahan') ar = 420 / 525;
-
-          cropper = new Cropper(document.getElementById('modalCropImg'), {
-            aspectRatio: ar,
-            viewMode: 1,
-            autoCropArea: 0.95
-          });
-        };
-        reader.readAsDataURL(e.target.files[0]);
+        openPassportCropWithFile(e.target.files[0]);
       }
     });
+
+    async function openPassportCropWithFile(file) {
+      try {
+        const res = await SarkariEngine.loadLargeImage(file);
+        document.getElementById('modalCropImg').src = res.img.src;
+        document.getElementById('cropModal').classList.add('active');
+        if (cropper) cropper.destroy();
+        const std = stdSel.value;
+        let ar = 3.5 / 4.5;
+        if (std === 'postcard') ar = 4 / 6;
+        else if (std === 'visa') ar = 1;
+        else if (std === 'passport-seva') ar = 630 / 810;
+        else if (std === 'parivahan') ar = 420 / 525;
+
+        cropper = new Cropper(document.getElementById('modalCropImg'), {
+          aspectRatio: ar,
+          viewMode: 1,
+          autoCropArea: 0.95
+        });
+      } catch (err) {
+        console.error('Error loading passport photo:', err);
+        alert('Could not load image: ' + err.message);
+      }
+    }
 
     function closeCrop() {
       document.getElementById('cropModal').classList.remove('active');
@@ -238,18 +244,7 @@
 
       // Universal Clipboard Paste (Ctrl+V)
       SarkariEngine.setupClipboardPaste((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          document.getElementById('modalCropImg').src = e.target.result;
-          document.getElementById('cropModal').classList.add('active');
-          if (cropper) cropper.destroy();
-          cropper = new Cropper(document.getElementById('modalCropImg'), {
-            aspectRatio: 3.5 / 4.5,
-            viewMode: 1,
-            autoCropArea: 0.95
-          });
-        };
-        reader.readAsDataURL(file);
+        openPassportCropWithFile(file);
       });
     });
 

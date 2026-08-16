@@ -130,10 +130,11 @@
     multiInp.addEventListener('change', async (e) => {
       if (e.target.files && e.target.files.length > 0) {
         for (const f of e.target.files) {
-          if (f.type.startsWith('image/')) {
-            const dataUrl = await readFileDataUrl(f);
-            const dims = await getImageDims(dataUrl);
-            pagesList.push({ dataUrl, width: dims.w, height: dims.h });
+          try {
+            const res = await SarkariEngine.loadLargeImage(f);
+            pagesList.push({ dataUrl: res.dataUrl, width: res.width, height: res.height });
+          } catch (err) {
+            console.error('Error loading image in jpg-to-pdf:', f.name, err);
           }
         }
         renderGallery();
@@ -151,7 +152,7 @@
       });
 
       // Universal Clipboard Paste (Ctrl+V)
-      window.addEventListener('paste', (e) => {
+      window.addEventListener('paste', async (e) => {
         if (!e.clipboardData) return;
         const items = e.clipboardData.items;
         if (items) {
@@ -159,20 +160,17 @@
             if (items[i].type.indexOf('image') !== -1) {
               const file = items[i].getAsFile();
               if (file) {
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                  const img = new Image();
-                  img.onload = () => {
-                    pagesList.push({
-                      dataUrl: evt.target.result,
-                      width: img.naturalWidth,
-                      height: img.naturalHeight
-                    });
-                    renderGallery();
-                  };
-                  img.src = evt.target.result;
-                };
-                reader.readAsDataURL(file);
+                try {
+                  const res = await SarkariEngine.loadLargeImage(file);
+                  pagesList.push({
+                    dataUrl: res.dataUrl,
+                    width: res.width,
+                    height: res.height
+                  });
+                  renderGallery();
+                } catch (err) {
+                  console.error('Error pasting image in jpg-to-pdf:', err);
+                }
                 break;
               }
             }
